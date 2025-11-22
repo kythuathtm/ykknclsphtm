@@ -44,13 +44,14 @@ const StatCard = ({ title, value, percentage, icon, onClick, themeKey = 'slate' 
     return (
         <div 
             onClick={onClick}
-            className={`flex flex-col justify-between p-3 lg:p-4 rounded-xl border cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-all duration-200 h-full group relative overflow-hidden ${theme.bg} ${theme.border}`}
+            className={`flex flex-col justify-between p-3 2xl:p-5 rounded-xl border cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-all duration-200 h-full group relative overflow-hidden ${theme.bg} ${theme.border}`}
         >
             <div className="flex justify-between items-start z-10 h-full gap-2">
                  <div className="flex flex-col justify-between min-w-0 h-full">
-                    <p className={`text-[10px] sm:text-xs lg:text-sm font-extrabold uppercase tracking-wider mb-1 truncate ${theme.textTitle}`}>{title}</p>
+                    <p className={`text-[10px] lg:text-xs font-extrabold uppercase tracking-wider mb-1 truncate ${theme.textTitle}`}>{title}</p>
                     <div className="flex items-baseline gap-1.5 mt-auto">
-                        <h3 className={`text-2xl sm:text-3xl xl:text-4xl font-black leading-none tracking-tight ${theme.textValue}`}>
+                        {/* Responsive Font Size: Normal on Laptop (xl), Big on Desktop (2xl) */}
+                        <h3 className={`text-2xl sm:text-3xl 2xl:text-4xl font-black leading-none tracking-tight ${theme.textValue}`}>
                             {value.toLocaleString('vi-VN')}
                         </h3>
                         {percentage !== undefined && (
@@ -122,7 +123,7 @@ const BrandPerformanceCard: React.FC<BrandPerformanceCardProps> = ({ data, onCli
         <div className={`flex flex-col items-center justify-center h-full w-full group-hover:bg-slate-50/30 transition-colors duration-300 p-2 ${className}`}>
             <p className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider mb-1 sm:mb-2 text-center">{label}</p>
             <div className="flex flex-col items-center">
-                <span className={`${valueSize} lg:text-5xl font-black tracking-tighter ${styles.titleColor} leading-none mb-1`}>
+                <span className={`${valueSize} font-black tracking-tighter ${styles.titleColor} leading-none mb-1`}>
                     {value.toLocaleString('vi-VN')}
                 </span>
                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${styles.lightBg} ${styles.accentColor} border border-current/10`}>
@@ -154,16 +155,16 @@ const BrandPerformanceCard: React.FC<BrandPerformanceCardProps> = ({ data, onCli
              <div className="flex-1 flex flex-col bg-white min-h-0 divide-y divide-slate-100">
                  {/* Top Row: Total Reports (Takes ~50% height) */}
                  <div className="flex-1 w-full py-2">
-                     <MetricSection label="Số báo cáo" value={data.reports} percent={data.reportsPercent} valueSize="text-3xl sm:text-4xl" />
+                     <MetricSection label="Số báo cáo" value={data.reports} percent={data.reportsPercent} valueSize="text-3xl sm:text-4xl 2xl:text-5xl" />
                  </div>
                  
                  {/* Bottom Row: Exchange & Product Count (Takes ~50% height, split horizontally) */}
                  <div className="flex-1 flex divide-x divide-slate-100 py-2">
                      <div className="flex-1">
-                         <MetricSection label="Đổi hàng" value={data.exchange} percent={data.exchangePercent} valueSize="text-xl sm:text-2xl" />
+                         <MetricSection label="Đổi hàng" value={data.exchange} percent={data.exchangePercent} valueSize="text-xl sm:text-2xl 2xl:text-3xl" />
                      </div>
                      <div className="flex-1">
-                         <MetricSection label="Sản phẩm lỗi" value={data.products} percent={data.productsPercent} valueSize="text-xl sm:text-2xl" />
+                         <MetricSection label="Sản phẩm lỗi" value={data.products} percent={data.productsPercent} valueSize="text-xl sm:text-2xl 2xl:text-3xl" />
                      </div>
                  </div>
              </div>
@@ -260,7 +261,7 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect }) => {
   }, [reports]);
 
   return (
-    <div className="flex flex-col h-full p-3 lg:p-6 gap-4 lg:gap-6 bg-slate-100 overflow-y-auto font-sans text-slate-900">
+    <div className="flex flex-col h-full p-3 lg:p-4 2xl:p-6 gap-3 lg:gap-4 2xl:gap-6 bg-slate-100 overflow-y-auto font-sans text-slate-900">
          
          {/* --- ROW 1: THỐNG KÊ CHUNG --- */}
          <div className="flex-shrink-0 bg-white p-4 lg:p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col gap-4">
@@ -269,7 +270,8 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect }) => {
                 THỐNG KÊ CHUNG
             </h2>
             {/* Auto-resize Grid: 2 cols on mobile, 3 on tablet, 6 on large screens */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3 lg:gap-4">
+            {/* Adjusted gap for smaller xl screens */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3 2xl:gap-6">
                 <StatCard 
                     title="Tổng báo cáo" value={stats.total} themeKey="indigo"
                     icon={<DocumentDuplicateIcon/>} 
@@ -309,7 +311,7 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect }) => {
                 <span className="bg-blue-600 text-white w-5 h-5 rounded flex items-center justify-center text-xs font-bold mr-2 shadow-sm">2</span>
                 THỐNG KÊ THEO LOẠI LỖI
             </h2>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 lg:gap-4 h-full">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 2xl:gap-6 h-full">
                 <StatCard 
                     title="Sản xuất" value={stats.defect.dProduction.count} percentage={stats.defect.dProduction.percent} themeKey="rose"
                     icon={<WrenchIcon/>} 
