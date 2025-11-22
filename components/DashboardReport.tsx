@@ -135,7 +135,7 @@ const BrandPerformanceCard: React.FC<BrandPerformanceCardProps> = ({ data, onCli
     return (
         <div 
             onClick={onClick}
-            className={`relative flex flex-col h-full rounded-2xl border-[3px] ${styles.borderColor} shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer bg-white overflow-hidden group min-h-[240px]`}
+            className={`relative flex flex-col h-full rounded-2xl border-[3px] ${styles.borderColor} shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer bg-white overflow-hidden group`}
         >
              {/* Header */}
              <div className={`px-4 py-3 flex-none flex items-center justify-between border-b border-slate-100 ${styles.headerBg}`}>
@@ -259,22 +259,17 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect }) => {
     };
   }, [reports]);
 
-  // Responsive Layout:
-  // Mobile (<640px): Scrollable, Stacked
-  // Tablet (640px - 1024px): Scrollable, Grids adapted
-  // Desktop (>1024px): Fixed height (h-full), Optimized Grids
-
   return (
-    <div className="flex flex-col h-auto lg:h-full p-3 gap-3 bg-slate-100 overflow-y-auto lg:overflow-hidden font-sans text-slate-900">
+    <div className="flex flex-col h-full p-3 lg:p-4 gap-3 lg:gap-4 bg-slate-100 overflow-y-auto font-sans text-slate-900">
          
          {/* --- ROW 1: THỐNG KÊ CHUNG --- */}
-         <div className="flex-shrink-0 bg-white p-3 rounded-2xl border border-slate-200 shadow-sm flex flex-col gap-2">
-            <h2 className="text-xs font-bold text-slate-800 uppercase tracking-tight flex items-center px-1">
-                <span className="bg-blue-600 text-white w-5 h-5 rounded flex items-center justify-center text-[10px] font-bold mr-2 shadow-sm">1</span>
+         <div className="flex-shrink-0 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col gap-3">
+            <h2 className="text-sm font-bold text-slate-800 uppercase tracking-tight flex items-center px-1">
+                <span className="bg-blue-600 text-white w-5 h-5 rounded flex items-center justify-center text-xs font-bold mr-2 shadow-sm">1</span>
                 THỐNG KÊ CHUNG
             </h2>
-            {/* Grid changes based on screen size: 2 cols (mobile) -> 3 cols (tablet) -> 6 cols (desktop) */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+            {/* Auto-resize Grid: 2 cols on mobile, 3 on tablet, 6 on large screens */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3">
                 <StatCard 
                     title="Tổng báo cáo" value={stats.total} themeKey="indigo"
                     icon={<DocumentDuplicateIcon/>} 
@@ -309,13 +304,12 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect }) => {
          </div>
 
          {/* --- ROW 2: THỐNG KÊ THEO LOẠI LỖI --- */}
-         <div className="flex-shrink-0 bg-white p-3 rounded-2xl border border-slate-200 shadow-sm flex flex-col gap-2">
-            <h2 className="text-xs font-bold text-slate-800 uppercase tracking-tight flex items-center px-1">
-                <span className="bg-blue-600 text-white w-5 h-5 rounded flex items-center justify-center text-[10px] font-bold mr-2 shadow-sm">2</span>
+         <div className="flex-shrink-0 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col gap-3">
+            <h2 className="text-sm font-bold text-slate-800 uppercase tracking-tight flex items-center px-1">
+                <span className="bg-blue-600 text-white w-5 h-5 rounded flex items-center justify-center text-xs font-bold mr-2 shadow-sm">2</span>
                 THỐNG KÊ THEO LOẠI LỖI
             </h2>
-            {/* Grid changes: 2 cols (mobile) -> 4 cols (tablet/desktop) */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 h-full">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 h-full">
                 <StatCard 
                     title="Sản xuất" value={stats.defect.dProduction.count} percentage={stats.defect.dProduction.percent} themeKey="rose"
                     icon={<WrenchIcon/>} 
@@ -339,17 +333,16 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect }) => {
             </div>
          </div>
 
-         {/* --- ROW 3: THỐNG KÊ THEO NHÃN HÀNG & TOP 5 (Combined) --- */}
-         {/* Flex col on mobile, Grid on desktop */}
-         <div className="flex-1 min-h-0 flex flex-col lg:grid lg:grid-cols-12 gap-3 pb-4 lg:pb-0">
+         {/* --- ROW 3: THỐNG KÊ THEO NHÃN HÀNG & TOP 5 --- */}
+         <div className="flex-1 min-h-0 flex flex-col lg:grid lg:grid-cols-12 gap-4 pb-4">
               
-              {/* --- SECTION 3: THỐNG KÊ THEO NHÃN HÀNG (lg:col-span-8) --- */}
-              <div className="lg:col-span-8 bg-white p-3 rounded-2xl border border-slate-200 shadow-sm flex flex-col min-h-[300px] lg:min-h-0">
-                    <h2 className="text-xs font-bold text-slate-800 uppercase tracking-tight flex items-center mb-3 px-1 flex-shrink-0">
-                        <span className="bg-blue-600 text-white w-5 h-5 rounded flex items-center justify-center text-[10px] font-bold mr-2 shadow-sm">3</span>
+              {/* --- SECTION 3: THỐNG KÊ THEO NHÃN HÀNG --- */}
+              <div className="lg:col-span-8 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
+                    <h2 className="text-sm font-bold text-slate-800 uppercase tracking-tight flex items-center mb-3 px-1 flex-shrink-0">
+                        <span className="bg-blue-600 text-white w-5 h-5 rounded flex items-center justify-center text-xs font-bold mr-2 shadow-sm">3</span>
                         THỐNG KÊ THEO NHÃN HÀNG
                     </h2>
-                    <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3 min-h-0">
+                    <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4 min-h-[240px] lg:min-h-0">
                         {stats.brands.map((brand, idx) => (
                             <BrandPerformanceCard 
                                 key={idx} 
@@ -361,11 +354,11 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect }) => {
                     </div>
               </div>
 
-              {/* --- SECTION 4: TOP 5 SẢN PHẨM LỖI (lg:col-span-4) --- */}
-              <div className="lg:col-span-4 bg-white p-3 rounded-2xl border border-slate-200 shadow-sm flex flex-col overflow-hidden h-full min-h-[300px] lg:min-h-0">
-                    <h2 className="text-xs font-bold text-slate-800 tracking-tight flex items-center mb-3 px-1 flex-shrink-0">
-                        <span className="bg-blue-600 text-white w-5 h-5 rounded flex items-center justify-center text-[10px] font-bold mr-2 shadow-sm">4</span>
-                        Top 5 sản phẩm lỗi
+              {/* --- SECTION 4: TOP 5 SẢN PHẨM LỖI --- */}
+              <div className="lg:col-span-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col overflow-hidden h-full min-h-[300px] lg:min-h-0">
+                    <h2 className="text-sm font-bold text-slate-800 uppercase tracking-tight flex items-center mb-3 px-1 flex-shrink-0">
+                        <span className="bg-blue-600 text-white w-5 h-5 rounded flex items-center justify-center text-xs font-bold mr-2 shadow-sm">4</span>
+                        TOP 5 SẢN PHẨM LỖI
                     </h2>
                     <div className="flex-1 overflow-y-auto pr-1 min-h-0">
                          <div className="space-y-2">

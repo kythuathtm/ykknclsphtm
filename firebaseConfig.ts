@@ -9,12 +9,12 @@ import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
   // DÁN MÃ CẤU HÌNH CỦA BẠN VÀO ĐÂY (Thay thế toàn bộ các dòng này)
-  apiKey: "AIzaSy...", 
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "...",
-  appId: "..."
+  apiKey: "AIzaSyDjW9eTJbMUc-PTWyT7IL6ps5V7AN3DZCo",
+  authDomain: "theo-doi-san-pham-loi.firebaseapp.com",
+  projectId: "theo-doi-san-pham-loi",
+  storageBucket: "theo-doi-san-pham-loi.firebasestorage.app",
+  messagingSenderId: "393797044768",
+  appId: "1:393797044768:web:a84dd44b4164f573554a45"
 };
 
 // Khởi tạo Firebase

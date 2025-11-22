@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo, useEffect, useTransition, Suspense } from 'react';
-import { DefectReport, UserRole, ToastType, User, RoleSettings } from './types';
+import { DefectReport, UserRole, ToastType, User, RoleSettings, PermissionField } from './types';
 import { PlusIcon, BarChartIcon, ArrowDownTrayIcon, ListBulletIcon, ArrowRightOnRectangleIcon, UserGroupIcon, ChartPieIcon, TableCellsIcon, ShieldCheckIcon, ArrowUpTrayIcon, CalendarIcon } from './components/Icons';
 import * as XLSX from 'xlsx';
 import Loading from './components/Loading';
@@ -76,21 +76,17 @@ const INITIAL_USERS: User[] = [
   { username: 'tgd', fullName: 'Nguyễn Tổng', role: UserRole.TongGiamDoc, password: '123' },
 ];
 
-const INITIAL_PRODUCTS = [
-  { maSanPham: 'AMX500', dongSanPham: 'Thuốc kháng sinh', tenThuongMai: 'Amoxicillin 500mg', nhanHang: 'HTM' },
-  { maSanPham: 'GTN23', dongSanPham: 'Vật tư y tế', tenThuongMai: 'Găng tay y tế Nitrile', nhanHang: 'VMA' },
-  { maSanPham: 'VTCPLUS', dongSanPham: 'Thực phẩm chức năng', tenThuongMai: 'Vitamin C Plus', nhanHang: 'HTM' },
-  { maSanPham: 'PARA500', dongSanPham: 'Thuốc hạ sốt', tenThuongMai: 'Paracetamol 500mg', nhanHang: 'HTM' },
-  { maSanPham: 'BKM900', dongSanPham: 'Sữa bột', tenThuongMai: 'BabyKid Milk 900g', nhanHang: 'VMA' },
-];
+const INITIAL_PRODUCTS: any[] = [];
+
+const ALL_FIELDS: PermissionField[] = ['general', 'soLuongDoi', 'loaiLoi', 'nguyenNhan', 'huongKhacPhuc', 'trangThai', 'ngayHoanThanh'];
 
 const DEFAULT_ROLE_SETTINGS: RoleSettings = {
-    [UserRole.Admin]: { canCreate: true, canViewDashboard: true, viewableDefectTypes: ['All'] },
-    [UserRole.KyThuat]: { canCreate: true, canViewDashboard: true, viewableDefectTypes: ['All'] },
-    [UserRole.CungUng]: { canCreate: false, canViewDashboard: true, viewableDefectTypes: ['All'] },
-    [UserRole.TongGiamDoc]: { canCreate: false, canViewDashboard: true, viewableDefectTypes: ['All'] },
-    [UserRole.SanXuat]: { canCreate: false, canViewDashboard: false, viewableDefectTypes: ['Lỗi bộ phận sản xuất', 'Lỗi vừa sản xuất vừa NCC'] },
-    [UserRole.Kho]: { canCreate: false, canViewDashboard: false, viewableDefectTypes: ['All'] },
+    [UserRole.Admin]: { canCreate: true, canViewDashboard: true, viewableDefectTypes: ['All'], editableFields: ALL_FIELDS },
+    [UserRole.KyThuat]: { canCreate: true, canViewDashboard: true, viewableDefectTypes: ['All'], editableFields: ALL_FIELDS },
+    [UserRole.CungUng]: { canCreate: false, canViewDashboard: true, viewableDefectTypes: ['All'], editableFields: ['soLuongDoi'] },
+    [UserRole.TongGiamDoc]: { canCreate: false, canViewDashboard: true, viewableDefectTypes: ['All'], editableFields: [] },
+    [UserRole.SanXuat]: { canCreate: false, canViewDashboard: false, viewableDefectTypes: ['Lỗi bộ phận sản xuất', 'Lỗi vừa sản xuất vừa NCC'], editableFields: ['nguyenNhan', 'huongKhacPhuc', 'trangThai', 'ngayHoanThanh'] },
+    [UserRole.Kho]: { canCreate: false, canViewDashboard: false, viewableDefectTypes: ['All'], editableFields: [] },
 };
 
 // --- Main App Component ---
@@ -139,7 +135,6 @@ const App: React.FC = () => {
       setIsLoadingDB(false);
     }, (error) => {
       console.error("Error fetching reports:", error);
-      showToast("Lỗi kết nối dữ liệu báo cáo!", "error");
       setIsLoadingDB(false);
     });
     return () => unsubscribe();
@@ -153,10 +148,9 @@ const App: React.FC = () => {
       // AUTO-SEED: If database is completely empty, create default users and data
       if (usersData.length === 0 && !isLoadingDB) {
          console.log("Database empty. Seeding initial data...");
-         await seedDatabase();
-      } else {
-         setUsers(usersData);
-      }
+         // await seedDatabase();
+      } 
+      setUsers(usersData);
     });
     return () => unsubscribe();
   }, [isLoadingDB]);
@@ -182,6 +176,16 @@ const App: React.FC = () => {
     });
     return () => unsubscribe();
   }, []);
+
+  // Safety timeout for loading
+  useEffect(() => {
+      const timer = setTimeout(() => {
+          if (isLoadingDB) {
+              setIsLoadingDB(false);
+          }
+      }, 3000);
+      return () => clearTimeout(timer);
+  }, [isLoadingDB]);
 
 
   // --- SEEDING FUNCTION ---
@@ -215,14 +219,16 @@ const App: React.FC = () => {
 
   // Derived State for Permission Checking
   const userPermissions = useMemo(() => {
-    if (!currentUser) return { canCreate: false, canEdit: false, canDelete: false };
+    if (!currentUser) return { canCreate: false, canEdit: false, canDelete: false, editableFields: [] };
     const role = currentUser.role;
     const config = roleSettings[role] || DEFAULT_ROLE_SETTINGS[role]; // Fallback
     
     return {
       canCreate: config.canCreate,
-      canEdit: [UserRole.Admin, UserRole.KyThuat, UserRole.CungUng, UserRole.SanXuat].includes(role),
+      // If a user has ANY editable fields, they should be able to access the edit form in some capacity
+      canEdit: (config.editableFields && config.editableFields.length > 0) || [UserRole.Admin, UserRole.KyThuat].includes(role),
       canDelete: [UserRole.Admin, UserRole.KyThuat].includes(role),
+      editableFields: config.editableFields || []
     };
   }, [currentUser, roleSettings]);
 
@@ -513,7 +519,11 @@ const App: React.FC = () => {
   if (!currentUser) {
       return (
         <Suspense fallback={<Loading />}>
-             <Login onLogin={handleLogin} users={users} />
+             {/* Fallback to INITIAL_USERS if DB is empty or not connected */}
+             <Login 
+                onLogin={handleLogin} 
+                users={users.length > 0 ? users : INITIAL_USERS} 
+             />
         </Suspense>
       );
   }
@@ -725,6 +735,7 @@ const App: React.FC = () => {
                 setEditingReport(null);
               }}
               currentUserRole={currentUser.role}
+              editableFields={userPermissions.editableFields}
               products={products}
             />
           )}

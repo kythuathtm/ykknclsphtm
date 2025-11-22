@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { UserRole, RoleConfig, RoleSettings } from '../types';
+import { UserRole, RoleConfig, RoleSettings, PermissionField } from '../types';
 import { XIcon, CheckCircleIcon } from './Icons';
 
 interface Props {
@@ -18,8 +19,18 @@ const PermissionManagementModal: React.FC<Props> = ({ roleSettings, onSave, onCl
     'Lỗi vừa sản xuất vừa NCC',
     'Lỗi khác'
   ];
+  
+  const editableFieldOptions: { key: PermissionField; label: string }[] = [
+      { key: 'general', label: 'Thông tin chung' },
+      { key: 'soLuongDoi', label: 'SL Đổi' },
+      { key: 'loaiLoi', label: 'Loại lỗi' },
+      { key: 'nguyenNhan', label: 'Nguyên nhân' },
+      { key: 'huongKhacPhuc', label: 'Hướng khắc phục' },
+      { key: 'trangThai', label: 'Trạng thái' },
+      { key: 'ngayHoanThanh', label: 'Ngày hoàn thành' },
+  ];
 
-  const handleCheckboxChange = (role: UserRole, field: keyof Omit<RoleConfig, 'viewableDefectTypes'>) => {
+  const handleCheckboxChange = (role: UserRole, field: keyof Omit<RoleConfig, 'viewableDefectTypes' | 'editableFields'>) => {
     setSettings(prev => ({
       ...prev,
       [role]: {
@@ -60,6 +71,27 @@ const PermissionManagementModal: React.FC<Props> = ({ roleSettings, onSave, onCl
         };
     });
   };
+  
+  const handleEditableFieldChange = (role: UserRole, field: PermissionField) => {
+      setSettings(prev => {
+          const currentFields = prev[role].editableFields || [];
+          let newFields: PermissionField[];
+          
+          if (currentFields.includes(field)) {
+              newFields = currentFields.filter(f => f !== field);
+          } else {
+              newFields = [...currentFields, field];
+          }
+          
+          return {
+              ...prev,
+              [role]: {
+                  ...prev[role],
+                  editableFields: newFields
+              }
+          }
+      });
+  }
 
   const handleSave = () => {
     onSave(settings);
@@ -68,7 +100,7 @@ const PermissionManagementModal: React.FC<Props> = ({ roleSettings, onSave, onCl
 
   return (
     <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-opacity">
-      <div className="bg-white rounded-xl shadow-2xl max-w-5xl w-full max-h-[90vh] flex flex-col overflow-hidden">
+      <div className="bg-white rounded-xl shadow-2xl max-w-[1400px] w-full max-h-[90vh] flex flex-col overflow-hidden">
         <div className="flex justify-between items-center p-5 border-b border-slate-200 bg-white">
           <div>
              <h2 className="text-xl font-bold text-slate-800">Phân quyền Hệ thống</h2>
@@ -80,14 +112,15 @@ const PermissionManagementModal: React.FC<Props> = ({ roleSettings, onSave, onCl
         </div>
         
         <div className="flex-1 overflow-y-auto p-6 bg-slate-50/50">
-            <div className="overflow-hidden shadow-sm ring-1 ring-black ring-opacity-5 rounded-lg bg-white">
+            <div className="overflow-hidden shadow-sm ring-1 ring-black ring-opacity-5 rounded-lg bg-white overflow-x-auto">
                 <table className="min-w-full divide-y divide-slate-200">
                     <thead className="bg-slate-100">
                         <tr>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider w-48">Vai trò</th>
-                            <th scope="col" className="px-6 py-3 text-center text-xs font-bold text-slate-500 uppercase tracking-wider w-32">Thêm mới</th>
-                            <th scope="col" className="px-6 py-3 text-center text-xs font-bold text-slate-500 uppercase tracking-wider w-32">Xem Báo cáo</th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Loại lỗi được xem</th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider w-48 sticky left-0 bg-slate-100 z-10 shadow-[1px_0_0_0_rgba(0,0,0,0.05)]">Vai trò</th>
+                            <th scope="col" className="px-6 py-3 text-center text-xs font-bold text-slate-500 uppercase tracking-wider w-24">Thêm mới</th>
+                            <th scope="col" className="px-6 py-3 text-center text-xs font-bold text-slate-500 uppercase tracking-wider w-24">Báo cáo</th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider min-w-[300px]">Các trường được phép chỉnh sửa</th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider min-w-[250px]">Loại lỗi được xem</th>
                         </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-slate-200">
@@ -97,7 +130,7 @@ const PermissionManagementModal: React.FC<Props> = ({ roleSettings, onSave, onCl
                             
                             return (
                                 <tr key={role} className={`hover:bg-slate-50 transition-colors ${isAdmin ? 'bg-blue-50/30' : ''}`}>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-slate-800">
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-slate-800 sticky left-0 bg-inherit z-10 shadow-[1px_0_0_0_rgba(0,0,0,0.05)]">
                                         {role} {isAdmin && <span className="ml-2 text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">Full</span>}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-center">
@@ -119,6 +152,22 @@ const PermissionManagementModal: React.FC<Props> = ({ roleSettings, onSave, onCl
                                         />
                                     </td>
                                     <td className="px-6 py-4 text-sm text-slate-600">
+                                        <div className="grid grid-cols-2 gap-2 gap-x-4">
+                                            {editableFieldOptions.map(option => (
+                                                <label key={option.key} className="inline-flex items-center cursor-pointer group">
+                                                    <input 
+                                                        type="checkbox"
+                                                        checked={(config.editableFields || []).includes(option.key)}
+                                                        onChange={() => handleEditableFieldChange(role, option.key)}
+                                                        disabled={isAdmin}
+                                                        className="rounded border-slate-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 disabled:opacity-50"
+                                                    />
+                                                    <span className="ml-2 text-xs group-hover:text-slate-900 transition-colors">{option.label}</span>
+                                                </label>
+                                            ))}
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4 text-sm text-slate-600">
                                         <div className="space-y-2">
                                             <label className="inline-flex items-center mr-4 cursor-pointer">
                                                 <input 
@@ -128,10 +177,10 @@ const PermissionManagementModal: React.FC<Props> = ({ roleSettings, onSave, onCl
                                                     disabled={isAdmin}
                                                     className="rounded border-slate-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 disabled:opacity-50"
                                                 />
-                                                <span className="ml-2 font-semibold text-slate-700">Tất cả</span>
+                                                <span className="ml-2 font-semibold text-slate-700 text-xs">Tất cả</span>
                                             </label>
                                             
-                                            <div className={`grid grid-cols-2 gap-2 mt-1 transition-opacity ${config.viewableDefectTypes.includes('All') ? 'opacity-50 pointer-events-none' : ''}`}>
+                                            <div className={`grid grid-cols-1 gap-1 mt-1 transition-opacity ${config.viewableDefectTypes.includes('All') ? 'opacity-50 pointer-events-none' : ''}`}>
                                                 {defectTypes.map(type => (
                                                     <label key={type} className="inline-flex items-center cursor-pointer">
                                                         <input 
@@ -141,7 +190,7 @@ const PermissionManagementModal: React.FC<Props> = ({ roleSettings, onSave, onCl
                                                             disabled={isAdmin || config.viewableDefectTypes.includes('All')}
                                                             className="rounded border-slate-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 disabled:opacity-50"
                                                         />
-                                                        <span className="ml-2">{type}</span>
+                                                        <span className="ml-2 text-xs">{type}</span>
                                                     </label>
                                                 ))}
                                             </div>

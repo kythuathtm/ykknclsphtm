@@ -40,11 +40,14 @@ export interface DefectReport {
 
 export type ToastType = 'success' | 'error' | 'info';
 
+export type PermissionField = 'general' | 'soLuongDoi' | 'loaiLoi' | 'nguyenNhan' | 'huongKhacPhuc' | 'trangThai' | 'ngayHoanThanh';
+
 // Cấu hình phân quyền
 export interface RoleConfig {
   canCreate: boolean; // Quyền thêm mới
   canViewDashboard: boolean; // Quyền xem báo cáo thống kê
   viewableDefectTypes: string[]; // Danh sách các loại lỗi được phép xem ('All' hoặc cụ thể)
+  editableFields: PermissionField[]; // Danh sách các trường được phép chỉnh sửa
 }
 
 export type RoleSettings = Record<UserRole, RoleConfig>;

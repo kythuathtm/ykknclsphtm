@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { DefectReport, UserRole } from '../types';
+import { DefectReport, UserRole, PermissionField } from '../types';
 import { XIcon, CheckCircleIcon } from './Icons';
 
 interface Props {
@@ -8,6 +8,7 @@ interface Props {
   onSave: (report: DefectReport) => void;
   onClose: () => void;
   currentUserRole: UserRole;
+  editableFields: PermissionField[];
   products: { maSanPham: string; dongSanPham: string; tenThuongMai: string; nhanHang?: string }[];
 }
 
@@ -19,7 +20,7 @@ const getTodayDateString = () => {
     return `${year}-${month}-${day}`;
 }
 
-const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, currentUserRole, products }) => {
+const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, currentUserRole, editableFields, products }) => {
   const [formData, setFormData] = useState<Omit<DefectReport, 'id'>>({
     ngayTao: new Date().toISOString(), // Initialize
     ngayPhanAnh: getTodayDateString(),
@@ -46,18 +47,36 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
   const productCodeInputRef = useRef<HTMLInputElement>(null);
 
   const isFieldDisabled = (fieldName: keyof Omit<DefectReport, 'id'>) => {
-    if (!initialData) return false;
-    switch (currentUserRole) {
-      case UserRole.Admin:
-      case UserRole.KyThuat:
-        return false;
-      case UserRole.CungUng:
-        return fieldName !== 'soLuongDoi';
-      case UserRole.SanXuat:
-        return !['nguyenNhan', 'huongKhacPhuc', 'trangThai', 'ngayHoanThanh'].includes(fieldName);
-      default:
+    // Always allow editing if we are creating a new report (assuming the creator has rights to fill initial data)
+    // Or strict mode: only if editableFields allows. 
+    // Requirement implies "allow only admins to edit X", usually refers to updates.
+    // For better UX, we allow creating a report to populate basic info.
+    if (!initialData) return false; 
+    
+    // Special check for Product Locked Info (derived fields)
+    if (isProductInfoLocked && ['dongSanPham', 'tenThuongMai', 'nhanHang'].includes(fieldName)) {
         return true;
     }
+
+    // Map form field names to Permission Fields
+    let permissionKey: PermissionField;
+
+    if (['nguyenNhan'].includes(fieldName)) permissionKey = 'nguyenNhan';
+    else if (['huongKhacPhuc'].includes(fieldName)) permissionKey = 'huongKhacPhuc';
+    else if (['trangThai'].includes(fieldName)) permissionKey = 'trangThai';
+    else if (['ngayHoanThanh'].includes(fieldName)) permissionKey = 'ngayHoanThanh';
+    else if (['loaiLoi'].includes(fieldName)) permissionKey = 'loaiLoi';
+    else if (['soLuongDoi'].includes(fieldName)) permissionKey = 'soLuongDoi';
+    else permissionKey = 'general';
+
+    // Check if the permission key is present in user's allowed fields
+    // Note: If user has 'general', they can edit fields mapped to 'general'.
+    // If they have 'soLuongDoi', they can edit 'soLuongDoi'.
+    // But if a user has 'general' permission, should they also be able to edit 'soLuongDoi'? 
+    // Let's keep it explicit: 'soLuongDoi' is its own permission for granular control (e.g. CungUng).
+    // If an Admin needs to edit everything, they should have ALL permissions in their config.
+
+    return !editableFields.includes(permissionKey);
   };
   
   const validate = () => {
@@ -180,15 +199,15 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
             
             <div className="md:col-span-2">
               <label htmlFor="ngayPhanAnh" className="block text-sm font-medium text-slate-700">Ngày phản ánh <span className="text-red-500">*</span></label>
-              <input type="date" name="ngayPhanAnh" value={formData.ngayPhanAnh} onChange={handleChange} required className={getInputClasses('ngayPhanAnh')}/>
+              <input type="date" name="ngayPhanAnh" value={formData.ngayPhanAnh} onChange={handleChange} required className={getInputClasses('ngayPhanAnh')} disabled={isFieldDisabled('ngayPhanAnh')}/>
             </div>
             <div className="md:col-span-2">
               <label htmlFor="maSanPham" className="block text-sm font-medium text-slate-700">Mã sản phẩm <span className="text-red-500">*</span></label>
-              <input ref={productCodeInputRef} type="text" name="maSanPham" value={formData.maSanPham} onChange={handleChange} required placeholder="VD: AMX500" className={getInputClasses('maSanPham')}/>
+              <input ref={productCodeInputRef} type="text" name="maSanPham" value={formData.maSanPham} onChange={handleChange} required placeholder="VD: AMX500" className={getInputClasses('maSanPham')} disabled={isFieldDisabled('maSanPham')}/>
             </div>
              <div className="md:col-span-2">
               <label htmlFor="loaiLoi" className="block text-sm font-medium text-slate-700">Loại lỗi <span className="text-red-500">*</span></label>
-              <select name="loaiLoi" value={formData.loaiLoi} onChange={handleChange} className={getInputClasses('loaiLoi')} required>
+              <select name="loaiLoi" value={formData.loaiLoi} onChange={handleChange} className={getInputClasses('loaiLoi')} required disabled={isFieldDisabled('loaiLoi')}>
                 <option value="" disabled>-- Chọn loại lỗi --</option>
                 <option value="Lỗi bộ phận sản xuất">Lỗi bộ phận sản xuất</option>
                 <option value="Lỗi Nhà cung cấp">Lỗi Nhà cung cấp</option>
@@ -199,15 +218,15 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
 
             <div className="md:col-span-2">
               <label htmlFor="dongSanPham" className="block text-sm font-medium text-slate-700">Dòng sản phẩm</label>
-              <input type="text" name="dongSanPham" value={formData.dongSanPham} onChange={handleChange} readOnly={isProductInfoLocked} className={getInputClasses('dongSanPham', isProductInfoLocked)}/>
+              <input type="text" name="dongSanPham" value={formData.dongSanPham} onChange={handleChange} readOnly={isProductInfoLocked || isFieldDisabled('dongSanPham')} className={getInputClasses('dongSanPham', isProductInfoLocked || isFieldDisabled('dongSanPham'))}/>
             </div>
             <div className="md:col-span-2">
               <label htmlFor="tenThuongMai" className="block text-sm font-medium text-slate-700">Tên thương mại</label>
-              <input type="text" name="tenThuongMai" value={formData.tenThuongMai} onChange={handleChange} readOnly={isProductInfoLocked} className={getInputClasses('tenThuongMai', isProductInfoLocked)}/>
+              <input type="text" name="tenThuongMai" value={formData.tenThuongMai} onChange={handleChange} readOnly={isProductInfoLocked || isFieldDisabled('tenThuongMai')} className={getInputClasses('tenThuongMai', isProductInfoLocked || isFieldDisabled('tenThuongMai'))}/>
             </div>
             <div className="md:col-span-2">
               <label htmlFor="nhanHang" className="block text-sm font-medium text-slate-700">Nhãn hàng</label>
-               <select name="nhanHang" value={formData.nhanHang} onChange={handleChange} className={getInputClasses('nhanHang', isProductInfoLocked)} disabled={isProductInfoLocked}>
+               <select name="nhanHang" value={formData.nhanHang} onChange={handleChange} className={getInputClasses('nhanHang', isProductInfoLocked || isFieldDisabled('nhanHang'))} disabled={isProductInfoLocked || isFieldDisabled('nhanHang')}>
                  <option value="HTM">HTM</option>
                  <option value="VMA">VMA</option>
                  <option value="Khác">Khác</option>
@@ -216,11 +235,11 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
 
              <div className="md:col-span-2">
               <label htmlFor="soLo" className="block text-sm font-medium text-slate-700">Số lô <span className="text-red-500">*</span></label>
-              <input type="text" name="soLo" value={formData.soLo} onChange={handleChange} required className={getInputClasses('soLo')}/>
+              <input type="text" name="soLo" value={formData.soLo} onChange={handleChange} required className={getInputClasses('soLo')} disabled={isFieldDisabled('soLo')}/>
             </div>
             <div className="md:col-span-2">
               <label htmlFor="maNgaySanXuat" className="block text-sm font-medium text-slate-700">Mã ngày sản xuất</label>
-              <input type="text" name="maNgaySanXuat" value={formData.maNgaySanXuat} onChange={handleChange} className={getInputClasses('maNgaySanXuat')}/>
+              <input type="text" name="maNgaySanXuat" value={formData.maNgaySanXuat} onChange={handleChange} className={getInputClasses('maNgaySanXuat')} disabled={isFieldDisabled('maNgaySanXuat')}/>
             </div>
             <div className="md:col-span-2">
                {/* Spacer for grid alignment if needed, or empty */}
@@ -228,15 +247,15 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
 
              <div className="md:col-span-2">
               <label htmlFor="soLuongDaNhap" className="block text-sm font-medium text-slate-700">SL Đã nhập</label>
-              <input type="number" name="soLuongDaNhap" value={formData.soLuongDaNhap} onChange={handleChange} min="0" className={getInputClasses('soLuongDaNhap')}/>
+              <input type="number" name="soLuongDaNhap" value={formData.soLuongDaNhap} onChange={handleChange} min="0" className={getInputClasses('soLuongDaNhap')} disabled={isFieldDisabled('soLuongDaNhap')}/>
             </div>
             <div className="md:col-span-2">
               <label htmlFor="soLuongLoi" className="block text-sm font-medium text-slate-700">SL Lỗi</label>
-              <input type="number" name="soLuongLoi" value={formData.soLuongLoi} onChange={handleChange} min="0" className={getInputClasses('soLuongLoi')}/>
+              <input type="number" name="soLuongLoi" value={formData.soLuongLoi} onChange={handleChange} min="0" className={getInputClasses('soLuongLoi')} disabled={isFieldDisabled('soLuongLoi')}/>
             </div>
             <div className="md:col-span-2">
               <label htmlFor="soLuongDoi" className="block text-sm font-medium text-slate-700">SL Đổi</label>
-              <input type="number" name="soLuongDoi" value={formData.soLuongDoi} onChange={handleChange} min="0" className={getInputClasses('soLuongDoi')}/>
+              <input type="number" name="soLuongDoi" value={formData.soLuongDoi} onChange={handleChange} min="0" className={getInputClasses('soLuongDoi')} disabled={isFieldDisabled('soLuongDoi')}/>
             </div>
 
             {/* SECTION 2: THÔNG TIN KHÁCH HÀNG */}
@@ -244,16 +263,16 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
             
              <div className="md:col-span-3">
               <label htmlFor="nhaPhanPhoi" className="block text-sm font-medium text-slate-700">Nhà phân phối <span className="text-red-500">*</span></label>
-              <input type="text" name="nhaPhanPhoi" value={formData.nhaPhanPhoi} onChange={handleChange} required className={getInputClasses('nhaPhanPhoi')}/>
+              <input type="text" name="nhaPhanPhoi" value={formData.nhaPhanPhoi} onChange={handleChange} required className={getInputClasses('nhaPhanPhoi')} disabled={isFieldDisabled('nhaPhanPhoi')}/>
             </div>
             <div className="md:col-span-3">
               <label htmlFor="donViSuDung" className="block text-sm font-medium text-slate-700">Đơn vị sử dụng</label>
-              <input type="text" name="donViSuDung" value={formData.donViSuDung} onChange={handleChange} className={getInputClasses('donViSuDung')}/>
+              <input type="text" name="donViSuDung" value={formData.donViSuDung} onChange={handleChange} className={getInputClasses('donViSuDung')} disabled={isFieldDisabled('donViSuDung')}/>
             </div>
 
             <div className="md:col-span-6">
               <label htmlFor="noiDungPhanAnh" className="block text-sm font-medium text-slate-700">Nội dung phản ánh <span className="text-red-500">*</span></label>
-              <textarea name="noiDungPhanAnh" rows={3} value={formData.noiDungPhanAnh} onChange={handleChange} required className={getInputClasses('noiDungPhanAnh')}></textarea>
+              <textarea name="noiDungPhanAnh" rows={3} value={formData.noiDungPhanAnh} onChange={handleChange} required className={getInputClasses('noiDungPhanAnh')} disabled={isFieldDisabled('noiDungPhanAnh')}></textarea>
             </div>
 
             {/* SECTION 3: XỬ LÝ & KẾT QUẢ */}
@@ -261,16 +280,16 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
 
             <div className="md:col-span-6">
               <label htmlFor="nguyenNhan" className="block text-sm font-medium text-slate-700">Nguyên nhân</label>
-              <textarea name="nguyenNhan" rows={2} value={formData.nguyenNhan} onChange={handleChange} className={getInputClasses('nguyenNhan')} placeholder="Cần nhập để hoàn thành báo cáo"></textarea>
+              <textarea name="nguyenNhan" rows={2} value={formData.nguyenNhan} onChange={handleChange} className={getInputClasses('nguyenNhan')} placeholder="Cần nhập để hoàn thành báo cáo" disabled={isFieldDisabled('nguyenNhan')}></textarea>
             </div>
             <div className="md:col-span-6">
               <label htmlFor="huongKhacPhuc" className="block text-sm font-medium text-slate-700">Hướng khắc phục</label>
-              <textarea name="huongKhacPhuc" rows={2} value={formData.huongKhacPhuc} onChange={handleChange} className={getInputClasses('huongKhacPhuc')} placeholder="Cần nhập để hoàn thành báo cáo"></textarea>
+              <textarea name="huongKhacPhuc" rows={2} value={formData.huongKhacPhuc} onChange={handleChange} className={getInputClasses('huongKhacPhuc')} placeholder="Cần nhập để hoàn thành báo cáo" disabled={isFieldDisabled('huongKhacPhuc')}></textarea>
             </div>
 
             <div className="md:col-span-3">
               <label htmlFor="trangThai" className="block text-sm font-medium text-slate-700">Trạng thái</label>
-              <select name="trangThai" value={formData.trangThai} onChange={handleChange} className={getInputClasses('trangThai')}>
+              <select name="trangThai" value={formData.trangThai} onChange={handleChange} className={getInputClasses('trangThai')} disabled={isFieldDisabled('trangThai')}>
                 <option value="Mới">Mới</option>
                 <option value="Đang xử lý">Đang xử lý</option>
                 <option value="Chưa tìm ra nguyên nhân">Chưa tìm ra nguyên nhân</option>
@@ -286,7 +305,7 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
                     value={formData.ngayHoanThanh || ''} 
                     onChange={handleChange} 
                     className={getInputClasses('ngayHoanThanh')}
-                    disabled={formData.trangThai !== 'Hoàn thành' && !formData.ngayHoanThanh}
+                    disabled={isFieldDisabled('ngayHoanThanh') || (formData.trangThai !== 'Hoàn thành' && !formData.ngayHoanThanh)}
                 />
                 {errors.ngayHoanThanh && <p className="mt-1 text-xs text-red-500">Vui lòng chọn ngày hoàn thành.</p>}
             </div>
