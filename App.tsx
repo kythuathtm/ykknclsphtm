@@ -1,12 +1,11 @@
 
 import React, { useState, useMemo, useEffect, useTransition, Suspense } from 'react';
-import { DefectReport, UserRole, ToastType, User, RoleSettings, PermissionField } from './types';
-import { PlusIcon, BarChartIcon, ArrowDownTrayIcon, ListBulletIcon, ArrowRightOnRectangleIcon, UserGroupIcon, ChartPieIcon, TableCellsIcon, ShieldCheckIcon, ArrowUpTrayIcon, CalendarIcon } from './components/Icons';
+import { DefectReport, UserRole, ToastType, User, RoleSettings, PermissionField, SystemSettings } from './types';
+import { PlusIcon, BarChartIcon, ArrowDownTrayIcon, ListBulletIcon, ArrowRightOnRectangleIcon, UserGroupIcon, ChartPieIcon, TableCellsIcon, ShieldCheckIcon, ArrowUpTrayIcon, CalendarIcon, Cog8ToothIcon } from './components/Icons';
 import * as XLSX from 'xlsx';
 import Loading from './components/Loading';
 
 // Firebase Imports
-// FIX: Use relative path to root file
 import { db } from './firebaseConfig';
 import { 
   collection, 
@@ -28,6 +27,7 @@ const DefectReportForm = React.lazy(() => import('./components/DefectReportForm'
 const ProductListModal = React.lazy(() => import('./components/ProductListModal'));
 const UserManagementModal = React.lazy(() => import('./components/UserManagementModal'));
 const PermissionManagementModal = React.lazy(() => import('./components/PermissionManagementModal'));
+const SystemSettingsModal = React.lazy(() => import('./components/SystemSettingsModal'));
 const Login = React.lazy(() => import('./components/Login'));
 const DashboardReport = React.lazy(() => import('./components/DashboardReport'));
 
@@ -89,6 +89,13 @@ const DEFAULT_ROLE_SETTINGS: RoleSettings = {
     [UserRole.Kho]: { canCreate: false, canViewDashboard: false, viewableDefectTypes: ['All'], editableFields: [] },
 };
 
+const DEFAULT_SYSTEM_SETTINGS: SystemSettings = {
+    appName: 'THEO DÕI SẢN PHẨM LỖI',
+    logoUrl: '',
+    backgroundType: 'default',
+    backgroundValue: ''
+};
+
 // --- Main App Component ---
 
 const App: React.FC = () => {
@@ -100,6 +107,7 @@ const App: React.FC = () => {
   const [reports, setReports] = useState<DefectReport[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [roleSettings, setRoleSettings] = useState<RoleSettings>(DEFAULT_ROLE_SETTINGS);
+  const [systemSettings, setSystemSettings] = useState<SystemSettings>(DEFAULT_SYSTEM_SETTINGS);
   
   const [selectedReport, setSelectedReport] = useState<DefectReport | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -107,6 +115,7 @@ const App: React.FC = () => {
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
   const [isPermissionModalOpen, setIsPermissionModalOpen] = useState(false);
+  const [isSystemSettingsModalOpen, setIsSystemSettingsModalOpen] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
   const [currentView, setCurrentView] = useState<'list' | 'dashboard'>('list');
   const [isLoadingDB, setIsLoadingDB] = useState(true);
@@ -144,11 +153,8 @@ const App: React.FC = () => {
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, "users"), async (snapshot) => {
       const usersData = snapshot.docs.map(doc => doc.data()) as User[];
-      
-      // AUTO-SEED: If database is completely empty, create default users and data
       if (usersData.length === 0 && !isLoadingDB) {
          console.log("Database empty. Seeding initial data...");
-         // await seedDatabase();
       } 
       setUsers(usersData);
     });
@@ -164,18 +170,28 @@ const App: React.FC = () => {
     return () => unsubscribe();
   }, []);
 
-  // 4. Listen to SETTINGS (Role Config)
+  // 4. Listen to SETTINGS (Role Config & System Config)
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, "settings"), (snapshot) => {
       if (!snapshot.empty) {
-        const settingsDoc = snapshot.docs.find(d => d.id === 'roleSettings');
-        if (settingsDoc) {
-            setRoleSettings(settingsDoc.data() as RoleSettings);
+        const roleSettingsDoc = snapshot.docs.find(d => d.id === 'roleSettings');
+        if (roleSettingsDoc) {
+            setRoleSettings(roleSettingsDoc.data() as RoleSettings);
+        }
+        
+        const systemSettingsDoc = snapshot.docs.find(d => d.id === 'system');
+        if (systemSettingsDoc) {
+            setSystemSettings(systemSettingsDoc.data() as SystemSettings);
         }
       }
     });
     return () => unsubscribe();
   }, []);
+
+  // Update Document Title based on Settings
+  useEffect(() => {
+      document.title = systemSettings.appName || 'Hệ thống Theo dõi Sản phẩm Lỗi';
+  }, [systemSettings.appName]);
 
   // Safety timeout for loading
   useEffect(() => {
@@ -209,6 +225,10 @@ const App: React.FC = () => {
           const settingsRef = doc(db, "settings", "roleSettings");
           batch.set(settingsRef, DEFAULT_ROLE_SETTINGS);
 
+          // Seed System Settings if not exists
+          const systemRef = doc(db, "settings", "system");
+          batch.set(systemRef, DEFAULT_SYSTEM_SETTINGS);
+
           await batch.commit();
           showToast("Khởi tạo dữ liệu mẫu thành công!", "success");
       } catch (error) {
@@ -225,7 +245,6 @@ const App: React.FC = () => {
     
     return {
       canCreate: config.canCreate,
-      // If a user has ANY editable fields, they should be able to access the edit form in some capacity
       canEdit: (config.editableFields && config.editableFields.length > 0) || [UserRole.Admin, UserRole.KyThuat].includes(role),
       canDelete: [UserRole.Admin, UserRole.KyThuat].includes(role),
       editableFields: config.editableFields || []
@@ -271,7 +290,6 @@ const App: React.FC = () => {
         result = result.filter((r) => r.loaiLoi === defectTypeFilter);
     }
 
-    // Year Filter Logic
     if (yearFilter !== 'All') {
         result = result.filter((r) => {
             if (!r.ngayPhanAnh) return false;
@@ -307,7 +325,6 @@ const App: React.FC = () => {
       }
   }, [filteredReports]);
   
-  // Calculate available years for global filter
   const availableYears = useMemo(() => {
       const years = new Set<string>();
       const currentYear = new Date().getFullYear().toString();
@@ -346,6 +363,7 @@ const App: React.FC = () => {
       setIsUserModalOpen(false);
       setIsProductModalOpen(false);
       setIsPermissionModalOpen(false);
+      setIsSystemSettingsModalOpen(false);
   };
 
   // --- FIRESTORE ACTIONS ---
@@ -480,14 +498,21 @@ const App: React.FC = () => {
       }
   };
 
-  // Search & Filter Handlers used in List Component
+  const handleSaveSystemSettings = async (newSettings: SystemSettings) => {
+      try {
+          await setDoc(doc(db, "settings", "system"), newSettings);
+          showToast('Cập nhật cấu hình hệ thống thành công.', 'success');
+      } catch (error) {
+          showToast("Lỗi khi lưu cấu hình hệ thống", "error");
+      }
+  };
+
   const handleSearchTermChange = (term: string) => startTransition(() => setSearchTerm(term));
   const handleStatusFilterChange = (status: string) => startTransition(() => setStatusFilter(status));
   const handleDefectTypeFilterChange = (type: string) => startTransition(() => setDefectTypeFilter(type));
   const handleYearFilterChange = (year: string) => startTransition(() => setYearFilter(year));
   const handleDateFilterChange = (dates: {start: string, end: string}) => startTransition(() => setDateFilter(dates));
   
-  // Dashboard interaction handler
   const handleDashboardFilterSelect = (filterType: 'status' | 'defectType' | 'all' | 'search' | 'brand', value?: string) => {
       startTransition(() => {
           setYearFilter('All'); // Reset year on dashboard click
@@ -522,7 +547,8 @@ const App: React.FC = () => {
              {/* Fallback to INITIAL_USERS if DB is empty or not connected */}
              <Login 
                 onLogin={handleLogin} 
-                users={users.length > 0 ? users : INITIAL_USERS} 
+                users={users.length > 0 ? users : INITIAL_USERS}
+                settings={systemSettings}
              />
         </Suspense>
       );
@@ -536,11 +562,15 @@ const App: React.FC = () => {
           
           {/* Left: Logo & Title */}
           <div className="flex items-center gap-3 min-w-0">
-            <div className="bg-blue-600 p-2 rounded-xl shadow-lg shadow-blue-600/20 flex-shrink-0">
-               <BarChartIcon className="h-6 w-6 text-white" />
-            </div>
+            {systemSettings.logoUrl ? (
+                <img src={systemSettings.logoUrl} alt="Logo" className="h-8 w-auto object-contain" />
+            ) : (
+                <div className="bg-blue-600 p-2 rounded-xl shadow-lg shadow-blue-600/20 flex-shrink-0">
+                   <BarChartIcon className="h-6 w-6 text-white" />
+                </div>
+            )}
             <h1 className="text-lg font-bold text-slate-800 tracking-tight truncate hidden sm:block uppercase">
-              THEO DÕI LỖI SẢN PHẨM
+              {systemSettings.appName}
             </h1>
             {isLoadingDB && <span className="text-xs text-blue-500 animate-pulse ml-2">● Đang đồng bộ...</span>}
           </div>
@@ -619,6 +649,13 @@ const App: React.FC = () => {
 
                 {currentUser.role === UserRole.Admin && (
                     <>
+                         <button
+                            onClick={() => setIsSystemSettingsModalOpen(true)}
+                            className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors"
+                            title="Cấu hình Giao diện"
+                        >
+                            <Cog8ToothIcon className="h-6 w-6" />
+                        </button>
                          <button
                             onClick={() => setIsPermissionModalOpen(true)}
                             className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors"
@@ -763,6 +800,14 @@ const App: React.FC = () => {
                 roleSettings={roleSettings}
                 onSave={handleSavePermissions}
                 onClose={() => setIsPermissionModalOpen(false)}
+              />
+          )}
+
+          {isSystemSettingsModalOpen && (
+              <SystemSettingsModal
+                 currentSettings={systemSettings}
+                 onSave={handleSaveSystemSettings}
+                 onClose={() => setIsSystemSettingsModalOpen(false)}
               />
           )}
       </Suspense>

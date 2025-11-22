@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500">
+  <!-- Outer Border -->
+  <rect x="10" y="10" width="380" height="480" rx="4" ry="4" fill="none" stroke="#003DA5" stroke-width="12" />
+  
+  <!-- Water Drop Shape -->
+  <path 
+    d="M200 60 
+       C 200 60, 320 250, 320 330 
+       A 120 120 0 1 1 80 330 
+       C 80 250, 200 60, 200 60 Z" 
+    fill="#003DA5" 
+  />
+  
+  <!-- Inner White Curve (Reflection) -->
+  <path 
+    d="M280 300 
+       C 290 380, 250 440, 180 450
+       C 240 430, 270 380, 270 250 Z" 
+    fill="white" 
+    opacity="0.9"
+  />
+  
+  <!-- Registered Symbol -->
+  <text x="350" y="80" font-family="Arial" font-size="40" fill="#003DA5" font-weight="bold">®</text>
+
+  <!-- Text: HỒNG THIỆN MỸ -->
+  <text x="200" y="550" text-anchor="middle" font-family="Times New Roman, serif" font-size="52" fill="#C5003E" font-weight="bold" letter-spacing="2" transform="translate(0, -30)">
+    HỒNG THIỆN MỸ
+  </text>
+</svg>
