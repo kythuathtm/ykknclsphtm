@@ -79,7 +79,12 @@ interface BrandData {
     productsPercent: string;
 }
 
-const BrandPerformanceCard = ({ data, onClick }: { data: BrandData, onClick: () => void }) => {
+interface BrandPerformanceCardProps {
+    data: BrandData;
+    onClick: () => void;
+}
+
+const BrandPerformanceCard: React.FC<BrandPerformanceCardProps> = ({ data, onClick }) => {
     // Determine styles based on Brand Name
     let styles = {
         borderColor: 'border-slate-200',
