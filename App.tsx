@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect, useTransition, Suspense } from 'react';
 import { DefectReport, UserRole, ToastType, User, RoleSettings, PermissionField, SystemSettings } from './types';
 import { PlusIcon, BarChartIcon, ArrowDownTrayIcon, ListBulletIcon, ArrowRightOnRectangleIcon, UserGroupIcon, ChartPieIcon, TableCellsIcon, ShieldCheckIcon, ArrowUpTrayIcon, CalendarIcon, Cog8ToothIcon } from './components/Icons';
@@ -555,7 +554,7 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-slate-100 font-sans text-slate-900">
+    <div className="flex flex-col h-screen bg-slate-100 font-sans font-medium text-slate-900">
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-30 transition-all">
         <div className="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
