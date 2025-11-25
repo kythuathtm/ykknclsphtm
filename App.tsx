@@ -86,7 +86,7 @@ const DEFAULT_ROLE_SETTINGS: RoleSettings = {
     [UserRole.KyThuat]: { canCreate: true, canViewDashboard: true, viewableDefectTypes: ['All'], editableFields: ['general', 'soLuongDoi', 'loaiLoi', 'nguyenNhan', 'huongKhacPhuc', 'trangThai', 'ngayHoanThanh'] },
     [UserRole.CungUng]: { canCreate: false, canViewDashboard: true, viewableDefectTypes: ['All'], editableFields: ['general', 'loaiLoi', 'trangThai'] },
     [UserRole.TongGiamDoc]: { canCreate: false, canViewDashboard: true, viewableDefectTypes: ['All'], editableFields: [] },
-    [UserRole.SanXuat]: { canCreate: false, canViewDashboard: false, viewableDefectTypes: ['Lỗi bộ phận sản xuất', 'Lỗi vừa sản xuất vừa NCC'], editableFields: ['nguyenNhan', 'huongKhacPhuc'] },
+    [UserRole.SanXuat]: { canCreate: false, canViewDashboard: false, viewableDefectTypes: ['Lỗi Sản xuất', 'Lỗi Hỗn hợp'], editableFields: ['nguyenNhan', 'huongKhacPhuc'] },
     [UserRole.Kho]: { canCreate: false, canViewDashboard: false, viewableDefectTypes: ['All'], editableFields: [] },
 };
 
@@ -837,7 +837,6 @@ export const App: React.FC = () => {
                 onSaveUser={handleSaveUser}
                 onDeleteUser={handleDeleteUser}
                 onClose={() => setIsUserModalOpen(false)}
-                availableRoles={availableRoles}
               />
           )}
           

@@ -1,8 +1,7 @@
 
-
 import React, { useState } from 'react';
 import { UserRole, RoleConfig, RoleSettings, PermissionField } from '../types';
-import { XIcon, CheckCircleIcon, PlusIcon, TrashIcon } from './Icons';
+import { XIcon, CheckCircleIcon, PlusIcon, TrashIcon, PencilIcon } from './Icons';
 
 interface Props {
   roleSettings: RoleSettings;
@@ -14,6 +13,10 @@ const PermissionManagementModal: React.FC<Props> = ({ roleSettings, onSave, onCl
   const [settings, setSettings] = useState<RoleSettings>(roleSettings);
   const [newRoleName, setNewRoleName] = useState('');
   const [isAddingRole, setIsAddingRole] = useState(false);
+
+  // State cho việc đổi tên
+  const [editingRole, setEditingRole] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState('');
 
   const defectTypes = [
     'Lỗi Sản xuất',
@@ -30,6 +33,7 @@ const PermissionManagementModal: React.FC<Props> = ({ roleSettings, onSave, onCl
       { key: 'huongKhacPhuc', label: 'Hướng khắc phục' },
       { key: 'trangThai', label: 'Trạng thái' },
       { key: 'ngayHoanThanh', label: 'Ngày hoàn thành' },
+      { key: 'ngayDoiHang', label: 'Ngày đổi hàng' },
   ];
 
   const handleCheckboxChange = (role: string, field: keyof Omit<RoleConfig, 'viewableDefectTypes' | 'editableFields'>) => {
@@ -127,6 +131,47 @@ const PermissionManagementModal: React.FC<Props> = ({ roleSettings, onSave, onCl
       }
   }
 
+  // --- Logic Đổi tên vai trò ---
+  const handleStartRename = (role: string) => {
+      setEditingRole(role);
+      setRenameValue(role);
+  };
+
+  const handleCancelRename = () => {
+      setEditingRole(null);
+      setRenameValue('');
+  };
+
+  const handleSaveRename = () => {
+      if (!editingRole) return;
+      const newName = renameValue.trim();
+      
+      if (!newName) {
+          alert("Tên vai trò không được để trống.");
+          return;
+      }
+      if (newName !== editingRole && settings[newName]) {
+          alert("Tên vai trò đã tồn tại.");
+          return;
+      }
+
+      if (newName === editingRole) {
+          handleCancelRename();
+          return;
+      }
+
+      // Tạo entry mới với config cũ và xóa entry cũ
+      setSettings(prev => {
+          const config = prev[editingRole];
+          const newSettings = { ...prev };
+          delete newSettings[editingRole]; // Xóa key cũ
+          newSettings[newName] = config; // Thêm key mới
+          return newSettings;
+      });
+
+      handleCancelRename();
+  };
+
   const handleSave = () => {
     onSave(settings);
     onClose();
@@ -138,7 +183,7 @@ const PermissionManagementModal: React.FC<Props> = ({ roleSettings, onSave, onCl
         <div className="flex justify-between items-center p-5 border-b border-slate-200 bg-white">
           <div>
              <h2 className="text-xl font-bold text-slate-800">Quản lý Vai trò & Phân quyền</h2>
-             <p className="text-sm text-slate-500 mt-1">Thêm vai trò mới và cấu hình quyền hạn chi tiết</p>
+             <p className="text-sm text-slate-500 mt-1">Thêm, sửa, xóa vai trò và cấu hình quyền hạn chi tiết</p>
           </div>
           <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-800 rounded-full hover:bg-slate-100 transition-all active:scale-95">
             <XIcon className="h-6 w-6" />
@@ -154,7 +199,7 @@ const PermissionManagementModal: React.FC<Props> = ({ roleSettings, onSave, onCl
                         value={newRoleName}
                         onChange={(e) => setNewRoleName(e.target.value)}
                         placeholder="Nhập tên vai trò..." 
-                        className="px-3 py-1.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white"
+                        className="px-3 py-1.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white shadow-sm"
                         autoFocus
                       />
                       <button 
@@ -187,7 +232,7 @@ const PermissionManagementModal: React.FC<Props> = ({ roleSettings, onSave, onCl
                 <table className="min-w-full divide-y divide-slate-200">
                     <thead className="bg-slate-100">
                         <tr>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider w-48 sticky left-0 bg-slate-100 z-10 shadow-[1px_0_0_0_rgba(0,0,0,0.05)]">Vai trò</th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider w-64 sticky left-0 bg-slate-100 z-10 shadow-[1px_0_0_0_rgba(0,0,0,0.05)]">Vai trò</th>
                             <th scope="col" className="px-6 py-3 text-center text-xs font-bold text-slate-500 uppercase tracking-wider w-24">Thêm mới</th>
                             <th scope="col" className="px-6 py-3 text-center text-xs font-bold text-slate-500 uppercase tracking-wider w-24">Báo cáo</th>
                             <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider min-w-[300px]">Các trường được phép chỉnh sửa</th>
@@ -199,22 +244,46 @@ const PermissionManagementModal: React.FC<Props> = ({ roleSettings, onSave, onCl
                             const isAdmin = role === UserRole.Admin;
                             const isSystemRole = Object.values(UserRole).includes(role as any);
                             const config = settings[role];
+                            const isEditing = editingRole === role;
                             
                             return (
                                 <tr key={role} className={`hover:bg-slate-50 transition-colors ${isAdmin ? 'bg-blue-50/30' : ''}`}>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-slate-800 sticky left-0 bg-inherit z-10 shadow-[1px_0_0_0_rgba(0,0,0,0.05)] group">
-                                        <div className="flex items-center justify-between">
-                                            <span>{role} {isAdmin && <span className="ml-2 text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">Full</span>}</span>
-                                            {!isSystemRole && (
-                                                <button 
-                                                    onClick={() => handleDeleteRole(role)}
-                                                    className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-red-600 transition-opacity"
-                                                    title="Xóa vai trò này"
-                                                >
-                                                    <TrashIcon className="h-4 w-4" />
-                                                </button>
-                                            )}
-                                        </div>
+                                        {isEditing ? (
+                                            <div className="flex items-center gap-1">
+                                                <input 
+                                                    type="text" 
+                                                    value={renameValue}
+                                                    onChange={(e) => setRenameValue(e.target.value)}
+                                                    className="w-full px-2 py-1 border border-blue-400 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                                                    autoFocus
+                                                />
+                                                <button onClick={handleSaveRename} className="p-1 text-green-600 hover:bg-green-100 rounded"><CheckCircleIcon className="w-4 h-4"/></button>
+                                                <button onClick={handleCancelRename} className="p-1 text-red-500 hover:bg-red-100 rounded"><XIcon className="w-4 h-4"/></button>
+                                            </div>
+                                        ) : (
+                                            <div className="flex items-center justify-between">
+                                                <span>{role} {isAdmin && <span className="ml-2 text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">Full</span>}</span>
+                                                {!isSystemRole && (
+                                                    <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <button 
+                                                            onClick={() => handleStartRename(role)}
+                                                            className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                                            title="Đổi tên vai trò"
+                                                        >
+                                                            <PencilIcon className="h-4 w-4" />
+                                                        </button>
+                                                        <button 
+                                                            onClick={() => handleDeleteRole(role)}
+                                                            className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                                                            title="Xóa vai trò này"
+                                                        >
+                                                            <TrashIcon className="h-4 w-4" />
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-center">
                                         <input 

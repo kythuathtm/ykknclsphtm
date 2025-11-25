@@ -3,11 +3,11 @@
 // Change from enum to const object to support dynamic roles
 export const UserRole = {
   Admin: 'Admin',
-  CungUng: 'Nhân viên cung ứng',
-  Kho: 'Nhân viên kho',
+  CungUng: 'Bộ phận Cung ứng',
+  Kho: 'Bộ phận Kho',
   TongGiamDoc: 'Tổng giám đốc',
-  KyThuat: 'Kỹ thuật',
-  SanXuat: 'Sản xuất',
+  KyThuat: 'Bộ phận Kỹ thuật',
+  SanXuat: 'Bộ phận Sản xuất',
 } as const;
 
 // Define UserRole type as string to allow custom roles

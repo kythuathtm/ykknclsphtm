@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect, useTransition, Suspense } from 'react';
 import { DefectReport, UserRole, ToastType, User, RoleSettings, PermissionField, SystemSettings, Product } from './types';
 import { PlusIcon, BarChartIcon, ArrowDownTrayIcon, ListBulletIcon, ArrowRightOnRectangleIcon, UserGroupIcon, ChartPieIcon, TableCellsIcon, ShieldCheckIcon, ArrowUpTrayIcon, CalendarIcon, Cog8ToothIcon } from './components/Icons';
@@ -85,7 +84,7 @@ const DEFAULT_ROLE_SETTINGS: RoleSettings = {
     [UserRole.KyThuat]: { canCreate: true, canViewDashboard: true, viewableDefectTypes: ['All'], editableFields: ['general', 'soLuongDoi', 'loaiLoi', 'nguyenNhan', 'huongKhacPhuc', 'trangThai', 'ngayHoanThanh'] },
     [UserRole.CungUng]: { canCreate: false, canViewDashboard: true, viewableDefectTypes: ['All'], editableFields: ['general', 'loaiLoi', 'trangThai'] },
     [UserRole.TongGiamDoc]: { canCreate: false, canViewDashboard: true, viewableDefectTypes: ['All'], editableFields: [] },
-    [UserRole.SanXuat]: { canCreate: false, canViewDashboard: false, viewableDefectTypes: ['Lỗi bộ phận sản xuất', 'Lỗi vừa sản xuất vừa NCC'], editableFields: ['nguyenNhan', 'huongKhacPhuc'] },
+    [UserRole.SanXuat]: { canCreate: false, canViewDashboard: false, viewableDefectTypes: ['Lỗi Sản xuất', 'Lỗi Hỗn hợp'], editableFields: ['nguyenNhan', 'huongKhacPhuc'] },
     [UserRole.Kho]: { canCreate: false, canViewDashboard: false, viewableDefectTypes: ['All'], editableFields: [] },
 };
 
@@ -127,7 +126,11 @@ export const App: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [defectTypeFilter, setDefectTypeFilter] = useState('All');
-  const [yearFilter, setYearFilter] = useState('All'); // Added Year Filter
+  
+  // Initialize Year Filter to Current Year
+  const currentYear = new Date().getFullYear().toString();
+  const [yearFilter, setYearFilter] = useState(currentYear); 
+  
   const [dateFilter, setDateFilter] = useState({ start: '', end: '' });
   const [isPending, startTransition] = useTransition();
 
@@ -201,55 +204,34 @@ export const App: React.FC = () => {
   }, [isLoadingDB]);
 
 
-  // --- SEEDING FUNCTION ---
-  const seedDatabase = async () => {
-      try {
-          const batch = writeBatch(db);
-
-          // Seed Users
-          INITIAL_USERS.forEach(u => {
-              const userRef = doc(db, "users", u.username);
-              batch.set(userRef, u);
-          });
-
-          // Seed Products
-          INITIAL_PRODUCTS.forEach(p => {
-              const prodRef = doc(db, "products", p.maSanPham);
-              batch.set(prodRef, p);
-          });
-
-          // Seed Settings
-          const roleSettingsRef = doc(db, "settings", "roleSettings");
-          batch.set(roleSettingsRef, DEFAULT_ROLE_SETTINGS);
-          
-          const systemSettingsRef = doc(db, "settings", "systemSettings");
-          batch.set(systemSettingsRef, DEFAULT_SYSTEM_SETTINGS);
-
-          await batch.commit();
-          showToast("Khởi tạo dữ liệu mẫu thành công!", "success");
-      } catch (error) {
-          console.error("Seeding error:", error);
-      }
-  };
-
-
   // Derived State for Permission Checking
   const userPermissions = useMemo(() => {
     if (!currentUser) return { canCreate: false, canEdit: false, canDelete: false };
     const role = currentUser.role;
     const config = roleSettings[role] || DEFAULT_ROLE_SETTINGS[role]; // Fallback
     
+    // Fallback logic if permissions are undefined for a new role
+    if (!config) {
+        return { canCreate: false, canEdit: false, canDelete: false };
+    }
+
     return {
       canCreate: config.canCreate,
-      canEdit: [UserRole.Admin, UserRole.KyThuat, UserRole.CungUng, UserRole.SanXuat].includes(role),
-      canDelete: [UserRole.Admin, UserRole.KyThuat].includes(role),
+      canEdit: ([UserRole.Admin, UserRole.KyThuat, UserRole.CungUng, UserRole.SanXuat] as string[]).includes(role),
+      canDelete: ([UserRole.Admin, UserRole.KyThuat] as string[]).includes(role),
     };
   }, [currentUser, roleSettings]);
 
   const canViewDashboard = useMemo(() => {
      if (!currentUser) return false;
-     return (roleSettings[currentUser.role] || DEFAULT_ROLE_SETTINGS[currentUser.role]).canViewDashboard;
+     const config = roleSettings[currentUser.role] || DEFAULT_ROLE_SETTINGS[currentUser.role];
+     return config ? config.canViewDashboard : false;
   }, [currentUser, roleSettings]);
+  
+  // Available Roles list (Dynamic)
+  const availableRoles = useMemo(() => {
+      return Object.keys(roleSettings);
+  }, [roleSettings]);
 
   // Filter Logic
   const filteredReports = useMemo(() => {
@@ -257,7 +239,7 @@ export const App: React.FC = () => {
 
     if (currentUser) {
         const config = roleSettings[currentUser.role] || DEFAULT_ROLE_SETTINGS[currentUser.role];
-        if (!config.viewableDefectTypes.includes('All')) {
+        if (config && !config.viewableDefectTypes.includes('All')) {
             result = result.filter(r => config.viewableDefectTypes.includes(r.loaiLoi));
         }
     }
@@ -324,8 +306,8 @@ export const App: React.FC = () => {
   // Calculate available years for global filter
   const availableYears = useMemo(() => {
       const years = new Set<string>();
-      const currentYear = new Date().getFullYear().toString();
-      years.add(currentYear);
+      const cYear = new Date().getFullYear().toString();
+      years.add(cYear);
 
       reports.forEach(r => {
           if(r.ngayPhanAnh) {
@@ -554,6 +536,7 @@ export const App: React.FC = () => {
   const handleSavePermissions = async (newSettings: RoleSettings) => {
       try {
           await setDoc(doc(db, "settings", "roleSettings"), newSettings);
+          setRoleSettings(newSettings); // Optimistic Update
           showToast('Cập nhật phân quyền thành công.', 'success');
       } catch (error) {
           showToast("Lỗi khi lưu phân quyền", "error");
@@ -591,24 +574,14 @@ export const App: React.FC = () => {
               setSearchTerm(value);
               setStatusFilter('All');
               setDefectTypeFilter('All');
-          } else if (filterType === 'status' && value) {
-              setStatusFilter(value);
-              setDefectTypeFilter('All');
-              setSearchTerm('');
-          } else if (filterType === 'defectType' && value) {
-              setDefectTypeFilter(value);
-              setStatusFilter('All');
-              setSearchTerm('');
-          } else if (filterType === 'brand' && value) {
-              setSearchTerm(value);
-              setStatusFilter('All');
-              setDefectTypeFilter('All');
+              setCurrentView('list'); // Switch to list if searching
           } else if (filterType === 'all') {
               setStatusFilter('All');
               setDefectTypeFilter('All');
               setSearchTerm('');
+              setCurrentView('list');
           }
-          setCurrentView('list');
+          // For 'status', 'defectType', 'brand', the Dashboard component handles the modal display
       });
   };
 
@@ -800,11 +773,13 @@ export const App: React.FC = () => {
                     onDateFilterChange={handleDateFilterChange}
                     summaryStats={summaryStats}
                     isLoading={isPending}
+                    onExport={handleExportData}
                 />
             ) : (
                 <DashboardReport 
                     reports={filteredReports} 
                     onFilterSelect={handleDashboardFilterSelect}
+                    onSelectReport={setSelectedReport} 
                 />
             )}
         </Suspense>
@@ -860,6 +835,7 @@ export const App: React.FC = () => {
                 onSaveUser={handleSaveUser}
                 onDeleteUser={handleDeleteUser}
                 onClose={() => setIsUserModalOpen(false)}
+                availableRoles={availableRoles}
               />
           )}
           
