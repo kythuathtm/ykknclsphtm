@@ -62,18 +62,18 @@ interface ColumnConfig {
 }
 
 const DEFAULT_COLUMNS: ColumnConfig[] = [
-    { id: 'stt', label: '#', visible: true, span: 0.3, minWidth: '40px' },
-    { id: 'ngayPhanAnh', label: 'Ngày P.Ánh', visible: true, span: 0.8, minWidth: '100px' },
-    { id: 'maSanPham', label: 'Mã SP', visible: true, span: 0.8, minWidth: '90px' },
-    { id: 'tenThuongMai', label: 'Tên thương mại', visible: true, span: 2, minWidth: '180px' },
-    { id: 'tenThietBi', label: 'Tên thiết bị', visible: false, span: 1.5, minWidth: '150px' },
-    { id: 'noiDungPhanAnh', label: 'Nội dung phản ánh', visible: true, span: 3.5, minWidth: '300px' },
-    { id: 'soLo', label: 'Số lô', visible: true, span: 0.8, minWidth: '90px' },
-    { id: 'trangThai', label: 'Trạng thái', visible: true, span: 1, minWidth: '150px' },
-    { id: 'ngayTao', label: 'Ngày tạo', visible: false, span: 1, minWidth: '110px' },
-    { id: 'maNgaySanXuat', label: 'Mã NSX', visible: false, span: 0.8, minWidth: '90px' },
-    { id: 'ngayHoanThanh', label: 'Hoàn thành', visible: false, span: 1, minWidth: '110px' },
-    { id: 'actions', label: '', visible: true, span: 0.4, minWidth: '50px' },
+    { id: 'stt', label: 'STT', visible: true, span: 0.1, minWidth: '50px' },
+    { id: 'ngayPhanAnh', label: 'Ngày phản ánh', visible: true, span: 0.5, minWidth: '120px' },
+    { id: 'maSanPham', label: 'Mã sản phẩm', visible: true, span: 0, minWidth: '180px' }, // Fixed width, preventing overlap
+    { id: 'tenThuongMai', label: 'Tên thương mại', visible: true, span: 2, minWidth: '220px' }, // Flexible width, wraps text
+    { id: 'noiDungPhanAnh', label: 'Nội dung phản ánh', visible: true, span: 3, minWidth: '300px' },
+    { id: 'soLo', label: 'Số lô', visible: true, span: 0.5, minWidth: '100px' },
+    { id: 'maNgaySanXuat', label: 'Mã NSX', visible: true, span: 0.5, minWidth: '100px' },
+    { id: 'trangThai', label: 'Trạng thái', visible: true, span: 0.8, minWidth: '140px' },
+    { id: 'tenThietBi', label: 'Tên thiết bị', visible: false, span: 1.5, minWidth: '180px' },
+    { id: 'ngayTao', label: 'Ngày tạo', visible: false, span: 0.8, minWidth: '110px' },
+    { id: 'ngayHoanThanh', label: 'Hoàn thành', visible: false, span: 0.8, minWidth: '110px' },
+    { id: 'actions', label: '', visible: true, span: 0.2, minWidth: '50px' },
 ];
 
 const DefectReportList: React.FC<Props> = ({ 
@@ -111,7 +111,7 @@ const DefectReportList: React.FC<Props> = ({
               const parsedColumns = JSON.parse(savedColumns);
               const mergedColumns = parsedColumns.map((savedCol: any) => {
                   const defaultCol = DEFAULT_COLUMNS.find(def => def.id === savedCol.id);
-                  return defaultCol ? { ...defaultCol, ...savedCol, minWidth: defaultCol.minWidth } : savedCol;
+                  return defaultCol ? { ...defaultCol, ...savedCol, minWidth: defaultCol.minWidth, span: defaultCol.span } : savedCol;
               });
               DEFAULT_COLUMNS.forEach(def => {
                   if (!mergedColumns.find((m: any) => m.id === def.id)) mergedColumns.push(def);
@@ -159,29 +159,37 @@ const DefectReportList: React.FC<Props> = ({
           case 'ngayTao':
               return <span className="text-slate-500 text-sm">{report.ngayTao ? new Date(report.ngayTao).toLocaleDateString('en-GB') : '-'}</span>;
           case 'ngayPhanAnh':
-              return <span className="text-slate-600 font-medium text-sm">{new Date(report.ngayPhanAnh).toLocaleDateString('en-GB')}</span>;
+              return <span className="text-slate-700 font-medium text-sm whitespace-nowrap">{new Date(report.ngayPhanAnh).toLocaleDateString('en-GB')}</span>;
           case 'maSanPham':
-              return <span className="text-slate-700 bg-slate-100 px-2 py-1 rounded text-sm font-bold">{report.maSanPham}</span>;
+              return (
+                  <div className="flex items-center">
+                      <span className="text-slate-800 font-bold text-sm whitespace-nowrap overflow-hidden text-ellipsis" title={report.maSanPham}>
+                          {report.maSanPham}
+                      </span>
+                  </div>
+              );
           case 'tenThuongMai':
               return (
                 <div className="min-w-0 pr-2">
-                    <div className="font-bold text-slate-800 text-sm truncate" title={report.tenThuongMai}>{report.tenThuongMai}</div>
-                    <div className="text-xs text-slate-500 truncate mt-0.5">{report.dongSanPham} • {report.nhanHang}</div>
+                    <div className="font-bold text-slate-800 text-sm whitespace-normal leading-snug">
+                        {report.tenThuongMai}
+                    </div>
+                    {/* Removing extra details as requested */}
                 </div>
               );
           case 'tenThietBi':
               return <div className="text-slate-600 text-sm truncate" title={report.tenThietBi}>{report.tenThietBi}</div>;
           case 'noiDungPhanAnh':
-              return <div className="text-slate-600 text-sm line-clamp-2 leading-relaxed">{report.noiDungPhanAnh}</div>;
+              return <div className="text-slate-600 text-sm line-clamp-2 leading-relaxed" title={report.noiDungPhanAnh}>{report.noiDungPhanAnh}</div>;
           case 'soLo':
-              return <span className="text-slate-500 text-sm font-bold">{report.soLo}</span>;
+              return <span className="text-slate-600 text-sm font-bold whitespace-nowrap">{report.soLo}</span>;
           case 'maNgaySanXuat':
-              return <span className="text-slate-500 text-sm">{report.maNgaySanXuat}</span>;
+              return <span className="text-slate-600 text-sm whitespace-nowrap">{report.maNgaySanXuat}</span>;
           case 'ngayHoanThanh':
-              return report.ngayHoanThanh ? <span className="text-emerald-600 font-medium text-sm">{new Date(report.ngayHoanThanh).toLocaleDateString('en-GB')}</span> : <span className="text-slate-300">-</span>;
+              return report.ngayHoanThanh ? <span className="text-emerald-600 font-medium text-sm whitespace-nowrap">{new Date(report.ngayHoanThanh).toLocaleDateString('en-GB')}</span> : <span className="text-slate-300">-</span>;
           case 'trangThai':
               return (
-                  <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-sm font-bold whitespace-nowrap ${statusColorMap[report.trangThai]}`}>
+                  <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold whitespace-nowrap ${statusColorMap[report.trangThai]}`}>
                       {report.trangThai}
                   </span>
               );
@@ -208,7 +216,7 @@ const DefectReportList: React.FC<Props> = ({
   const StatTab = ({ label, count, active, onClick, icon }: any) => (
       <button 
           onClick={onClick}
-          className={`relative flex items-center gap-2 px-4 py-3 text-sm font-bold transition-all border-b-2 ${
+          className={`relative flex items-center gap-2 px-4 py-3 text-sm font-bold transition-all border-b-2 whitespace-nowrap ${
               active 
               ? 'text-blue-600 border-blue-600 bg-blue-50/50' 
               : 'text-slate-500 border-transparent hover:text-slate-700 hover:bg-slate-50'
