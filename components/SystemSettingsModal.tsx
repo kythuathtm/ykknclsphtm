@@ -45,7 +45,7 @@ const SystemSettingsModal: React.FC<Props> = ({ currentSettings, onSave, onClose
       <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full flex flex-col overflow-hidden ring-1 ring-black/5 animate-fade-in-up">
         <div className="flex justify-between items-center p-5 border-b border-slate-200 bg-white">
           <h2 className="text-xl font-bold text-slate-800">Cấu hình Hệ thống</h2>
-          <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-800 rounded-full hover:bg-slate-100 transition-colors">
+          <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-800 rounded-full hover:bg-slate-100 transition-all active:scale-95">
             <XIcon className="h-6 w-6" />
           </button>
         </div>
@@ -96,7 +96,7 @@ const SystemSettingsModal: React.FC<Props> = ({ currentSettings, onSave, onClose
                         />
                         <button 
                             onClick={() => logoInputRef.current?.click()}
-                            className="w-full px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 shadow-sm flex items-center justify-center transition-all hover:border-blue-400"
+                            className="w-full px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 shadow-sm flex items-center justify-center transition-all hover:border-blue-400 active:scale-95"
                         >
                             <ArrowUpTrayIcon className="h-4 w-4 mr-2" />
                             Tải ảnh lên
@@ -105,7 +105,7 @@ const SystemSettingsModal: React.FC<Props> = ({ currentSettings, onSave, onClose
                         {settings.logoUrl && (
                             <button 
                                 onClick={() => setSettings({...settings, logoUrl: ''})}
-                                className="w-full px-4 py-2 bg-red-50 border border-red-100 rounded-lg text-sm font-medium text-red-600 hover:bg-red-100 flex items-center justify-center transition-colors"
+                                className="w-full px-4 py-2 bg-red-50 border border-red-100 rounded-lg text-sm font-medium text-red-600 hover:bg-red-100 flex items-center justify-center transition-all active:scale-95"
                             >
                                 <TrashIcon className="h-4 w-4 mr-2" />
                                 Khôi phục mặc định
@@ -124,13 +124,13 @@ const SystemSettingsModal: React.FC<Props> = ({ currentSettings, onSave, onClose
                 <div className="flex gap-2 mb-3">
                     <button 
                         onClick={() => handleBackgroundTypeChange('default')}
-                        className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-all ${settings.backgroundType === 'default' ? 'bg-blue-50 border-blue-500 text-blue-700 ring-2 ring-blue-500/20' : 'bg-white border-slate-300 text-slate-600 hover:bg-slate-50'}`}
+                        className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-all active:scale-95 ${settings.backgroundType === 'default' ? 'bg-blue-50 border-blue-500 text-blue-700 ring-2 ring-blue-500/20' : 'bg-white border-slate-300 text-slate-600 hover:bg-slate-50'}`}
                     >
                         Mặc định (Hiệu ứng)
                     </button>
                      <button 
                         onClick={() => handleBackgroundTypeChange('image')}
-                        className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-all ${settings.backgroundType === 'image' ? 'bg-blue-50 border-blue-500 text-blue-700 ring-2 ring-blue-500/20' : 'bg-white border-slate-300 text-slate-600 hover:bg-slate-50'}`}
+                        className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-all active:scale-95 ${settings.backgroundType === 'image' ? 'bg-blue-50 border-blue-500 text-blue-700 ring-2 ring-blue-500/20' : 'bg-white border-slate-300 text-slate-600 hover:bg-slate-50'}`}
                     >
                         Ảnh tùy chỉnh (URL)
                     </button>
@@ -152,10 +152,10 @@ const SystemSettingsModal: React.FC<Props> = ({ currentSettings, onSave, onClose
         </div>
 
         <div className="flex justify-end items-center p-5 bg-white border-t border-slate-200 gap-3">
-            <button onClick={onClose} className="px-5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 transition-colors">
+            <button onClick={onClose} className="px-5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 transition-all active:scale-95">
                 Hủy
             </button>
-            <button onClick={handleSave} className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold shadow-md transition-all hover:-translate-y-0.5 flex items-center">
+            <button onClick={handleSave} className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold shadow-md transition-all hover:-translate-y-0.5 flex items-center active:scale-95 active:translate-y-0">
                 <CheckCircleIcon className="h-5 w-5 mr-2" />
                 Lưu thay đổi
             </button>

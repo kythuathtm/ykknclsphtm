@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { User, SystemSettings } from '../types';
-import { UserIcon, LockClosedIcon, EyeIcon, EyeSlashIcon } from './Icons';
+import { UserIcon, LockClosedIcon, EyeIcon, EyeSlashIcon, CompanyLogo } from './Icons';
 
 interface Props {
   onLogin: (user: User) => void;
@@ -90,14 +90,14 @@ const Login: React.FC<Props> = ({ onLogin, users, settings }) => {
          .animation-delay-4000 { animation-delay: 8s; }
          
          .glass-card {
-            background: rgba(255, 255, 255, 0.75);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.8);
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.9);
             box-shadow: 
                 0 4px 6px -1px rgba(0, 0, 0, 0.05),
                 0 20px 40px -10px rgba(0, 0, 0, 0.05),
-                inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+                inset 0 0 0 1px rgba(255, 255, 255, 0.6);
          }
          
          .fade-in-section {
@@ -112,41 +112,37 @@ const Login: React.FC<Props> = ({ onLogin, users, settings }) => {
        `}</style>
 
       {/* --- Main Card --- */}
-      <div className={`relative z-10 w-full max-w-[420px] p-6 transition-all duration-700 ${isLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
+      <div className={`relative z-10 w-full max-w-[440px] p-6 transition-all duration-700 ${isLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
         
         <div className="glass-card rounded-[2.5rem] p-8 sm:p-10 flex flex-col items-center text-center">
             
             {/* 1. Logo Section */}
-            <div className={`mb-6 transition-all duration-700 delay-100 fade-in-section ${isLoaded ? 'visible' : ''}`}>
-               <div className="relative group">
+            <div className={`mb-8 transition-all duration-700 delay-100 fade-in-section ${isLoaded ? 'visible' : ''}`}>
+               <div className="relative group cursor-default">
                    {/* Glow Effect behind logo */}
-                   <div className="absolute -inset-4 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-500"></div>
+                   <div className="absolute -inset-6 bg-blue-400/20 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
                    
                    {settings.logoUrl ? (
                        <img 
                           src={settings.logoUrl} 
                           alt="App Logo" 
-                          className="relative h-auto w-auto max-h-32 sm:max-h-40 max-w-[260px] object-contain drop-shadow-sm transform group-hover:scale-105 transition-transform duration-300"
+                          className="relative h-auto w-auto max-h-32 sm:max-h-40 max-w-[280px] object-contain drop-shadow-md transform group-hover:scale-105 transition-transform duration-300"
                        />
                    ) : (
-                        <img 
-                            src="Logo_HTM.png" 
-                            alt="Default Logo" 
-                            className="relative h-auto w-auto max-h-32 sm:max-h-40 max-w-[260px] object-contain drop-shadow-sm transform group-hover:scale-105 transition-transform duration-300"
-                            onError={(e) => {
-                                e.currentTarget.style.display = 'none'; 
-                            }}
-                        />
+                        <div className="relative p-2 transform group-hover:scale-105 transition-transform duration-300">
+                            <CompanyLogo className="h-28 w-28 sm:h-32 sm:w-32 drop-shadow-xl" />
+                        </div>
                    )}
                </div>
             </div>
 
             {/* 2. Welcome Text */}
-            <div className={`w-full mb-8 space-y-2 transition-all duration-700 delay-200 fade-in-section ${isLoaded ? 'visible' : ''}`}>
-                <h2 className="text-3xl font-black text-slate-800 tracking-tight bg-clip-text text-transparent bg-gradient-to-br from-slate-800 to-slate-600">
+            <div className={`w-full mb-8 space-y-1 transition-all duration-700 delay-200 fade-in-section ${isLoaded ? 'visible' : ''}`}>
+                <h2 className="text-3xl font-black text-slate-800 tracking-tight">
                     Xin chào! <span className="inline-block animate-wave origin-[70%_70%]">👋</span>
                 </h2>
-                <p className="text-slate-500 text-sm font-medium">Hệ thống {settings.appName}</p>
+                <p className="text-slate-500 text-sm font-medium tracking-wide">Đăng nhập vào hệ thống</p>
+                <style>{`@keyframes wave { 0% { transform: rotate(0deg); } 10% { transform: rotate(14deg); } 20% { transform: rotate(-8deg); } 30% { transform: rotate(14deg); } 40% { transform: rotate(-4deg); } 50% { transform: rotate(10deg); } 60% { transform: rotate(0deg); } 100% { transform: rotate(0deg); } } .animate-wave { animation: wave 2.5s infinite; }`}</style>
             </div>
             
             {/* 3. Form */}
@@ -162,7 +158,7 @@ const Login: React.FC<Props> = ({ onLogin, users, settings }) => {
                             placeholder="Tên đăng nhập"
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
-                            className="block w-full pl-11 pr-4 py-3.5 bg-slate-50/50 border border-slate-200 rounded-2xl text-sm font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all duration-200"
+                            className="block w-full pl-11 pr-4 py-3.5 bg-white border border-slate-200 rounded-2xl text-sm font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all shadow-sm group-hover:border-blue-300"
                             required
                         />
                     </div>
@@ -177,7 +173,7 @@ const Login: React.FC<Props> = ({ onLogin, users, settings }) => {
                             placeholder="Mật khẩu"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            className="block w-full pl-11 pr-12 py-3.5 bg-slate-50/50 border border-slate-200 rounded-2xl text-sm font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all duration-200"
+                            className="block w-full pl-11 pr-12 py-3.5 bg-white border border-slate-200 rounded-2xl text-sm font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all shadow-sm group-hover:border-blue-300"
                             required
                         />
                         <button
@@ -196,7 +192,7 @@ const Login: React.FC<Props> = ({ onLogin, users, settings }) => {
                 </div>
 
                 {error && (
-                    <div className="animate-shake rounded-2xl bg-red-50 p-3 border border-red-100 flex items-center gap-3">
+                    <div className="animate-shake rounded-2xl bg-red-50 p-3 border border-red-100 flex items-center gap-3 shadow-sm">
                         <div className="flex-shrink-0 w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5 text-red-500">
                                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clipRule="evenodd" />
@@ -210,7 +206,7 @@ const Login: React.FC<Props> = ({ onLogin, users, settings }) => {
                 <button
                     type="submit"
                     disabled={loading}
-                    className="relative w-full py-4 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-bold shadow-lg shadow-blue-500/30 overflow-hidden group disabled:opacity-70 disabled:cursor-not-allowed transition-all hover:shadow-blue-500/40 hover:-translate-y-0.5 active:translate-y-0"
+                    className="relative w-full py-4 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-bold shadow-lg shadow-blue-500/30 overflow-hidden group disabled:opacity-70 disabled:cursor-not-allowed transition-all hover:shadow-xl hover:shadow-blue-500/40 hover:-translate-y-0.5 active:translate-y-0"
                 >
                     {/* Shine Effect */}
                     <div className="absolute inset-0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent z-10"></div>
@@ -227,7 +223,7 @@ const Login: React.FC<Props> = ({ onLogin, users, settings }) => {
                             </>
                         ) : (
                             <>
-                                <span>Đăng nhập hệ thống</span>
+                                <span>Đăng nhập ngay</span>
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                                 </svg>
@@ -240,8 +236,8 @@ const Login: React.FC<Props> = ({ onLogin, users, settings }) => {
         
         {/* Footer */}
         <div className={`mt-8 text-center relative z-10 transition-all duration-700 delay-500 fade-in-section ${isLoaded ? 'visible' : ''}`}>
-             <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-widest opacity-80">
-                 © 2024 {settings.companyName || settings.appName}
+             <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest opacity-90 drop-shadow-sm">
+                 © 2024 {settings.companyName || 'Công ty Cổ phần Vật tư Y tế Hồng Thiện Mỹ'}
              </p>
         </div>
       </div>

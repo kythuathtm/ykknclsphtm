@@ -106,7 +106,7 @@ const PermissionManagementModal: React.FC<Props> = ({ roleSettings, onSave, onCl
              <h2 className="text-xl font-bold text-slate-800">Phân quyền Hệ thống</h2>
              <p className="text-sm text-slate-500 mt-1">Cấu hình quyền hạn chi tiết cho từng nhóm người dùng</p>
           </div>
-          <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-800 rounded-full hover:bg-slate-100 transition-colors">
+          <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-800 rounded-full hover:bg-slate-100 transition-all active:scale-95">
             <XIcon className="h-6 w-6" />
           </button>
         </div>
@@ -205,10 +205,10 @@ const PermissionManagementModal: React.FC<Props> = ({ roleSettings, onSave, onCl
         </div>
 
         <div className="flex justify-end items-center p-5 bg-white border-t border-slate-200 gap-3">
-            <button onClick={onClose} className="px-5 py-2 bg-white border border-slate-300 rounded-lg text-sm font-bold text-slate-700 hover:bg-slate-50 transition-colors">
+            <button onClick={onClose} className="px-5 py-2 bg-white border border-slate-300 rounded-lg text-sm font-bold text-slate-700 hover:bg-slate-50 transition-all active:scale-95">
                 Hủy
             </button>
-            <button onClick={handleSave} className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-bold shadow-md transition-all hover:-translate-y-0.5 flex items-center">
+            <button onClick={handleSave} className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-bold shadow-md transition-all hover:-translate-y-0.5 flex items-center active:scale-95 active:translate-y-0">
                 <CheckCircleIcon className="h-5 w-5 mr-2" />
                 Lưu cấu hình
             </button>

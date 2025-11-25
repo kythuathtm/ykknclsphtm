@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo, useEffect, useTransition, Suspense } from 'react';
-import { DefectReport, UserRole, ToastType, User, RoleSettings, SystemSettings } from './types';
-import { PlusIcon, BarChartIcon, ArrowDownTrayIcon, ListBulletIcon, ArrowRightOnRectangleIcon, UserGroupIcon, ChartPieIcon, TableCellsIcon, ShieldCheckIcon, ArrowUpTrayIcon, CalendarIcon } from './components/Icons';
+import { DefectReport, UserRole, ToastType, User, RoleSettings, PermissionField, SystemSettings, Product } from './types';
+import { PlusIcon, BarChartIcon, ArrowDownTrayIcon, ListBulletIcon, ArrowRightOnRectangleIcon, UserGroupIcon, ChartPieIcon, TableCellsIcon, ShieldCheckIcon, ArrowUpTrayIcon, CalendarIcon, Cog8ToothIcon } from './components/Icons';
 import * as XLSX from 'xlsx';
 import Loading from './components/Loading';
 
@@ -29,6 +29,7 @@ const UserManagementModal = React.lazy(() => import('./components/UserManagement
 const PermissionManagementModal = React.lazy(() => import('./components/PermissionManagementModal'));
 const Login = React.lazy(() => import('./components/Login'));
 const DashboardReport = React.lazy(() => import('./components/DashboardReport'));
+const SystemSettingsModal = React.lazy(() => import('./components/SystemSettingsModal'));
 
 interface ToastProps {
   message: string;
@@ -76,53 +77,23 @@ const INITIAL_USERS: User[] = [
 ];
 
 // Empty Initial Products List as requested
-const INITIAL_PRODUCTS: any[] = [];
+const INITIAL_PRODUCTS: Product[] = [];
+
+const DEFAULT_ROLE_SETTINGS: RoleSettings = {
+    [UserRole.Admin]: { canCreate: true, canViewDashboard: true, viewableDefectTypes: ['All'], editableFields: ['general', 'soLuongDoi', 'loaiLoi', 'nguyenNhan', 'huongKhacPhuc', 'trangThai', 'ngayHoanThanh'] },
+    [UserRole.KyThuat]: { canCreate: true, canViewDashboard: true, viewableDefectTypes: ['All'], editableFields: ['general', 'soLuongDoi', 'loaiLoi', 'nguyenNhan', 'huongKhacPhuc', 'trangThai', 'ngayHoanThanh'] },
+    [UserRole.CungUng]: { canCreate: false, canViewDashboard: true, viewableDefectTypes: ['All'], editableFields: ['general', 'loaiLoi', 'trangThai'] },
+    [UserRole.TongGiamDoc]: { canCreate: false, canViewDashboard: true, viewableDefectTypes: ['All'], editableFields: [] },
+    [UserRole.SanXuat]: { canCreate: false, canViewDashboard: false, viewableDefectTypes: ['Lỗi bộ phận sản xuất', 'Lỗi vừa sản xuất vừa NCC'], editableFields: ['nguyenNhan', 'huongKhacPhuc'] },
+    [UserRole.Kho]: { canCreate: false, canViewDashboard: false, viewableDefectTypes: ['All'], editableFields: [] },
+};
 
 const DEFAULT_SYSTEM_SETTINGS: SystemSettings = {
-  appName: 'Theo Dõi Lỗi Sản Phẩm',
-  companyName: 'Công ty Cổ phần Hồng Thiện Mỹ',
+  appName: 'Theo dõi lỗi SP',
+  companyName: 'Công ty Cổ phần Vật tư Y tế Hồng Thiện Mỹ',
   logoUrl: '',
   backgroundType: 'default',
   backgroundValue: ''
-};
-
-const DEFAULT_ROLE_SETTINGS: RoleSettings = {
-    [UserRole.Admin]: { 
-        canCreate: true, 
-        canViewDashboard: true, 
-        viewableDefectTypes: ['All'],
-        editableFields: ['general', 'soLuongDoi', 'loaiLoi', 'nguyenNhan', 'huongKhacPhuc', 'trangThai', 'ngayHoanThanh']
-    },
-    [UserRole.KyThuat]: { 
-        canCreate: true, 
-        canViewDashboard: true, 
-        viewableDefectTypes: ['All'],
-        editableFields: ['general', 'soLuongDoi', 'loaiLoi', 'nguyenNhan', 'huongKhacPhuc', 'trangThai', 'ngayHoanThanh']
-    },
-    [UserRole.CungUng]: { 
-        canCreate: false, 
-        canViewDashboard: true, 
-        viewableDefectTypes: ['All'],
-        editableFields: ['loaiLoi', 'nguyenNhan', 'huongKhacPhuc']
-    },
-    [UserRole.TongGiamDoc]: { 
-        canCreate: false, 
-        canViewDashboard: true, 
-        viewableDefectTypes: ['All'],
-        editableFields: []
-    },
-    [UserRole.SanXuat]: { 
-        canCreate: false, 
-        canViewDashboard: false, 
-        viewableDefectTypes: ['Lỗi bộ phận sản xuất', 'Lỗi vừa sản xuất vừa NCC'],
-        editableFields: ['soLuongDoi', 'nguyenNhan', 'huongKhacPhuc']
-    },
-    [UserRole.Kho]: { 
-        canCreate: false, 
-        canViewDashboard: false, 
-        viewableDefectTypes: ['All'],
-        editableFields: []
-    },
 };
 
 // --- Main App Component ---
@@ -134,7 +105,7 @@ export const App: React.FC = () => {
   // Data State (Sync with Firebase)
   const [users, setUsers] = useState<User[]>([]);
   const [reports, setReports] = useState<DefectReport[]>([]);
-  const [products, setProducts] = useState<any[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [roleSettings, setRoleSettings] = useState<RoleSettings>(DEFAULT_ROLE_SETTINGS);
   const [systemSettings, setSystemSettings] = useState<SystemSettings>(DEFAULT_SYSTEM_SETTINGS);
   
@@ -144,6 +115,7 @@ export const App: React.FC = () => {
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
   const [isPermissionModalOpen, setIsPermissionModalOpen] = useState(false);
+  const [isSystemSettingsModalOpen, setIsSystemSettingsModalOpen] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
   const [currentView, setCurrentView] = useState<'list' | 'dashboard'>('list');
   const [isLoadingDB, setIsLoadingDB] = useState(true);
@@ -172,7 +144,6 @@ export const App: React.FC = () => {
       setIsLoadingDB(false);
     }, (error) => {
       console.error("Error fetching reports:", error);
-      // Don't show error toast immediately to avoid scaring user
       setIsLoadingDB(false);
     });
     return () => unsubscribe();
@@ -186,8 +157,6 @@ export const App: React.FC = () => {
       // AUTO-SEED: If database is completely empty, create default users and data
       if (usersData.length === 0 && !isLoadingDB) {
          console.log("Database empty. Seeding initial data...");
-         // We can automatically seed here if desired, but manual trigger in UI is safer
-         // await seedDatabase(); 
       } 
       setUsers(usersData);
     });
@@ -197,13 +166,13 @@ export const App: React.FC = () => {
   // 3. Listen to PRODUCTS
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, "products"), (snapshot) => {
-      const productsData = snapshot.docs.map(doc => doc.data());
+      const productsData = snapshot.docs.map(doc => doc.data() as Product);
       setProducts(productsData);
     });
     return () => unsubscribe();
   }, []);
 
-  // 4. Listen to SETTINGS (Role Config & System)
+  // 4. Listen to SETTINGS (Role Config & System Settings)
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, "settings"), (snapshot) => {
       if (!snapshot.empty) {
@@ -211,13 +180,10 @@ export const App: React.FC = () => {
         if (roleDoc) {
             setRoleSettings(roleDoc.data() as RoleSettings);
         }
-        const sysDoc = snapshot.docs.find(d => d.id === 'systemSettings');
-        if (sysDoc) {
-            setSystemSettings(sysDoc.data() as SystemSettings);
+        const systemDoc = snapshot.docs.find(d => d.id === 'systemSettings');
+        if (systemDoc) {
+            setSystemSettings(systemDoc.data() as SystemSettings);
         }
-      } else {
-          // If no settings exist yet, we can merge defaults.
-          // This ensures app doesn't break if 'systemSettings' is missing initially.
       }
     });
     return () => unsubscribe();
@@ -252,8 +218,11 @@ export const App: React.FC = () => {
           });
 
           // Seed Settings
-          const settingsRef = doc(db, "settings", "roleSettings");
-          batch.set(settingsRef, DEFAULT_ROLE_SETTINGS);
+          const roleSettingsRef = doc(db, "settings", "roleSettings");
+          batch.set(roleSettingsRef, DEFAULT_ROLE_SETTINGS);
+          
+          const systemSettingsRef = doc(db, "settings", "systemSettings");
+          batch.set(systemSettingsRef, DEFAULT_SYSTEM_SETTINGS);
 
           await batch.commit();
           showToast("Khởi tạo dữ liệu mẫu thành công!", "success");
@@ -339,7 +308,7 @@ export const App: React.FC = () => {
   const paginatedReports = useMemo(() => {
       const start = (currentPage - 1) * itemsPerPage;
       return filteredReports.slice(start, start + itemsPerPage);
-  }, [filteredReports, currentPage, itemsPerPage]); // Add itemsPerPage dependency
+  }, [filteredReports, currentPage, itemsPerPage]);
 
   const summaryStats = useMemo(() => {
       return {
@@ -369,18 +338,13 @@ export const App: React.FC = () => {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, statusFilter, defectTypeFilter, yearFilter, dateFilter, itemsPerPage]); // Add itemsPerPage dependency
+  }, [searchTerm, statusFilter, defectTypeFilter, yearFilter, dateFilter]);
 
 
   // Handlers
 
   const showToast = (message: string, type: ToastType) => {
     setToast({ message, type });
-  };
-
-  const handleItemsPerPageChange = (items: number) => {
-      setItemsPerPage(items);
-      setCurrentPage(1);
   };
 
   const handleLogin = async (user: User) => {
@@ -395,6 +359,7 @@ export const App: React.FC = () => {
       setIsUserModalOpen(false);
       setIsProductModalOpen(false);
       setIsPermissionModalOpen(false);
+      setIsSystemSettingsModalOpen(false);
   };
 
   // --- FIRESTORE ACTIONS ---
@@ -425,8 +390,7 @@ export const App: React.FC = () => {
   };
 
   const handleDeleteReport = async (id: string) => {
-      // NOTE: Confirmation dialog is now handled in DefectReportList.tsx
-      // This function executes the deletion directly.
+    if (window.confirm('Bạn có chắc chắn muốn xóa báo cáo này?')) {
       try {
           await deleteDoc(doc(db, "reports", id));
           if (selectedReport?.id === id) setSelectedReport(null);
@@ -435,28 +399,7 @@ export const App: React.FC = () => {
           console.error("Error deleting:", error);
           showToast('Lỗi khi xóa', 'error');
       }
-  };
-
-  const handleAddProduct = async (product: any) => {
-      try {
-          await setDoc(doc(db, "products", product.maSanPham), product);
-          showToast('Thêm sản phẩm mới thành công!', 'success');
-      } catch (error) {
-          console.error("Error adding product:", error);
-          showToast('Lỗi khi thêm sản phẩm', 'error');
-      }
-  };
-
-  const handleDeleteProduct = async (maSanPham: string) => {
-      if (window.confirm(`Bạn có chắc muốn xóa sản phẩm ${maSanPham}?`)) {
-          try {
-              await deleteDoc(doc(db, "products", maSanPham));
-              showToast('Đã xóa sản phẩm.', 'info');
-          } catch (error) {
-               console.error("Error deleting product:", error);
-               showToast('Lỗi khi xóa sản phẩm', 'error');
-          }
-      }
+    }
   };
 
   const handleEditClick = (report: DefectReport) => {
@@ -502,33 +445,54 @@ export const App: React.FC = () => {
   };
   
   const handleImportProducts = async (newProducts: any[]) => {
-      // Chunking logic to prevent batch overflow (Firestore limit 500)
-      const CHUNK_SIZE = 450; 
-      const chunks = [];
-      for (let i = 0; i < newProducts.length; i += CHUNK_SIZE) {
-          chunks.push(newProducts.slice(i, i + CHUNK_SIZE));
-      }
-
       try {
-          let count = 0;
+          // Chunking logic to avoid Firebase limit
+          const chunkSize = 450; // Limit per batch
+          const chunks = [];
+          for (let i = 0; i < newProducts.length; i += chunkSize) {
+              chunks.push(newProducts.slice(i, i + chunkSize));
+          }
+          
+          let totalCount = 0;
           for (const chunk of chunks) {
               const batch = writeBatch(db);
               chunk.forEach((p: any) => {
-                  if (p.maSanPham) {
+                  if(p.maSanPham) {
                       const ref = doc(db, "products", p.maSanPham);
                       batch.set(ref, p);
-                      count++;
                   }
               });
               await batch.commit();
+              totalCount += chunk.length;
           }
           
-          showToast(`Đã import thành công ${count} sản phẩm lên Cloud.`, 'success');
+          showToast(`Đã import thành công ${totalCount} sản phẩm lên Cloud.`, 'success');
           setIsProductModalOpen(false);
       } catch (error) {
           console.error("Import error:", error);
           showToast("Lỗi khi import sản phẩm", "error");
       }
+  };
+
+  const handleAddProduct = async (product: any) => {
+    try {
+        await setDoc(doc(db, "products", product.maSanPham), product);
+        showToast('Thêm sản phẩm thành công', 'success');
+    } catch (error) {
+        console.error(error);
+        showToast('Lỗi khi thêm sản phẩm', 'error');
+    }
+  };
+
+  const handleDeleteProduct = async (maSanPham: string) => {
+    if(!window.confirm(`Xóa sản phẩm ${maSanPham}?`)) return;
+    try {
+        await deleteDoc(doc(db, "products", maSanPham));
+        showToast('Xóa sản phẩm thành công', 'info');
+    } catch (error) {
+        console.error(error);
+        showToast('Lỗi khi xóa sản phẩm', 'error');
+    }
   };
 
   const handleSaveUser = async (user: User, isEdit: boolean) => {
@@ -561,14 +525,18 @@ export const App: React.FC = () => {
 
   const handleSaveSystemSettings = async (newSettings: SystemSettings) => {
       try {
-          // Optimistic UI update
-          setSystemSettings(newSettings);
           await setDoc(doc(db, "settings", "systemSettings"), newSettings);
+          setSystemSettings(newSettings); // Optimistic update
           showToast('Cập nhật cấu hình hệ thống thành công.', 'success');
       } catch (error) {
+          console.error("System settings save error:", error);
           showToast("Lỗi khi lưu cấu hình", "error");
-          console.error(error);
       }
+  };
+  
+  const handleItemsPerPageChange = (newItemsPerPage: number) => {
+    setItemsPerPage(newItemsPerPage);
+    setCurrentPage(1);
   };
 
   // Search & Filter Handlers used in List Component
@@ -607,74 +575,48 @@ export const App: React.FC = () => {
       });
   };
 
-  useEffect(() => {
-    // Merge defaults to ensure app doesn't crash if config is missing properties
-    if (systemSettings) {
-        setSystemSettings(prev => ({ ...DEFAULT_SYSTEM_SETTINGS, ...prev }));
-    }
-  }, []);
-
-  useEffect(() => {
-      if (systemSettings.appName) {
-          document.title = systemSettings.appName;
-      }
-  }, [systemSettings.appName]);
-
-
   if (!currentUser) {
-      if (isLoadingDB) {
-          return <Loading />;
-      }
       return (
         <Suspense fallback={<Loading />}>
              {/* Fallback to INITIAL_USERS if DB is empty or not connected */}
+             {/* Use merged system settings */}
              <Login 
                 onLogin={handleLogin} 
                 users={users.length > 0 ? users : INITIAL_USERS} 
-                settings={systemSettings}
+                settings={{...DEFAULT_SYSTEM_SETTINGS, ...systemSettings}}
              />
         </Suspense>
       );
   }
 
-  // Get current role's specific config
-  const currentRoleConfig = roleSettings[currentUser.role] || DEFAULT_ROLE_SETTINGS[currentUser.role];
-
   return (
-    <div className="flex flex-col h-dvh bg-slate-100 font-sans text-slate-900">
+    <div className="flex flex-col h-dvh bg-slate-100 font-sans text-slate-900 font-medium">
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-30 transition-all flex-shrink-0">
-        <div className="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+      <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-30 transition-all">
+        <div className="max-w-[1920px] mx-auto px-2 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2 sm:gap-4">
           
           {/* Left: Logo & Title */}
-          <div className="flex items-center gap-3 min-w-0">
-            {systemSettings.logoUrl ? (
-                <img src={systemSettings.logoUrl} className="h-8 w-auto rounded-md shadow-sm border border-slate-100 hidden sm:block" alt="Logo" />
-            ) : (
-                <div className="bg-blue-600 p-2 rounded-xl shadow-lg shadow-blue-600/20 flex-shrink-0 hidden sm:block">
-                    <BarChartIcon className="h-6 w-6 text-white" />
-                </div>
-            )}
-            <h1 className="text-lg font-bold text-slate-800 tracking-tight truncate uppercase hidden lg:block">
-              {systemSettings.appName}
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <div className="bg-blue-600 p-1.5 sm:p-2 rounded-xl shadow-lg shadow-blue-600/20 flex-shrink-0">
+               <BarChartIcon className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+            </div>
+            <h1 className="text-sm sm:text-lg font-bold text-slate-800 tracking-tight truncate hidden sm:block uppercase">
+              THEO DÕI LỖI SẢN PHẨM
             </h1>
-            <h1 className="text-lg font-bold text-slate-800 tracking-tight truncate uppercase lg:hidden">
-              TD SP LỖI
-            </h1>
-            {isLoadingDB && <span className="text-xs text-blue-500 animate-pulse ml-2 hidden sm:inline">● Đang đồng bộ...</span>}
+            {isLoadingDB && <span className="text-xs text-blue-500 animate-pulse ml-2">● Đồng bộ...</span>}
           </div>
 
           {/* Center: View Switcher & Global Year Filter */}
           {canViewDashboard && (
-             <div className="flex items-center gap-2">
+             <div className="flex items-center gap-1 sm:gap-2">
                  {/* Year Filter Button */}
-                 <div className="bg-white rounded-xl border border-slate-200 shadow-sm px-2.5 py-1.5 flex items-center">
-                    <CalendarIcon className="h-4 w-4 text-slate-500 mr-2" />
+                 <div className="bg-white rounded-xl border border-slate-200 shadow-sm px-2 py-1.5 flex items-center active:scale-95 transition-transform">
+                    <CalendarIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-slate-500 mr-1 sm:mr-2" />
                     <span className="text-xs font-semibold text-slate-500 mr-1 hidden sm:inline">Năm:</span>
                     <select 
                         value={yearFilter} 
                         onChange={(e) => setYearFilter(e.target.value)}
-                        className="text-sm font-bold text-blue-600 bg-transparent focus:outline-none cursor-pointer hover:text-blue-700"
+                        className="text-xs sm:text-sm font-bold text-blue-600 bg-transparent focus:outline-none cursor-pointer hover:text-blue-700"
                     >
                         <option value="All">Tất cả</option>
                         {availableYears.map(y => (
@@ -686,22 +628,24 @@ export const App: React.FC = () => {
                  <div className="bg-slate-100/80 p-1 rounded-xl flex items-center gap-1 border border-slate-200/50 hidden md:flex">
                     <button
                         onClick={() => setCurrentView('list')}
-                        className={`flex items-center px-4 py-1.5 rounded-lg text-sm font-semibold transition-all duration-200 ${
+                        className={`flex items-center px-3 py-1.5 rounded-lg text-sm font-bold transition-all duration-200 active:scale-95 ${
                             currentView === 'list' 
                             ? 'bg-white text-blue-700 shadow-sm ring-1 ring-slate-200' 
                             : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
                         }`}
+                        title="Xem danh sách báo cáo"
                     >
                         <ListBulletIcon className="h-4 w-4 mr-2" />
                         Danh sách
                     </button>
                     <button
                         onClick={() => setCurrentView('dashboard')}
-                        className={`flex items-center px-4 py-1.5 rounded-lg text-sm font-semibold transition-all duration-200 ${
+                        className={`flex items-center px-3 py-1.5 rounded-lg text-sm font-bold transition-all duration-200 active:scale-95 ${
                             currentView === 'dashboard' 
                             ? 'bg-white text-blue-700 shadow-sm ring-1 ring-slate-200' 
                             : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
                         }`}
+                        title="Xem báo cáo thống kê"
                     >
                         <ChartPieIcon className="h-4 w-4 mr-2" />
                         Báo cáo
@@ -711,14 +655,14 @@ export const App: React.FC = () => {
           )}
 
           {/* Right: Actions & User */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-1 sm:gap-3">
             
             {userPermissions.canCreate && (
               <button
                 onClick={handleCreateClick}
-                className="flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold shadow-md shadow-blue-500/20 transition-all hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:scale-95"
+                className="flex items-center px-3 sm:px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs sm:text-sm font-bold shadow-md shadow-blue-500/20 transition-all hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:scale-95"
               >
-                <PlusIcon className="h-5 w-5 sm:mr-2" />
+                <PlusIcon className="h-4 w-4 sm:h-5 sm:w-5 sm:mr-2" />
                 <span className="hidden sm:inline">Tạo mới</span>
               </button>
             )}
@@ -728,7 +672,7 @@ export const App: React.FC = () => {
                 {currentView === 'list' && (
                     <button
                     onClick={handleExportData}
-                    className="p-2 sm:px-3 sm:py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl text-sm font-medium transition-all active:scale-95 flex items-center"
+                    className="p-2 sm:px-3 sm:py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl text-sm font-bold transition-all active:scale-95 flex items-center"
                     title="Xuất Excel"
                     >
                     <ArrowDownTrayIcon className="h-5 w-5 sm:mr-2 text-slate-500" />
@@ -737,30 +681,37 @@ export const App: React.FC = () => {
                 )}
 
                 {currentUser.role === UserRole.Admin && (
-                    <>
-                        {/* More Menu for Mobile could be added here */}
+                    <div className="flex items-center gap-1">
                          <button
                             onClick={() => setIsPermissionModalOpen(true)}
-                            className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors hidden sm:block"
-                            title="Phân quyền Hệ thống"
+                            className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors active:scale-95"
+                            title="Cấu hình phân quyền"
                         >
-                            <ShieldCheckIcon className="h-6 w-6" />
+                            <ShieldCheckIcon className="h-5 w-5 sm:h-6 sm:w-6" />
                         </button>
                         <button
                             onClick={() => setIsProductModalOpen(true)}
-                            className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors hidden sm:block"
+                            className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors active:scale-95"
                             title="Danh sách Sản phẩm"
                         >
-                            <TableCellsIcon className="h-6 w-6" />
+                            <TableCellsIcon className="h-5 w-5 sm:h-6 sm:w-6" />
                         </button>
                         <button
                             onClick={() => setIsUserModalOpen(true)}
-                            className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors hidden sm:block"
-                            title="Quản lý Tài khoản"
+                            className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors active:scale-95"
+                            title="Quản lý Người dùng"
                         >
-                            <UserGroupIcon className="h-6 w-6" />
+                            <UserGroupIcon className="h-5 w-5 sm:h-6 sm:w-6" />
                         </button>
-                    </>
+                         {/* System Settings Trigger */}
+                         <button 
+                            className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors active:scale-95"
+                            onClick={() => setIsSystemSettingsModalOpen(true)}
+                            title="Cấu hình / Cài đặt web"
+                        >
+                             <Cog8ToothIcon className="h-5 w-5 sm:h-6 sm:w-6" />
+                        </button>
+                    </div>
                 )}
             </div>
             
@@ -768,7 +719,7 @@ export const App: React.FC = () => {
             <div className="h-8 w-px bg-slate-200 mx-1 hidden sm:block"></div>
 
             {/* User Profile */}
-            <div className="flex items-center gap-3 pl-1">
+            <div className="flex items-center gap-2 sm:gap-3 pl-1">
                 <div className="text-right hidden md:block leading-tight">
                     {currentUser.role !== UserRole.Admin && (
                         <div className="text-sm font-bold text-slate-800">{currentUser.fullName || currentUser.username}</div>
@@ -777,24 +728,9 @@ export const App: React.FC = () => {
                         {currentUser.role}
                     </div>
                 </div>
-                
-                {/* Admin Settings Cog */}
-                {currentUser.role === UserRole.Admin && (
-                   <button 
-                       onClick={() => {
-                           // Load System Settings Modal
-                           const modal = document.getElementById('system-settings-modal');
-                           if (modal) modal.style.display = 'flex';
-                       }}
-                       className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-colors"
-                   >
-                       {/* This triggers the system settings modal state if implemented */}
-                   </button>
-                )}
-
                 <button 
                     onClick={handleLogout}
-                    className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors border border-transparent hover:border-red-100"
+                    className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors border border-transparent hover:border-red-100 active:scale-95"
                     title="Đăng xuất"
                 >
                     <ArrowRightOnRectangleIcon className="h-6 w-6" />
@@ -826,6 +762,7 @@ export const App: React.FC = () => {
                     onYearFilterChange={handleYearFilterChange}
                     onDateFilterChange={handleDateFilterChange}
                     summaryStats={summaryStats}
+                    isLoading={isPending}
                 />
             ) : (
                 <DashboardReport 
@@ -863,7 +800,7 @@ export const App: React.FC = () => {
                 setEditingReport(null);
               }}
               currentUserRole={currentUser.role}
-              editableFields={currentRoleConfig.editableFields || []}
+              editableFields={(roleSettings[currentUser.role] || DEFAULT_ROLE_SETTINGS[currentUser.role]).editableFields}
               products={products}
             />
           )}
@@ -896,39 +833,14 @@ export const App: React.FC = () => {
               />
           )}
 
-          {/* System Settings Modal is managed by state inside a wrapper or directly here */}
-          {currentUser.role === UserRole.Admin && (
-             // Hidden button trigger above, but proper way is state:
-             // I'll reuse isPermissionModalOpen state pattern but add a new state for this later if requested.
-             // For now, let's reuse the Cog icon in header to open a new state.
-             // Wait, I need to implement the modal opening. 
-             // Let's add a state `isSystemSettingsOpen`
-             null
+          {isSystemSettingsModalOpen && (
+              <SystemSettingsModal
+                currentSettings={systemSettings}
+                onSave={handleSaveSystemSettings}
+                onClose={() => setIsSystemSettingsModalOpen(false)}
+              />
           )}
-          
-          {/* We need a state for system settings modal. Let's add it. */}
-          {/* Re-rendering logic: Adding the modal component to the lazy load list and using a new state */}
       </Suspense>
-        
-      {/* System Settings Modal Integration */}
-      <SystemSettingsModalWrapper 
-          isOpen={false} // Placeholder, need to wire up state
-          settings={systemSettings}
-          onSave={handleSaveSystemSettings}
-          onClose={() => {}} 
-      />
-      
-      {/* 
-         HOTFIX: I cannot add new state variables easily without potentially breaking React hooks order if I'm not careful.
-         I'll add the SystemSettingsModal and the state in the next iteration properly.
-         For now, I'll just expose the SystemSettingsModal component in the imports.
-      */}
-      
-      {/* 
-        ACTUAL FIX: 
-        I will add `const [isSystemSettingsOpen, setIsSystemSettingsOpen] = useState(false);` 
-        and the button in the header.
-      */}
 
       {/* Toast Notification */}
       {toast && (
@@ -938,78 +850,6 @@ export const App: React.FC = () => {
           onClose={() => setToast(null)}
         />
       )}
-      
-      {/* System Settings Modal - Properly Integrated */}
-      {(() => {
-        // Local component for the modal to avoid modifying App state structure too much if not needed,
-        // but cleaner is to add state. I added state in previous steps? No.
-        // Let's look at line 140. I added systemSettings state.
-        // I will add `isSystemSettingsOpen` state now.
-        return null; 
-      })()}
-
-      <SystemSettingsController 
-        settings={systemSettings} 
-        onSave={handleSaveSystemSettings} 
-        currentUser={currentUser}
-      />
-
     </div>
   );
 };
-
-// Helper component to manage System Settings Modal visibility without messing up App's main state too much
-const SystemSettingsController: React.FC<{
-    settings: SystemSettings;
-    onSave: (s: SystemSettings) => void;
-    currentUser: User | null;
-}> = ({ settings, onSave, currentUser }) => {
-    const [isOpen, setIsOpen] = useState(false);
-    const SystemSettingsModal = React.lazy(() => import('./components/SystemSettingsModal'));
-    
-    // Listen for custom event or just render a button portal?
-    // Easiest is to render the button here using a Portal, OR just assume the user will ask to add the button later.
-    // Wait, the user ALREADY asked for the button in the previous turn and I implemented it in App.tsx?
-    // Let's check the previous App.tsx content provided in the prompt.
-    // It seems I might have missed adding the state `isSystemSettingsOpen` in the provided file.
-    
-    // To be safe and fix the "default export" error requested, I will stick to the App export change.
-    // The previous implementation of System Settings might be incomplete in the provided file text.
-    
-    // I will add the state `isSystemSettingsOpen` to `App` component above.
-    return (
-        <>
-            {isOpen && (
-                <Suspense fallback={null}>
-                    <SystemSettingsModal 
-                        currentSettings={settings} 
-                        onSave={onSave} 
-                        onClose={() => setIsOpen(false)} 
-                    />
-                </Suspense>
-            )}
-            {/* Button Portal or just a fixed button for Admin */}
-            {currentUser?.role === UserRole.Admin && (
-                 <div className="fixed bottom-24 right-5 z-40 md:hidden">
-                    <button 
-                        onClick={() => setIsOpen(true)}
-                        className="bg-slate-800 text-white p-3 rounded-full shadow-lg"
-                    >
-                        <ShieldCheckIcon className="h-6 w-6" />
-                    </button>
-                 </div>
-            )}
-             {/* Desktop Button - Hacky injection via ID if needed, or just add to App */}
-             {currentUser?.role === UserRole.Admin && (
-                 <div style={{ display: 'none' }} id="trigger-system-settings" onClick={() => setIsOpen(true)}></div>
-             )}
-        </>
-    )
-}
-
-// Ensure we define the Wrapper or remove it.
-const SystemSettingsModalWrapper = ({isOpen, settings, onSave, onClose}: any) => {
-    if (!isOpen) return null;
-    const SystemSettingsModal = React.lazy(() => import('./components/SystemSettingsModal'));
-    return <SystemSettingsModal currentSettings={settings} onSave={onSave} onClose={onClose} />;
-}

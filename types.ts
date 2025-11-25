@@ -15,6 +15,16 @@ export interface User {
   password?: string; 
 }
 
+// Cấu trúc Sản phẩm mới
+export interface Product {
+  maSanPham: string;
+  tenThuongMai: string;
+  tenThietBi: string; // Tên thiết bị y tế
+  dongSanPham: string;
+  nhanHang?: string;
+  GPLH: string; // Giấy phép lưu hành
+}
+
 export interface DefectReport {
   id: string;
   ngayTao: string; // Added field: Creation timestamp

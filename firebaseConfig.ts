@@ -1,14 +1,9 @@
-
+// @ts-ignore
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 
-// --- HƯỚNG DẪN: ---
-// 1. Vào https://console.firebase.google.com/
-// 2. Project Settings > General > Your apps > SDK Setup and Configuration
-// 3. Copy phần firebaseConfig và dán vào bên dưới
-
+// QUAN TRỌNG: Thay thế thông tin bên dưới bằng thông tin từ Firebase Console của bạn
 const firebaseConfig = {
-  // DÁN MÃ CẤU HÌNH CỦA BẠN VÀO ĐÂY (Thay thế toàn bộ các dòng này)
   apiKey: "AIzaSyDjW9eTJbMUc-PTWyT7IL6ps5V7AN3DZCo",
   authDomain: "theo-doi-san-pham-loi.firebaseapp.com",
   projectId: "theo-doi-san-pham-loi",

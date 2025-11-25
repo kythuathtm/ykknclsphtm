@@ -23,10 +23,8 @@ interface Props {
   currentPage: number;
   itemsPerPage: number;
   onPageChange: (page: number) => void;
-  onItemsPerPageChange: (items: number) => void;
   selectedReport: DefectReport | null;
   onSelectReport: (report: DefectReport) => void;
-  onDelete: (id: string) => void;
   currentUserRole: UserRole;
   filters: {
     searchTerm: string;
@@ -41,6 +39,9 @@ interface Props {
   onYearFilterChange: (year: string) => void;
   onDateFilterChange: (dates: { start: string; end: string }) => void;
   summaryStats: SummaryStats;
+  onItemsPerPageChange: (items: number) => void;
+  onDelete: (id: string) => void;
+  isLoading?: boolean;
 }
 
 const statusColorMap: { [key in DefectReport['trangThai']]: string } = {
@@ -89,10 +90,10 @@ const StatCard: React.FC<{ title: string; value: number; colorClass: string; ico
 ));
 
 const DefectReportList: React.FC<Props> = ({ 
-  reports, totalReports, currentPage, itemsPerPage, onPageChange, onItemsPerPageChange,
-  selectedReport, onSelectReport, onDelete, currentUserRole,
+  reports, totalReports, currentPage, itemsPerPage, onPageChange, 
+  selectedReport, onSelectReport, currentUserRole,
   filters, onSearchTermChange, onStatusFilterChange, onDefectTypeFilterChange, onYearFilterChange, onDateFilterChange,
-  summaryStats
+  summaryStats, onItemsPerPageChange, onDelete, isLoading
 }) => {
   
   const isTGD = currentUserRole === UserRole.TongGiamDoc;
@@ -235,7 +236,7 @@ const DefectReportList: React.FC<Props> = ({
                           e.stopPropagation();
                           setReportToDelete(report);
                       }}
-                      className="p-1.5 text-slate-400 hover:text-red-600 bg-white hover:bg-red-50 border border-transparent hover:border-red-200 rounded-lg transition-all shadow-sm"
+                      className="p-1.5 text-slate-400 hover:text-red-600 bg-white hover:bg-red-50 border border-transparent hover:border-red-200 rounded-lg transition-all shadow-sm active:scale-90"
                       title="Xóa báo cáo"
                   >
                       <TrashIcon className="h-4 w-4" />
@@ -322,7 +323,7 @@ const DefectReportList: React.FC<Props> = ({
             {areFiltersActive && (
                 <button 
                     onClick={resetFilters}
-                    className="px-3 py-2 text-sm text-red-600 bg-red-50 hover:bg-red-100 rounded-xl transition-colors font-medium whitespace-nowrap"
+                    className="px-3 py-2 text-sm text-red-600 bg-red-50 hover:bg-red-100 rounded-xl transition-colors font-medium whitespace-nowrap active:scale-95"
                 >
                     Xóa lọc
                 </button>
@@ -333,7 +334,7 @@ const DefectReportList: React.FC<Props> = ({
         <div className="relative" ref={settingsRef}>
             <button
                 onClick={() => setShowSettings(!showSettings)}
-                className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors border border-slate-200 bg-white"
+                className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors border border-slate-200 bg-white active:scale-95"
                 title="Cấu hình cột"
             >
                 <Cog6ToothIcon className="h-5 w-5" />
@@ -346,7 +347,7 @@ const DefectReportList: React.FC<Props> = ({
                         {columns.map((col, index) => (
                             <div key={col.id} className="flex items-center justify-between p-2 hover:bg-slate-50 rounded-lg group">
                                 <div className="flex items-center gap-2">
-                                    <button onClick={() => toggleColumnVisibility(col.id)} className="text-slate-500 hover:text-blue-600">
+                                    <button onClick={() => toggleColumnVisibility(col.id)} className="text-slate-500 hover:text-blue-600 active:scale-110 transition-transform">
                                         {col.visible ? <EyeIcon className="h-4 w-4 text-blue-600" /> : <EyeSlashIcon className="h-4 w-4" />}
                                     </button>
                                     <span className={`text-sm ${col.visible ? 'text-slate-700' : 'text-slate-400'}`}>{col.label || 'Thao tác'}</span>
@@ -355,14 +356,14 @@ const DefectReportList: React.FC<Props> = ({
                                     <button 
                                         onClick={() => moveColumn(index, 'up')} 
                                         disabled={index === 0}
-                                        className="p-1 text-slate-400 hover:text-slate-600 disabled:opacity-30"
+                                        className="p-1 text-slate-400 hover:text-slate-600 disabled:opacity-30 active:scale-125 transition-transform"
                                     >
                                         <ArrowUpIcon className="h-3 w-3" />
                                     </button>
                                     <button 
                                         onClick={() => moveColumn(index, 'down')} 
                                         disabled={index === columns.length - 1}
-                                        className="p-1 text-slate-400 hover:text-slate-600 disabled:opacity-30"
+                                        className="p-1 text-slate-400 hover:text-slate-600 disabled:opacity-30 active:scale-125 transition-transform"
                                     >
                                         <ArrowDownIcon className="h-3 w-3" />
                                     </button>
@@ -376,7 +377,12 @@ const DefectReportList: React.FC<Props> = ({
       </div>
 
       {/* Table Content */}
-      <div className="flex-1 bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col overflow-hidden">
+      <div className={`flex-1 bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col overflow-hidden relative ${isLoading ? 'opacity-75' : ''}`}>
+        {isLoading && (
+            <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/30 backdrop-blur-[1px]">
+                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            </div>
+        )}
         {reports.length > 0 ? (
             <div className="flex-1 overflow-x-auto custom-scrollbar">
                 <div className="min-w-full inline-block align-middle">
@@ -465,13 +471,13 @@ const DefectReportList: React.FC<Props> = ({
                 <div className="flex gap-3 justify-center">
                     <button
                         onClick={() => setReportToDelete(null)}
-                        className="px-5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 transition-colors"
+                        className="px-5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 transition-colors active:scale-95"
                     >
                         Hủy bỏ
                     </button>
                     <button
                         onClick={confirmDelete}
-                        className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-red-500/30 transition-all hover:-translate-y-0.5"
+                        className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-red-500/30 transition-all hover:-translate-y-0.5 active:scale-95 active:translate-y-0"
                     >
                         Xóa ngay
                     </button>

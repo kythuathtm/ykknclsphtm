@@ -179,7 +179,7 @@ export const ShieldCheckIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) 
 
 export const Cog8ToothIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M10.343 3.94c.09-.542.56-.94 1.11-.94h1.093c.55 0 1.02.398 1.11.94l.149.894c.07.424.384.764.78.93.398.164.855.142 1.205-.108l.737-.527a1.125 1.125 0 0 1 1.45.12l.773.774c.39.389.44 1.002.12 1.45l-.527.737c-.25.35-.272.806-.107 1.204.165.397.505.71.93.78l.893.15c.543.09.94.56.94 1.109v1.094c0 .55-.397 1.02-.94 1.11l-.893.149c-.425.07-.765.383-.93.78-.165.398-.143.854.107 1.204l.527.738c.32.447.269 1.06-.12 1.45l-.774.773a1.125 1.125 0 0 1-1.449.12l-.738-.527c-.35-.25-.806-.272-1.203-.107-.397.165-.71.505-.781.929l-.149.894c-.09.542-.56.94-1.11.94h-1.094c-.55 0-1.019-.398-1.11-.94l-.148-.894c-.071-.424-.384-.764-.781-.93-.398-.164-.854-.142-1.204.108l-.738.527c-.447.32-1.06.269-1.45-.12l-.773-.774a1.125 1.125 0 0 1-.12-1.45l.527-.737c.25-.35.273-.806.108-1.204-.165-.397-.505-.71-.93-.78l-.894-.15c-.542-.09-.94-.56-.94-1.109v-1.094c0-.55.398-1.02.94-1.11l.894-.149c.424-.07.765-.383.93-.78.165-.398.143-.854-.107-1.204l-.527-.738a1.125 1.125 0 0 1 .12-1.45l.773-.773a1.125 1.125 0 0 1 1.45-.12l.737.527c.35.25.807.272 1.204.107.397-.165.71-.505.78-.929l.15-.894Z" />
+    <path strokeLinecap="round" strokeLinejoin="round" d="M10.343 3.94c.09-.542.56-.94 1.11-.94h1.093c.55 0 1.02.398 1.11.94l.149.894c.07.424.384.764.78.93.398.164.855.142 1.205-.108l.737-.527a1.125 1.125 0 0 1 1.45.12l.773.774c.39.389.44 1.002.12 1.45l-.527.737c-.25.35-.272.806-.107 1.204.165.397.505.71.93.78l.893.15c.543.09.94.56.94 1.109v1.094c0 .55-.397 1.02-.94 1.11l-.893.149c-.425.07-.765.383-.93.78-.165.398-.143.854.107 1.204l-.527-.738a1.125 1.125 0 0 1 .12-1.45l.773-.773a1.125 1.125 0 0 1 1.45-.12l.737.527c.35.25.807.272 1.204.107.397-.165.71-.505.78-.929l.15-.894Z" />
     <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
   </svg>
 );
@@ -221,59 +221,52 @@ export const ShoppingBagIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) 
   </svg>
 );
 
-export const GoogleIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" {...props}>
-    <path d="M20.283 10.356h-8.327v3.451h4.792c-.446 2.193-2.313 3.453-4.792 3.453a5.27 5.27 0 0 1-5.279-5.28 5.27 5.27 0 0 1 5.279-5.279c1.259 0 2.397.447 3.29 1.178l2.6-2.599c-1.584-1.381-3.615-2.233-5.89-2.233a8.908 8.908 0 0 0-8.934 8.934 8.907 8.907 0 0 0 8.934 8.934c4.467 0 8.529-3.249 8.529-8.934 0-.528-.081-1.097-.202-1.625z" />
-  </svg>
-);
-
-export const FacebookIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" {...props}>
-    <path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" />
-  </svg>
-);
-
-export const AppleIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" {...props}>
-    <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.74.79 0 1.96-.71 3.37-.6 1.39.12 2.56.68 3.32 1.76-2.9 1.72-2.39 5.99.44 7.12-.66 1.63-1.56 3.22-2.21 3.95M12.03 7.25c-.15-2.32 1.92-4.22 3.96-4.25.31 2.45-2.34 4.45-3.96 4.25" />
-  </svg>
-);
-
-export const CompanyLogo: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500" {...props}>
-    {/* Outer Border */}
-    <rect x="10" y="10" width="380" height="480" rx="4" ry="4" fill="none" stroke="#003DA5" strokeWidth="12" />
-    
-    {/* Water Drop Shape */}
-    <path 
-      d="M200 60 
-         C 200 60, 320 250, 320 330 
-         A 120 120 0 1 1 80 330 
-         C 80 250, 200 60, 200 60 Z" 
-      fill="#003DA5" 
-    />
-    
-    {/* Inner White Curve (Reflection) */}
-    <path 
-      d="M280 300 
-         C 290 380, 250 440, 180 450
-         C 240 430, 270 380, 270 250 Z" 
-      fill="white" 
-      opacity="0.9"
-    />
-    
-    {/* Registered Symbol */}
-    <text x="350" y="80" fontFamily="Arial" fontSize="40" fill="#003DA5" fontWeight="bold">®</text>
-
-    {/* Text: HỒNG THIỆN MỸ */}
-    <text x="200" y="550" textAnchor="middle" fontFamily="Times New Roman, serif" fontSize="52" fill="#C5003E" fontWeight="bold" letterSpacing="2" transform="translate(0, -30)">
-      HỒNG THIỆN MỸ
-    </text>
-  </svg>
-);
-
 export const CalendarIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
     </svg>
+);
+
+export const ClipboardDocumentListIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M11.35 3.836c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z" />
+  </svg>
+);
+
+// CUSTOM COMPANY LOGO for Hồng Thiện Mỹ (HTM)
+export const CompanyLogo: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" fill="none" {...props}>
+     {/* Circle Background */}
+    <circle cx="250" cy="250" r="240" fill="#F0F9FF" stroke="#2563EB" strokeWidth="10" />
+    
+    {/* Medical Cross Accent (Watermark style) */}
+    <path d="M180 120 H320 V190 H390 V310 H320 V380 H180 V310 H110 V190 H180 V120 Z" fill="#3B82F6" opacity="0.07"/>
+
+    {/* Stylized Text Group */}
+    <g transform="translate(0, -20)">
+        {/* H */}
+        <path d="M110 140 V360" stroke="#1E40AF" strokeWidth="36" strokeLinecap="round" />
+        <path d="M210 140 V360" stroke="#1E40AF" strokeWidth="36" strokeLinecap="round" />
+        <path d="M110 250 H210" stroke="#1E40AF" strokeWidth="32" strokeLinecap="round" />
+        
+        {/* T */}
+        <path d="M260 140 H380" stroke="#1E40AF" strokeWidth="36" strokeLinecap="round" />
+        <path d="M320 140 V360" stroke="#1E40AF" strokeWidth="36" strokeLinecap="round" />
+        
+        {/* M (Partial / Suggestive) */}
+        <path d="M420 360 V140 L455 200" stroke="#1E40AF" strokeWidth="36" strokeLinecap="round" strokeLinejoin="round" />
+    </g>
+
+    {/* Medical Cross Icon Small */}
+    <rect x="220" y="380" width="60" height="60" rx="10" fill="#EF4444" />
+    <path d="M250 390 V430 M230 410 H270" stroke="white" strokeWidth="6" strokeLinecap="round" />
+
+    {/* Company Name Curved */}
+    <path id="curve" d="M 100 420 Q 250 480 400 420" fill="transparent" />
+    <text width="500">
+        <textPath href="#curve" startOffset="50%" textAnchor="middle" className="font-bold uppercase" fontSize="28" fill="#1E3A8A" letterSpacing="1">
+            Hồng Thiện Mỹ
+        </textPath>
+    </text>
+  </svg>
 );

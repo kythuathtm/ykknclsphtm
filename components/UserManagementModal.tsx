@@ -51,7 +51,7 @@ const UserManagementModal: React.FC<Props> = ({ users, onSaveUser, onDeleteUser,
       <div className="bg-white rounded-lg shadow-2xl max-w-3xl w-full max-h-[80vh] flex flex-col overflow-hidden">
         <div className="flex justify-between items-center p-4 border-b border-slate-200 bg-white">
           <h2 className="text-xl font-bold text-slate-800">Quản lý Tài khoản</h2>
-          <button onClick={onClose} className="p-2 text-slate-500 hover:text-slate-800 rounded-full hover:bg-slate-100 transition-colors">
+          <button onClick={onClose} className="p-2 text-slate-500 hover:text-slate-800 rounded-full hover:bg-slate-100 transition-all active:scale-95">
             <XIcon className="h-6 w-6" />
           </button>
         </div>
@@ -107,7 +107,7 @@ const UserManagementModal: React.FC<Props> = ({ users, onSaveUser, onDeleteUser,
                 <div className="sm:col-span-1 flex space-x-1">
                     <button 
                         type="submit"
-                        className={`flex-1 inline-flex items-center justify-center px-2 py-2 border border-transparent text-sm font-medium rounded-md text-white ${isEditing ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'}`}
+                        className={`flex-1 inline-flex items-center justify-center px-2 py-2 border border-transparent text-sm font-medium rounded-md text-white transition-all active:scale-95 ${isEditing ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'}`}
                         title={isEditing ? 'Lưu' : 'Thêm'}
                     >
                         {isEditing ? <PencilIcon className="h-4 w-4"/> : <PlusIcon className="h-4 w-4"/>}
@@ -116,7 +116,7 @@ const UserManagementModal: React.FC<Props> = ({ users, onSaveUser, onDeleteUser,
                         <button 
                             type="button"
                             onClick={handleCancelEdit}
-                            className="flex-1 inline-flex items-center justify-center px-2 py-2 border border-slate-300 text-sm font-medium rounded-md text-slate-700 bg-white hover:bg-slate-50"
+                            className="flex-1 inline-flex items-center justify-center px-2 py-2 border border-slate-300 text-sm font-medium rounded-md text-slate-700 bg-white hover:bg-slate-50 transition-all active:scale-95"
                             title="Hủy"
                         >
                             <XIcon className="h-4 w-4"/>
@@ -149,7 +149,7 @@ const UserManagementModal: React.FC<Props> = ({ users, onSaveUser, onDeleteUser,
                     <td className="px-4 py-3 whitespace-nowrap text-right text-sm font-medium">
                         <button 
                             onClick={() => handleEditClick(user)}
-                            className="text-blue-600 hover:text-blue-900 mr-3 p-1 rounded hover:bg-blue-100"
+                            className="text-blue-600 hover:text-blue-900 mr-3 p-1 rounded hover:bg-blue-100 transition-all active:scale-90"
                             title="Sửa quyền / Đổi mật khẩu"
                         >
                             <PencilIcon className="h-4 w-4" />
@@ -157,7 +157,7 @@ const UserManagementModal: React.FC<Props> = ({ users, onSaveUser, onDeleteUser,
                         {user.username.toLowerCase() !== 'admin' && (
                             <button 
                                 onClick={() => handleDeleteClick(user.username)}
-                                className="text-red-600 hover:text-red-900 p-1 rounded hover:bg-red-100"
+                                className="text-red-600 hover:text-red-900 p-1 rounded hover:bg-red-100 transition-all active:scale-90"
                                 title="Xóa tài khoản"
                             >
                                 <TrashIcon className="h-4 w-4" />
@@ -171,7 +171,7 @@ const UserManagementModal: React.FC<Props> = ({ users, onSaveUser, onDeleteUser,
           </div>
         </div>
         <div className="flex justify-end p-4 bg-white border-t border-slate-200">
-          <button onClick={onClose} className="bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-medium py-2 px-4 rounded-lg shadow-sm">
+          <button onClick={onClose} className="bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-medium py-2 px-4 rounded-lg shadow-sm transition-all active:scale-95">
             Đóng
           </button>
         </div>
