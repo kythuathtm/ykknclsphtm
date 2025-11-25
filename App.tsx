@@ -1,26 +1,15 @@
 
-
 import React, { useState, useMemo, useEffect, useTransition, Suspense } from 'react';
-import { DefectReport, UserRole, ToastType, User, RoleSettings, PermissionField, SystemSettings, Product } from './types';
-import { PlusIcon, BarChartIcon, ArrowDownTrayIcon, ListBulletIcon, ArrowRightOnRectangleIcon, UserGroupIcon, ChartPieIcon, TableCellsIcon, ShieldCheckIcon, ArrowUpTrayIcon, CalendarIcon, Cog8ToothIcon } from './components/Icons';
+import { DefectReport, UserRole, ToastType, PermissionField } from './types';
+import { PlusIcon, BarChartIcon, ArrowDownTrayIcon, ListBulletIcon, ArrowRightOnRectangleIcon, UserGroupIcon, ChartPieIcon, TableCellsIcon, ShieldCheckIcon, CalendarIcon, Cog8ToothIcon } from './components/Icons';
 import * as XLSX from 'xlsx';
 import Loading from './components/Loading';
 
-// Firebase Imports
-import { db } from './firebaseConfig';
-import { 
-  collection, 
-  onSnapshot, 
-  addDoc, 
-  updateDoc, 
-  deleteDoc, 
-  doc, 
-  query, 
-  orderBy,
-  setDoc,
-  writeBatch,
-  getDocs
-} from 'firebase/firestore';
+// Custom Hooks
+import { useAuth } from './hooks/useAuth';
+import { useReports } from './hooks/useReports';
+import { useProducts } from './hooks/useProducts';
+import { useSettings } from './hooks/useSettings';
 
 // Lazy load components
 const DefectReportList = React.lazy(() => import('./components/DefectReportList'));
@@ -68,49 +57,22 @@ const Toast: React.FC<ToastProps> = ({ message, type, onClose }) => {
   );
 };
 
-// --- Initial Data for Seeding (Only used once) ---
-const INITIAL_USERS: User[] = [
-  { username: 'admin', fullName: 'Quản Trị Viên', role: UserRole.Admin, password: '123' },
-  { username: 'kythuat', fullName: 'Nguyễn Văn Kỹ', role: UserRole.KyThuat, password: '123' },
-  { username: 'sanxuat', fullName: 'Trần Văn Sản', role: UserRole.SanXuat, password: '123' },
-  { username: 'cungung', fullName: 'Lê Thị Cung', role: UserRole.CungUng, password: '123' },
-  { username: 'kho', fullName: 'Phạm Văn Kho', role: UserRole.Kho, password: '123' },
-  { username: 'tgd', fullName: 'Nguyễn Tổng', role: UserRole.TongGiamDoc, password: '123' },
-];
-
-// Empty Initial Products List as requested
-const INITIAL_PRODUCTS: Product[] = [];
-
-const DEFAULT_ROLE_SETTINGS: RoleSettings = {
-    [UserRole.Admin]: { canCreate: true, canViewDashboard: true, viewableDefectTypes: ['All'], editableFields: ['general', 'soLuongDoi', 'loaiLoi', 'nguyenNhan', 'huongKhacPhuc', 'trangThai', 'ngayHoanThanh'] },
-    [UserRole.KyThuat]: { canCreate: true, canViewDashboard: true, viewableDefectTypes: ['All'], editableFields: ['general', 'soLuongDoi', 'loaiLoi', 'nguyenNhan', 'huongKhacPhuc', 'trangThai', 'ngayHoanThanh'] },
-    [UserRole.CungUng]: { canCreate: false, canViewDashboard: true, viewableDefectTypes: ['All'], editableFields: ['general', 'loaiLoi', 'trangThai'] },
-    [UserRole.TongGiamDoc]: { canCreate: false, canViewDashboard: true, viewableDefectTypes: ['All'], editableFields: [] },
-    [UserRole.SanXuat]: { canCreate: false, canViewDashboard: false, viewableDefectTypes: ['Lỗi Sản xuất', 'Lỗi Hỗn hợp'], editableFields: ['nguyenNhan', 'huongKhacPhuc'] },
-    [UserRole.Kho]: { canCreate: false, canViewDashboard: false, viewableDefectTypes: ['All'], editableFields: [] },
-};
-
-const DEFAULT_SYSTEM_SETTINGS: SystemSettings = {
-  appName: 'Theo dõi lỗi SP',
-  companyName: 'Công ty Cổ phần Vật tư Y tế Hồng Thiện Mỹ',
-  logoUrl: '',
-  backgroundType: 'default',
-  backgroundValue: ''
-};
-
 // --- Main App Component ---
 
 export const App: React.FC = () => {
-  // State
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
-  
-  // Data State (Sync with Firebase)
-  const [users, setUsers] = useState<User[]>([]);
-  const [reports, setReports] = useState<DefectReport[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [roleSettings, setRoleSettings] = useState<RoleSettings>(DEFAULT_ROLE_SETTINGS);
-  const [systemSettings, setSystemSettings] = useState<SystemSettings>(DEFAULT_SYSTEM_SETTINGS);
-  
+  // Global Toast Handler
+  const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
+  const showToast = (message: string, type: ToastType) => {
+    setToast({ message, type });
+  };
+
+  // --- Using Custom Hooks ---
+  const { currentUser, users, login, logout, saveUser, deleteUser } = useAuth(showToast);
+  const { reports, isLoadingReports, saveReport, deleteReport } = useReports(showToast);
+  const { products, addProduct, deleteProduct, deleteAllProducts, importProducts } = useProducts(showToast);
+  const { roleSettings, systemSettings, saveRoleSettings, saveSystemSettings, renameRole } = useSettings(showToast);
+
+  // UI State
   const [selectedReport, setSelectedReport] = useState<DefectReport | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingReport, setEditingReport] = useState<DefectReport | null>(null);
@@ -118,9 +80,7 @@ export const App: React.FC = () => {
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
   const [isPermissionModalOpen, setIsPermissionModalOpen] = useState(false);
   const [isSystemSettingsModalOpen, setIsSystemSettingsModalOpen] = useState(false);
-  const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
   const [currentView, setCurrentView] = useState<'list' | 'dashboard'>('list');
-  const [isLoadingDB, setIsLoadingDB] = useState(true);
 
   // Filters & Pagination State
   const [currentPage, setCurrentPage] = useState(1);
@@ -132,87 +92,19 @@ export const App: React.FC = () => {
   // Initialize Year Filter to Current Year
   const currentYear = new Date().getFullYear().toString();
   const [yearFilter, setYearFilter] = useState(currentYear); 
-  
   const [dateFilter, setDateFilter] = useState({ start: '', end: '' });
   const [isPending, startTransition] = useTransition();
 
-  // --- FIREBASE REAL-TIME LISTENERS ---
-
-  // 1. Listen to REPORTS
-  useEffect(() => {
-    const q = query(collection(db, "reports"), orderBy("ngayTao", "desc"));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const reportsData = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as DefectReport[];
-      setReports(reportsData);
-      setIsLoadingDB(false);
-    }, (error) => {
-      console.error("Error fetching reports:", error);
-      setIsLoadingDB(false);
-    });
-    return () => unsubscribe();
-  }, []);
-
-  // 2. Listen to USERS (and Seed if empty)
-  useEffect(() => {
-    const unsubscribe = onSnapshot(collection(db, "users"), async (snapshot) => {
-      const usersData = snapshot.docs.map(doc => doc.data()) as User[];
-      
-      // AUTO-SEED: If database is completely empty, create default users and data
-      if (usersData.length === 0 && !isLoadingDB) {
-         console.log("Database empty. Seeding initial data...");
-      } 
-      setUsers(usersData);
-    });
-    return () => unsubscribe();
-  }, [isLoadingDB]);
-
-  // 3. Listen to PRODUCTS
-  useEffect(() => {
-    const unsubscribe = onSnapshot(collection(db, "products"), (snapshot) => {
-      const productsData = snapshot.docs.map(doc => doc.data() as Product);
-      setProducts(productsData);
-    });
-    return () => unsubscribe();
-  }, []);
-
-  // 4. Listen to SETTINGS (Role Config & System Settings)
-  useEffect(() => {
-    const unsubscribe = onSnapshot(collection(db, "settings"), (snapshot) => {
-      if (!snapshot.empty) {
-        const roleDoc = snapshot.docs.find(d => d.id === 'roleSettings');
-        if (roleDoc) {
-            setRoleSettings(roleDoc.data() as RoleSettings);
-        }
-        const systemDoc = snapshot.docs.find(d => d.id === 'systemSettings');
-        if (systemDoc) {
-            setSystemSettings(systemDoc.data() as SystemSettings);
-        }
-      }
-    });
-    return () => unsubscribe();
-  }, []);
-
-  // Safety timeout for loading
-  useEffect(() => {
-      const timer = setTimeout(() => {
-          if (isLoadingDB) {
-              setIsLoadingDB(false);
-          }
-      }, 3000);
-      return () => clearTimeout(timer);
-  }, [isLoadingDB]);
-
+  // Safety loading
+  const isLoadingDB = isLoadingReports; // simplified global loading
 
   // Derived State for Permission Checking
   const userPermissions = useMemo(() => {
     if (!currentUser) return { canCreate: false, canEdit: false, canDelete: false };
     const role = currentUser.role;
-    const config = roleSettings[role] || DEFAULT_ROLE_SETTINGS[role]; // Fallback
+    // @ts-ignore
+    const config = roleSettings[role]; 
     
-    // Fallback logic if permissions are undefined for a new role
     if (!config) {
         return { canCreate: false, canEdit: false, canDelete: false };
     }
@@ -226,21 +118,20 @@ export const App: React.FC = () => {
 
   const canViewDashboard = useMemo(() => {
      if (!currentUser) return false;
-     const config = roleSettings[currentUser.role] || DEFAULT_ROLE_SETTINGS[currentUser.role];
+     // @ts-ignore
+     const config = roleSettings[currentUser.role];
      return config ? config.canViewDashboard : false;
   }, [currentUser, roleSettings]);
   
-  // Available Roles list (Dynamic)
-  const availableRoles = useMemo(() => {
-      return Object.keys(roleSettings);
-  }, [roleSettings]);
+  const availableRoles = useMemo(() => Object.keys(roleSettings), [roleSettings]);
 
   // Filter Logic
   const filteredReports = useMemo(() => {
     let result = reports;
 
     if (currentUser) {
-        const config = roleSettings[currentUser.role] || DEFAULT_ROLE_SETTINGS[currentUser.role];
+        // @ts-ignore
+        const config = roleSettings[currentUser.role];
         if (config && !config.viewableDefectTypes.includes('All')) {
             result = result.filter(r => config.viewableDefectTypes.includes(r.loaiLoi));
         }
@@ -269,7 +160,6 @@ export const App: React.FC = () => {
         result = result.filter((r) => r.loaiLoi === defectTypeFilter);
     }
 
-    // Year Filter Logic
     if (yearFilter !== 'All') {
         result = result.filter((r) => {
             if (!r.ngayPhanAnh) return false;
@@ -289,7 +179,6 @@ export const App: React.FC = () => {
     return result;
   }, [reports, searchTerm, statusFilter, defectTypeFilter, yearFilter, dateFilter, currentUser, roleSettings]);
 
-  const totalPages = Math.ceil(filteredReports.length / itemsPerPage);
   const paginatedReports = useMemo(() => {
       const start = (currentPage - 1) * itemsPerPage;
       return filteredReports.slice(start, start + itemsPerPage);
@@ -305,40 +194,29 @@ export const App: React.FC = () => {
       }
   }, [filteredReports]);
   
-  // Calculate available years for global filter
   const availableYears = useMemo(() => {
       const years = new Set<string>();
       const cYear = new Date().getFullYear().toString();
       years.add(cYear);
-
       reports.forEach(r => {
           if(r.ngayPhanAnh) {
-             const y = new Date(r.ngayPhanAnh).getFullYear().toString();
-             years.add(y);
+             years.add(new Date(r.ngayPhanAnh).getFullYear().toString());
           }
       });
-
       return Array.from(years).sort((a, b) => parseInt(b) - parseInt(a));
   }, [reports]);
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchTerm, statusFilter, defectTypeFilter, yearFilter, dateFilter]);
+  useEffect(() => { setCurrentPage(1); }, [searchTerm, statusFilter, defectTypeFilter, yearFilter, dateFilter]);
 
+  // Actions Handlers
 
-  // Handlers
-
-  const showToast = (message: string, type: ToastType) => {
-    setToast({ message, type });
+  const onLogin = (user: any) => {
+      login(user);
+      setCurrentView('list');
   };
 
-  const handleLogin = async (user: User) => {
-      setCurrentUser(user);
-      setCurrentView('list'); 
-  };
-
-  const handleLogout = () => {
-      setCurrentUser(null);
+  const onLogout = () => {
+      logout();
       setSelectedReport(null);
       setIsFormOpen(false);
       setIsUserModalOpen(false);
@@ -347,49 +225,41 @@ export const App: React.FC = () => {
       setIsSystemSettingsModalOpen(false);
   };
 
-  // --- FIRESTORE ACTIONS ---
-
-  const handleSaveReport = async (report: DefectReport) => {
-    try {
-        if (editingReport && report.id) {
-            const reportRef = doc(db, "reports", report.id);
-            const { id, ...data } = report;
-            await updateDoc(reportRef, data as any);
-            showToast('Cập nhật báo cáo thành công!', 'success');
-        } else {
-            const { id, ...data } = report;
-            const newReportData = {
-                ...data,
-                ngayTao: new Date().toISOString()
-            };
-            await addDoc(collection(db, "reports"), newReportData);
-            showToast('Tạo báo cáo mới thành công!', 'success');
-        }
-        setIsFormOpen(false);
-        setEditingReport(null);
-        setSelectedReport(null);
-    } catch (error) {
-        console.error("Error saving report:", error);
-        showToast('Lỗi khi lưu báo cáo', 'error');
-    }
+  const onSaveReport = async (report: DefectReport) => {
+      const success = await saveReport(report, !!(editingReport && report.id && !report.id.startsWith('new_')));
+      if(success) {
+          setIsFormOpen(false);
+          setEditingReport(null);
+          setSelectedReport(null);
+      }
   };
-
-  const handleDeleteReport = async (id: string) => {
-    // Rely on the UI component (list or detail) to handle confirmation
-    try {
-        await deleteDoc(doc(db, "reports", id));
-        if (selectedReport?.id === id) setSelectedReport(null);
-        showToast('Đã xóa báo cáo.', 'info');
-    } catch (error) {
-        console.error("Error deleting:", error);
-        showToast('Lỗi khi xóa', 'error');
-    }
+  
+  const onDeleteReport = async (id: string) => {
+      const success = await deleteReport(id);
+      if(success && selectedReport?.id === id) setSelectedReport(null);
   };
 
   const handleEditClick = (report: DefectReport) => {
     setEditingReport(report);
     setIsFormOpen(true);
     setSelectedReport(null); 
+  };
+  
+  const handleDuplicateReport = (report: DefectReport) => {
+      const duplicatedReport: DefectReport = {
+          ...report,
+          id: 'new_' + Date.now(), 
+          ngayTao: new Date().toISOString(),
+          ngayPhanAnh: new Date().toISOString().split('T')[0],
+          trangThai: 'Mới',
+          ngayHoanThanh: '',
+          soLuongDoi: 0,
+          nguyenNhan: '',
+          huongKhacPhuc: '',
+      };
+      setEditingReport(duplicatedReport);
+      setIsFormOpen(true);
+      showToast('Đã sao chép thông tin vào form tạo mới.', 'info');
   };
 
   const handleCreateClick = () => {
@@ -423,183 +293,57 @@ export const App: React.FC = () => {
     const worksheet = XLSX.utils.json_to_sheet(dataToExport);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "BaoCao");
-    const today = new Date().toISOString().slice(0, 10);
-    const fileName = `bao_cao_san_pham_loi_${today}.xlsx`;
+    const fileName = `bao_cao_san_pham_loi_${new Date().toISOString().slice(0, 10)}.xlsx`;
     XLSX.writeFile(workbook, fileName);
   };
   
-  const handleImportProducts = async (newProducts: Product[]) => {
-      try {
-          // Chunking logic to avoid Firebase limit
-          const chunkSize = 450; // Limit per batch
-          const chunks = [];
-          for (let i = 0; i < newProducts.length; i += chunkSize) {
-              chunks.push(newProducts.slice(i, i + chunkSize));
-          }
-          
-          let totalCount = 0;
-          for (const chunk of chunks) {
-              const batch = writeBatch(db);
-              chunk.forEach((p: any) => {
-                  if(p.maSanPham) {
-                      const ref = doc(db, "products", p.maSanPham);
-                      batch.set(ref, p);
-                  }
-              });
-              await batch.commit();
-              totalCount += chunk.length;
-          }
-          
-          showToast(`Đã import thành công ${totalCount} sản phẩm lên Cloud.`, 'success');
-          setIsProductModalOpen(false);
-      } catch (error) {
-          console.error("Import error:", error);
-          showToast("Lỗi khi import sản phẩm", "error");
-      }
+  const handleImportProductsCallback = async (newProducts: any[]) => {
+      const success = await importProducts(newProducts);
+      if(success) setIsProductModalOpen(false);
   };
 
-  const handleAddProduct = async (product: Product) => {
-    try {
-        await setDoc(doc(db, "products", product.maSanPham), product);
-        showToast('Thêm sản phẩm thành công', 'success');
-    } catch (error) {
-        console.error(error);
-        showToast('Lỗi khi thêm sản phẩm', 'error');
-    }
-  };
-
-  const handleDeleteProduct = async (maSanPham: string) => {
-    if(!window.confirm(`Xóa sản phẩm ${maSanPham}?`)) return;
-    try {
-        await deleteDoc(doc(db, "products", maSanPham));
-        showToast('Xóa sản phẩm thành công', 'info');
-    } catch (error) {
-        console.error(error);
-        showToast('Lỗi khi xóa sản phẩm', 'error');
-    }
-  };
-
-  const handleDeleteAllProducts = async () => {
-    if (!window.confirm("CẢNH BÁO QUAN TRỌNG:\n\nBạn đang thực hiện xóa TOÀN BỘ danh sách sản phẩm.\nHành động này KHÔNG THỂ khôi phục.\n\nBạn có chắc chắn muốn tiếp tục?")) return;
-
-    try {
-        // Fetch all product docs
-        const q = query(collection(db, "products"));
-        const snapshot = await getDocs(q);
-        
-        if (snapshot.empty) {
-            showToast("Danh sách sản phẩm đang trống.", "info");
-            return;
-        }
-
-        // Chunking for batch delete (limit 500)
-        const chunkSize = 450;
-        const chunks = [];
-        const docs = snapshot.docs;
-
-        for (let i = 0; i < docs.length; i += chunkSize) {
-            chunks.push(docs.slice(i, i + chunkSize));
-        }
-
-        for (const chunk of chunks) {
-            const batch = writeBatch(db);
-            chunk.forEach(doc => {
-                batch.delete(doc.ref);
-            });
-            await batch.commit();
-        }
-        
-        showToast("Đã xóa toàn bộ dữ liệu sản phẩm.", "info");
-    } catch (error) {
-        console.error("Delete all error:", error);
-        showToast("Lỗi khi xóa dữ liệu.", "error");
-    }
-  };
-
-  const handleSaveUser = async (user: User, isEdit: boolean) => {
-      try {
-          await setDoc(doc(db, "users", user.username), user);
-          showToast(isEdit ? 'Cập nhật tài khoản thành công.' : 'Thêm tài khoản mới thành công.', 'success');
-      } catch (error) {
-          console.error("User save error:", error);
-          showToast("Lỗi khi lưu tài khoản", "error");
-      }
-  };
-
-  const handleDeleteUser = async (username: string) => {
-      try {
-          await deleteDoc(doc(db, "users", username));
-          showToast('Đã xóa tài khoản.', 'info');
-      } catch (error) {
-          showToast("Lỗi khi xóa tài khoản", "error");
-      }
-  };
-
-  const handleSavePermissions = async (newSettings: RoleSettings) => {
-      try {
-          await setDoc(doc(db, "settings", "roleSettings"), newSettings);
-          setRoleSettings(newSettings); // Optimistic Update
-          showToast('Cập nhật phân quyền thành công.', 'success');
-      } catch (error) {
-          showToast("Lỗi khi lưu phân quyền", "error");
-      }
-  };
-
-  const handleSaveSystemSettings = async (newSettings: SystemSettings) => {
-      try {
-          await setDoc(doc(db, "settings", "systemSettings"), newSettings);
-          setSystemSettings(newSettings); // Optimistic update
-          showToast('Cập nhật cấu hình hệ thống thành công.', 'success');
-      } catch (error) {
-          console.error("System settings save error:", error);
-          showToast("Lỗi khi lưu cấu hình", "error");
-      }
-  };
-  
   const handleItemsPerPageChange = (newItemsPerPage: number) => {
     setItemsPerPage(newItemsPerPage);
     setCurrentPage(1);
   };
 
-  // Search & Filter Handlers used in List Component
   const handleSearchTermChange = (term: string) => startTransition(() => setSearchTerm(term));
   const handleStatusFilterChange = (status: string) => startTransition(() => setStatusFilter(status));
   const handleDefectTypeFilterChange = (type: string) => startTransition(() => setDefectTypeFilter(type));
   const handleYearFilterChange = (year: string) => startTransition(() => setYearFilter(year));
   const handleDateFilterChange = (dates: {start: string, end: string}) => startTransition(() => setDateFilter(dates));
   
-  // Dashboard interaction handler
   const handleDashboardFilterSelect = (filterType: 'status' | 'defectType' | 'all' | 'search' | 'brand', value?: string) => {
       startTransition(() => {
-          setYearFilter('All'); // Reset year on dashboard click
+          setYearFilter('All');
           if (filterType === 'search' && value) {
               setSearchTerm(value);
               setStatusFilter('All');
               setDefectTypeFilter('All');
-              setCurrentView('list'); // Switch to list if searching
+              setCurrentView('list');
           } else if (filterType === 'all') {
               setStatusFilter('All');
               setDefectTypeFilter('All');
               setSearchTerm('');
               setCurrentView('list');
           }
-          // For 'status', 'defectType', 'brand', the Dashboard component handles the modal display
       });
   };
 
   if (!currentUser) {
       return (
         <Suspense fallback={<Loading />}>
-             {/* Fallback to INITIAL_USERS if DB is empty or not connected */}
-             {/* Use merged system settings */}
              <Login 
-                onLogin={handleLogin} 
-                users={users.length > 0 ? users : INITIAL_USERS} 
-                settings={{...DEFAULT_SYSTEM_SETTINGS, ...systemSettings}}
+                onLogin={onLogin} 
+                users={users} 
+                settings={systemSettings}
              />
         </Suspense>
       );
   }
+
+  // @ts-ignore
+  const userRoleConfig = roleSettings[currentUser.role];
 
   return (
     <div className="flex flex-col h-dvh bg-slate-100 font-sans text-slate-900">
@@ -607,7 +351,6 @@ export const App: React.FC = () => {
       <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-30 transition-all">
         <div className="max-w-[1920px] mx-auto px-2 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2 sm:gap-4">
           
-          {/* Left: Logo & Title */}
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <div className="bg-blue-600 p-1.5 sm:p-2 rounded-xl shadow-lg shadow-blue-600/20 flex-shrink-0">
                <BarChartIcon className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
@@ -618,10 +361,8 @@ export const App: React.FC = () => {
             {isLoadingDB && <span className="text-xs text-blue-500 animate-pulse ml-2">● Đồng bộ...</span>}
           </div>
 
-          {/* Center: View Switcher & Global Year Filter */}
           {canViewDashboard && (
              <div className="flex items-center gap-1 sm:gap-2">
-                 {/* Year Filter Button */}
                  <div className="bg-white rounded-xl border border-slate-200 shadow-sm px-2 py-1.5 flex items-center active:scale-95 transition-transform">
                     <CalendarIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-slate-500 mr-1 sm:mr-2" />
                     <span className="text-xs font-semibold text-slate-500 mr-1 hidden sm:inline">Năm:</span>
@@ -666,9 +407,7 @@ export const App: React.FC = () => {
             </div>
           )}
 
-          {/* Right: Actions & User */}
           <div className="flex items-center gap-1 sm:gap-3">
-            
             {userPermissions.canCreate && (
               <button
                 onClick={handleCreateClick}
@@ -679,7 +418,6 @@ export const App: React.FC = () => {
               </button>
             )}
 
-            {/* Secondary Actions Group */}
             <div className="flex items-center gap-1">
                 {currentView === 'list' && (
                     <button
@@ -715,7 +453,6 @@ export const App: React.FC = () => {
                         >
                             <UserGroupIcon className="h-5 w-5 sm:h-6 sm:w-6" />
                         </button>
-                         {/* System Settings Trigger */}
                          <button 
                             className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors active:scale-95"
                             onClick={() => setIsSystemSettingsModalOpen(true)}
@@ -727,10 +464,8 @@ export const App: React.FC = () => {
                 )}
             </div>
             
-            {/* Divider */}
             <div className="h-8 w-px bg-slate-200 mx-1 hidden sm:block"></div>
 
-            {/* User Profile */}
             <div className="flex items-center gap-2 sm:gap-3 pl-1">
                 <div className="text-right hidden md:block leading-tight">
                     {currentUser.role !== UserRole.Admin && (
@@ -741,7 +476,7 @@ export const App: React.FC = () => {
                     </div>
                 </div>
                 <button 
-                    onClick={handleLogout}
+                    onClick={onLogout}
                     className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors border border-transparent hover:border-red-100 active:scale-95"
                     title="Đăng xuất"
                 >
@@ -765,7 +500,7 @@ export const App: React.FC = () => {
                     onItemsPerPageChange={handleItemsPerPageChange}
                     selectedReport={selectedReport}
                     onSelectReport={setSelectedReport}
-                    onDelete={handleDeleteReport}
+                    onDelete={onDeleteReport}
                     currentUserRole={currentUser.role}
                     filters={{ searchTerm, statusFilter, defectTypeFilter, yearFilter, dateFilter }}
                     onSearchTermChange={handleSearchTermChange}
@@ -776,6 +511,7 @@ export const App: React.FC = () => {
                     summaryStats={summaryStats}
                     isLoading={isPending}
                     onExport={handleExportData}
+                    onDuplicate={userPermissions.canCreate ? handleDuplicateReport : undefined}
                 />
             ) : (
                 <DashboardReport 
@@ -796,7 +532,7 @@ export const App: React.FC = () => {
                   <DefectReportDetail
                     report={selectedReport}
                     onEdit={handleEditClick}
-                    onDelete={handleDeleteReport}
+                    onDelete={onDeleteReport}
                     permissions={userPermissions}
                     onClose={() => setSelectedReport(null)}
                     currentUserRole={currentUser.role}
@@ -808,13 +544,13 @@ export const App: React.FC = () => {
           {isFormOpen && (
             <DefectReportForm
               initialData={editingReport}
-              onSave={handleSaveReport}
+              onSave={onSaveReport}
               onClose={() => {
                 setIsFormOpen(false);
                 setEditingReport(null);
               }}
               currentUserRole={currentUser.role}
-              editableFields={(roleSettings[currentUser.role] || DEFAULT_ROLE_SETTINGS[currentUser.role]).editableFields}
+              editableFields={userRoleConfig?.editableFields || []}
               products={products}
             />
           )}
@@ -823,10 +559,10 @@ export const App: React.FC = () => {
               <ProductListModal 
                 products={products} 
                 onClose={() => setIsProductModalOpen(false)} 
-                onImport={handleImportProducts}
-                onAdd={handleAddProduct}
-                onDelete={handleDeleteProduct}
-                onDeleteAll={handleDeleteAllProducts}
+                onImport={handleImportProductsCallback}
+                onAdd={addProduct}
+                onDelete={deleteProduct}
+                onDeleteAll={deleteAllProducts}
                 currentUserRole={currentUser.role}
               />
           )}
@@ -834,16 +570,18 @@ export const App: React.FC = () => {
           {isUserModalOpen && (
               <UserManagementModal 
                 users={users}
-                onSaveUser={handleSaveUser}
-                onDeleteUser={handleDeleteUser}
+                onSaveUser={saveUser}
+                onDeleteUser={deleteUser}
                 onClose={() => setIsUserModalOpen(false)}
+                availableRoles={availableRoles}
               />
           )}
           
           {isPermissionModalOpen && (
               <PermissionManagementModal
                 roleSettings={roleSettings}
-                onSave={handleSavePermissions}
+                onSave={saveRoleSettings}
+                onRenameRole={renameRole}
                 onClose={() => setIsPermissionModalOpen(false)}
               />
           )}
@@ -851,13 +589,12 @@ export const App: React.FC = () => {
           {isSystemSettingsModalOpen && (
               <SystemSettingsModal
                 currentSettings={systemSettings}
-                onSave={handleSaveSystemSettings}
+                onSave={saveSystemSettings}
                 onClose={() => setIsSystemSettingsModalOpen(false)}
               />
           )}
       </Suspense>
 
-      {/* Toast Notification */}
       {toast && (
         <Toast
           message={toast.message}

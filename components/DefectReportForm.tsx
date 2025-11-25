@@ -34,6 +34,25 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
   const [isProductInfoLocked, setIsProductInfoLocked] = useState(false);
   const productCodeInputRef = useRef<HTMLInputElement>(null);
 
+  // Keyboard Shortcuts Handler
+  useEffect(() => {
+      const handleKeyDown = (e: KeyboardEvent) => {
+          // Esc to Close
+          if (e.key === 'Escape') {
+              onClose();
+          }
+          // Ctrl + Enter to Save
+          if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+              // Trigger submit logic programmatically
+              const fakeEvent = { preventDefault: () => {} } as React.FormEvent;
+              handleSubmit(fakeEvent);
+          }
+      };
+
+      window.addEventListener('keydown', handleKeyDown);
+      return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [formData]); // Dependency on formData to ensure latest state is submitted
+
   // --- AUTO COMPLETE LOGIC ---
   useEffect(() => {
     // Logic: Có đầy đủ nguyên nhân + hướng khắc phục + số lượng đổi -> trạng thái chuyển thành Hoàn thành
@@ -92,6 +111,9 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
   const isFieldDisabled = (fieldName: keyof Omit<DefectReport, 'id'>) => {
     if (!initialData) return false; 
     
+    // Allow unlocking product info if it's a new report (including duplicates)
+    if (initialData.id?.startsWith('new_')) return false;
+
     if (isProductInfoLocked && ['dongSanPham', 'tenThuongMai', 'nhanHang', 'tenThietBi'].includes(fieldName)) return true;
 
     let permissionKey: PermissionField;
@@ -276,12 +298,17 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
         
         <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 bg-white">
           <div>
-              <h2 className="text-xl font-bold text-slate-900 uppercase">{initialData ? 'CHỈNH SỬA PHẢN ÁNH' : 'TẠO PHẢN ÁNH MỚI'}</h2>
+              <h2 className="text-xl font-bold text-slate-900 uppercase">
+                  {initialData && !initialData.id.startsWith('new_') ? 'CHỈNH SỬA PHẢN ÁNH' : 'TẠO PHẢN ÁNH MỚI'}
+              </h2>
               <p className="text-sm text-slate-500 mt-0.5">Vui lòng điền đầy đủ thông tin bắt buộc <span className="text-red-500">*</span></p>
           </div>
-          <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-800 rounded-full hover:bg-slate-100 transition-all active:scale-95">
-            <XIcon className="h-6 w-6" />
-          </button>
+          <div className="flex items-center gap-2">
+            <span className="hidden sm:inline-block text-xs text-slate-400 bg-slate-100 px-2 py-1 rounded">ESC để đóng</span>
+            <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-800 rounded-full hover:bg-slate-100 transition-all active:scale-95">
+                <XIcon className="h-6 w-6" />
+            </button>
+          </div>
         </div>
 
         <form id="report-form" onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 bg-slate-50/50" noValidate>
@@ -499,7 +526,9 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
         </form>
         
         <div className="flex justify-between items-center px-6 py-4 bg-white border-t border-slate-200 gap-3">
-          <div className="text-xs text-slate-400 italic hidden sm:block">Kiểm tra kỹ thông tin trước khi lưu.</div>
+          <div className="text-xs text-slate-400 italic hidden sm:block">
+              Phím tắt: <span className="font-bold border px-1 rounded">Ctrl + Enter</span> để Lưu, <span className="font-bold border px-1 rounded">Esc</span> để Thoát
+          </div>
           <div className="flex gap-3">
              <button onClick={onClose} className="px-5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 transition-all shadow-sm active:scale-95">
                 Hủy bỏ
@@ -510,7 +539,7 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
                 className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-500/30 transition-all hover:-translate-y-0.5 active:translate-y-0 active:scale-95 flex items-center"
             >
                 <CheckCircleIcon className="w-5 h-5 mr-2" />
-                {initialData ? 'CẬP NHẬT' : 'TẠO PHẢN ÁNH'}
+                {initialData && !initialData.id.startsWith('new_') ? 'CẬP NHẬT' : 'TẠO PHẢN ÁNH'}
             </button>
           </div>
         </div>

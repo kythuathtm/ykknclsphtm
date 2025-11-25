@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { UserRole, RoleConfig, RoleSettings, PermissionField } from '../types';
 import { XIcon, CheckCircleIcon, PlusIcon, TrashIcon, PencilIcon } from './Icons';
@@ -6,10 +5,11 @@ import { XIcon, CheckCircleIcon, PlusIcon, TrashIcon, PencilIcon } from './Icons
 interface Props {
   roleSettings: RoleSettings;
   onSave: (settings: RoleSettings) => void;
+  onRenameRole: (oldName: string, newName: string) => Promise<void>;
   onClose: () => void;
 }
 
-const PermissionManagementModal: React.FC<Props> = ({ roleSettings, onSave, onClose }) => {
+const PermissionManagementModal: React.FC<Props> = ({ roleSettings, onSave, onRenameRole, onClose }) => {
   const [settings, setSettings] = useState<RoleSettings>(roleSettings);
   const [newRoleName, setNewRoleName] = useState('');
   const [isAddingRole, setIsAddingRole] = useState(false);
@@ -142,7 +142,7 @@ const PermissionManagementModal: React.FC<Props> = ({ roleSettings, onSave, onCl
       setRenameValue('');
   };
 
-  const handleSaveRename = () => {
+  const handleSaveRename = async () => {
       if (!editingRole) return;
       const newName = renameValue.trim();
       
@@ -168,6 +168,9 @@ const PermissionManagementModal: React.FC<Props> = ({ roleSettings, onSave, onCl
           newSettings[newName] = config; // Thêm key mới
           return newSettings;
       });
+
+      // Call parent handler to sync users immediately
+      await onRenameRole(editingRole, newName);
 
       handleCancelRename();
   };

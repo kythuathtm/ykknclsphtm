@@ -10,7 +10,7 @@ interface Props {
   availableRoles: string[]; // Dynamic roles from settings
 }
 
-const UserManagementModal: React.FC<Props> = ({ users, onSaveUser, onDeleteUser, onClose, availableRoles }) => {
+const UserManagementModal: React.FC<Props> = ({ users, onSaveUser, onDeleteUser, onClose, availableRoles = [] }) => {
   const [formData, setFormData] = useState<User>({ username: '', fullName: '', role: UserRole.KyThuat, password: '' });
   const [isEditing, setIsEditing] = useState(false);
 
@@ -140,32 +140,44 @@ const UserManagementModal: React.FC<Props> = ({ users, onSaveUser, onDeleteUser,
                 </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-slate-200">
-                {users.map((user, index) => (
-                    <tr key={index} className={`hover:bg-blue-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}`}>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm font-bold text-slate-900">{user.username}</td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-slate-700">{user.fullName || '-'}</td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-slate-500">******</td>
-                    <td className="px-4 py-3 whitespace-nowrap text-sm text-slate-500">{user.role}</td>
-                    <td className="px-4 py-3 whitespace-nowrap text-right text-sm font-medium">
-                        <button 
-                            onClick={() => handleEditClick(user)}
-                            className="text-blue-600 hover:text-blue-900 mr-3 p-1 rounded hover:bg-blue-100 transition-all active:scale-90"
-                            title="Sửa quyền / Đổi mật khẩu"
-                        >
-                            <PencilIcon className="h-4 w-4" />
-                        </button>
-                        {user.username.toLowerCase() !== 'admin' && (
+                {users.map((user, index) => {
+                    const isRoleValid = availableRoles.includes(user.role);
+                    return (
+                        <tr key={index} className={`hover:bg-blue-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}`}>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm font-bold text-slate-900">{user.username}</td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-slate-700">{user.fullName || '-'}</td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-slate-500">******</td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-slate-500">
+                            {isRoleValid ? (
+                                user.role
+                            ) : (
+                                <span className="text-red-500 font-bold flex items-center gap-1">
+                                    {user.role} 
+                                    <span className="text-[10px] bg-red-100 px-1 rounded border border-red-200">Invalid</span>
+                                </span>
+                            )}
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap text-right text-sm font-medium">
                             <button 
-                                onClick={() => handleDeleteClick(user.username)}
-                                className="text-red-600 hover:text-red-900 p-1 rounded hover:bg-red-100 transition-all active:scale-90"
-                                title="Xóa tài khoản"
+                                onClick={() => handleEditClick(user)}
+                                className="text-blue-600 hover:text-blue-900 mr-3 p-1 rounded hover:bg-blue-100 transition-all active:scale-90"
+                                title="Sửa quyền / Đổi mật khẩu"
                             >
-                                <TrashIcon className="h-4 w-4" />
+                                <PencilIcon className="h-4 w-4" />
                             </button>
-                        )}
-                    </td>
-                    </tr>
-                ))}
+                            {user.username.toLowerCase() !== 'admin' && (
+                                <button 
+                                    onClick={() => handleDeleteClick(user.username)}
+                                    className="text-red-600 hover:text-red-900 p-1 rounded hover:bg-red-100 transition-all active:scale-90"
+                                    title="Xóa tài khoản"
+                                >
+                                    <TrashIcon className="h-4 w-4" />
+                                </button>
+                            )}
+                        </td>
+                        </tr>
+                    );
+                })}
                 </tbody>
             </table>
           </div>

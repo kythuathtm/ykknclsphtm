@@ -4,7 +4,7 @@ import Pagination from './Pagination';
 import { 
     MagnifyingGlassIcon, InboxIcon, ClockIcon, CheckCircleIcon, 
     SparklesIcon, Cog6ToothIcon, TrashIcon, ArrowDownTrayIcon,
-    CalendarIcon, FunnelIcon, XIcon
+    CalendarIcon, FunnelIcon, XIcon, DocumentDuplicateIcon
 } from './Icons';
 
 interface SummaryStats {
@@ -41,13 +41,14 @@ interface Props {
   onDelete: (id: string) => void;
   isLoading?: boolean;
   onExport: () => void;
+  onDuplicate?: (report: DefectReport) => void;
 }
 
 const statusColorMap: { [key in DefectReport['trangThai']]: string } = {
-  'Mới': 'bg-blue-50 text-blue-700 ring-1 ring-blue-600/20',
-  'Đang xử lý': 'bg-amber-50 text-amber-700 ring-1 ring-amber-600/20',
-  'Chưa tìm ra nguyên nhân': 'bg-purple-50 text-purple-700 ring-1 ring-purple-600/20',
-  'Hoàn thành': 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-600/20',
+  'Mới': 'bg-blue-50 text-blue-700 ring-1 ring-blue-600/10 shadow-sm',
+  'Đang xử lý': 'bg-amber-50 text-amber-700 ring-1 ring-amber-600/10 shadow-sm',
+  'Chưa tìm ra nguyên nhân': 'bg-purple-50 text-purple-700 ring-1 ring-purple-600/10 shadow-sm',
+  'Hoàn thành': 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-600/10 shadow-sm',
 };
 
 type ColumnId = 'stt' | 'ngayTao' | 'ngayPhanAnh' | 'maSanPham' | 'tenThuongMai' | 'tenThietBi' | 'noiDungPhanAnh' | 'soLo' | 'maNgaySanXuat' | 'trangThai' | 'ngayHoanThanh' | 'actions';
@@ -62,24 +63,24 @@ interface ColumnConfig {
 
 const DEFAULT_COLUMNS: ColumnConfig[] = [
     { id: 'stt', label: 'STT', visible: true, span: 0.1, minWidth: '50px' },
-    { id: 'ngayPhanAnh', label: 'Ngày phản ánh', visible: true, span: 0.5, minWidth: '120px' },
-    { id: 'maSanPham', label: 'Mã sản phẩm', visible: true, span: 0, minWidth: '180px' }, // Fixed width, preventing overlap
-    { id: 'tenThuongMai', label: 'Tên thương mại', visible: true, span: 2, minWidth: '220px' }, // Flexible width, wraps text
-    { id: 'noiDungPhanAnh', label: 'Nội dung phản ánh', visible: true, span: 3, minWidth: '300px' },
+    { id: 'ngayPhanAnh', label: 'Ngày phản ánh', visible: true, span: 0.5, minWidth: '130px' },
+    { id: 'maSanPham', label: 'Mã sản phẩm', visible: true, span: 0, minWidth: '160px' },
+    { id: 'tenThuongMai', label: 'Tên thương mại', visible: true, span: 2, minWidth: '220px' },
+    { id: 'noiDungPhanAnh', label: 'Nội dung phản ánh', visible: true, span: 3, minWidth: '320px' },
     { id: 'soLo', label: 'Số lô', visible: true, span: 0.5, minWidth: '100px' },
     { id: 'maNgaySanXuat', label: 'Mã NSX', visible: true, span: 0.5, minWidth: '100px' },
-    { id: 'trangThai', label: 'Trạng thái', visible: true, span: 0.8, minWidth: '140px' },
+    { id: 'trangThai', label: 'Trạng thái', visible: true, span: 0.8, minWidth: '150px' },
     { id: 'tenThietBi', label: 'Tên thiết bị', visible: false, span: 1.5, minWidth: '180px' },
     { id: 'ngayTao', label: 'Ngày tạo', visible: false, span: 0.8, minWidth: '110px' },
     { id: 'ngayHoanThanh', label: 'Hoàn thành', visible: false, span: 0.8, minWidth: '110px' },
-    { id: 'actions', label: '', visible: true, span: 0.2, minWidth: '50px' },
+    { id: 'actions', label: '', visible: true, span: 0.2, minWidth: '90px' },
 ];
 
 const DefectReportList: React.FC<Props> = ({ 
   reports, totalReports, currentPage, itemsPerPage, onPageChange, 
   selectedReport, onSelectReport, currentUserRole,
   filters, onSearchTermChange, onStatusFilterChange, onDefectTypeFilterChange, onYearFilterChange, onDateFilterChange,
-  summaryStats, onItemsPerPageChange, onDelete, isLoading, onExport
+  summaryStats, onItemsPerPageChange, onDelete, isLoading, onExport, onDuplicate
 }) => {
   const [columns, setColumns] = useState<ColumnConfig[]>(DEFAULT_COLUMNS);
   const [showSettings, setShowSettings] = useState(false);
@@ -101,11 +102,9 @@ const DefectReportList: React.FC<Props> = ({
           const winWidth = window.innerWidth;
           const winHeight = window.innerHeight;
 
-          // Check right edge
           if (x + rect.width > winWidth - 20) {
               x = e.clientX - rect.width - 15;
           }
-          // Check bottom edge
           if (y + rect.height > winHeight - 20) {
               y = e.clientY - rect.height - 15;
           }
@@ -166,15 +165,15 @@ const DefectReportList: React.FC<Props> = ({
   const renderCell = (report: DefectReport, columnId: ColumnId, index: number) => {
       switch (columnId) {
           case 'stt':
-              return <span className="text-slate-400 font-medium text-sm">{(currentPage - 1) * itemsPerPage + index + 1}</span>;
+              return <span className="text-slate-400 font-bold text-sm">{(currentPage - 1) * itemsPerPage + index + 1}</span>;
           case 'ngayTao':
               return <span className="text-slate-500 text-sm">{report.ngayTao ? new Date(report.ngayTao).toLocaleDateString('en-GB') : '-'}</span>;
           case 'ngayPhanAnh':
-              return <span className="text-slate-700 font-medium text-sm whitespace-nowrap">{new Date(report.ngayPhanAnh).toLocaleDateString('en-GB')}</span>;
+              return <span className="text-slate-700 font-semibold text-sm whitespace-nowrap bg-slate-100/50 px-2 py-1 rounded">{new Date(report.ngayPhanAnh).toLocaleDateString('en-GB')}</span>;
           case 'maSanPham':
               return (
                   <div className="flex items-center">
-                      <span className="text-slate-800 font-bold text-sm whitespace-nowrap overflow-hidden text-ellipsis" title={report.maSanPham}>
+                      <span className="text-slate-900 font-bold text-sm whitespace-nowrap overflow-hidden text-ellipsis bg-blue-50/50 text-blue-800 px-2 py-1 rounded border border-blue-100/50" title={report.maSanPham}>
                           {report.maSanPham}
                       </span>
                   </div>
@@ -182,7 +181,7 @@ const DefectReportList: React.FC<Props> = ({
           case 'tenThuongMai':
               return (
                 <div className="min-w-0 pr-2">
-                    <div className="font-bold text-slate-800 text-sm whitespace-normal leading-snug">
+                    <div className="font-bold text-slate-800 text-sm whitespace-normal leading-snug group-hover:text-blue-700 transition-colors">
                         {report.tenThuongMai}
                     </div>
                 </div>
@@ -192,31 +191,46 @@ const DefectReportList: React.FC<Props> = ({
           case 'noiDungPhanAnh':
               return <div className="text-slate-600 text-sm line-clamp-2 leading-relaxed" title={report.noiDungPhanAnh}>{report.noiDungPhanAnh}</div>;
           case 'soLo':
-              return <span className="text-slate-600 text-sm font-bold whitespace-nowrap">{report.soLo}</span>;
+              return <span className="text-slate-600 text-sm font-bold whitespace-nowrap bg-slate-100 px-2 py-0.5 rounded border border-slate-200">{report.soLo}</span>;
           case 'maNgaySanXuat':
               return <span className="text-slate-600 text-sm whitespace-nowrap">{report.maNgaySanXuat}</span>;
           case 'ngayHoanThanh':
               return report.ngayHoanThanh ? <span className="text-emerald-600 font-medium text-sm whitespace-nowrap">{new Date(report.ngayHoanThanh).toLocaleDateString('en-GB')}</span> : <span className="text-slate-300">-</span>;
           case 'trangThai':
               return (
-                  <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold whitespace-nowrap ${statusColorMap[report.trangThai]}`}>
+                  <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold whitespace-nowrap shadow-sm border border-transparent ${statusColorMap[report.trangThai]}`}>
                       {report.trangThai}
                   </span>
               );
           case 'actions':
               const canDelete = ([UserRole.Admin, UserRole.KyThuat] as string[]).includes(currentUserRole);
-              if (!canDelete) return null;
               return (
-                  <button
-                      onClick={(e) => {
-                          e.stopPropagation();
-                          setReportToDelete(report);
-                      }}
-                      className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all opacity-0 group-hover:opacity-100"
-                      title="Xóa phản ánh"
-                  >
-                      <TrashIcon className="h-4 w-4" />
-                  </button>
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      {onDuplicate && (
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onDuplicate(report);
+                            }}
+                            className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all transform hover:scale-110 active:scale-95"
+                            title="Sao chép phản ánh"
+                        >
+                            <DocumentDuplicateIcon className="h-4 w-4" />
+                        </button>
+                      )}
+                      {canDelete && (
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setReportToDelete(report);
+                            }}
+                            className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all transform hover:scale-110 active:scale-95"
+                            title="Xóa phản ánh"
+                        >
+                            <TrashIcon className="h-4 w-4" />
+                        </button>
+                      )}
+                  </div>
               );
           default:
               return null;
@@ -226,16 +240,16 @@ const DefectReportList: React.FC<Props> = ({
   const StatTab = ({ label, count, active, onClick, icon }: any) => (
       <button 
           onClick={onClick}
-          className={`relative flex items-center gap-2 px-4 py-3 text-sm font-bold transition-all border-b-2 whitespace-nowrap ${
+          className={`relative flex items-center gap-2 px-5 py-4 text-sm font-bold transition-all border-b-2 whitespace-nowrap z-10 ${
               active 
               ? 'text-blue-600 border-blue-600 bg-blue-50/50' 
               : 'text-slate-500 border-transparent hover:text-slate-700 hover:bg-slate-50'
           }`}
       >
-          <span className={`${active ? 'text-blue-500' : 'text-slate-400'}`}>{icon}</span>
+          <span className={`${active ? 'text-blue-500' : 'text-slate-400'} transition-colors`}>{icon}</span>
           <span>{label}</span>
-          <span className={`ml-1 py-0.5 px-2 rounded-full text-xs ${
-              active ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-500'
+          <span className={`ml-1 py-0.5 px-2 rounded-full text-xs transition-colors ${
+              active ? 'bg-blue-100 text-blue-700 shadow-sm' : 'bg-slate-100 text-slate-500'
           }`}>
               {count}
           </span>
@@ -245,9 +259,9 @@ const DefectReportList: React.FC<Props> = ({
   return (
     <div className="flex flex-col h-full px-4 lg:px-8 py-6 max-w-[1920px] mx-auto w-full">
       
-      <div className="flex flex-col h-full bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+      <div className="flex flex-col h-full bg-white rounded-2xl shadow-soft border border-slate-200 overflow-hidden ring-1 ring-slate-100">
           
-          <div className="flex border-b border-slate-200 overflow-x-auto no-scrollbar bg-white">
+          <div className="flex border-b border-slate-200 overflow-x-auto no-scrollbar bg-white shadow-sm z-20">
               <StatTab label="Tất cả" count={summaryStats.total} active={filters.statusFilter === 'All'} onClick={() => onStatusFilterChange('All')} icon={<InboxIcon className="h-4 w-4"/>} />
               <StatTab label="Mới" count={summaryStats.moi} active={filters.statusFilter === 'Mới'} onClick={() => onStatusFilterChange('Mới')} icon={<SparklesIcon className="h-4 w-4"/>} />
               <StatTab label="Đang xử lý" count={summaryStats.dangXuLy} active={filters.statusFilter === 'Đang xử lý'} onClick={() => onStatusFilterChange('Đang xử lý')} icon={<ClockIcon className="h-4 w-4"/>} />
@@ -258,12 +272,12 @@ const DefectReportList: React.FC<Props> = ({
           <div className="p-4 flex flex-col xl:flex-row gap-4 items-start xl:items-center justify-between bg-white border-b border-slate-100">
              
              <div className="relative w-full xl:w-96 group">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-500 transition-colors">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-600 transition-colors">
                     <MagnifyingGlassIcon className="h-5 w-5" />
                 </div>
                 <input
                     type="text"
-                    className="block w-full pl-10 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-sm"
+                    className="block w-full pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white transition-all shadow-sm"
                     placeholder="Tìm kiếm theo mã SP, tên, lô..."
                     value={filters.searchTerm}
                     onChange={(e) => onSearchTermChange(e.target.value)}
@@ -271,12 +285,12 @@ const DefectReportList: React.FC<Props> = ({
             </div>
 
             <div className="flex flex-wrap items-center gap-2 w-full xl:w-auto">
-                <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                <div className="relative group">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-500 transition-colors">
                         <FunnelIcon className="h-4 w-4" />
                     </div>
                     <select
-                        className="pl-9 pr-8 py-2.5 text-sm font-medium border border-slate-200 rounded-xl bg-white text-slate-700 focus:outline-none focus:border-blue-500 hover:bg-slate-50 cursor-pointer appearance-none min-w-[160px] shadow-sm"
+                        className="pl-9 pr-8 py-2.5 text-sm font-medium border border-slate-200 rounded-xl bg-white text-slate-700 focus:outline-none focus:border-blue-500 hover:bg-slate-50 cursor-pointer appearance-none min-w-[160px] shadow-sm focus:ring-2 focus:ring-blue-500/20"
                         value={filters.defectTypeFilter}
                         onChange={(e) => onDefectTypeFilterChange(e.target.value)}
                     >
@@ -288,18 +302,18 @@ const DefectReportList: React.FC<Props> = ({
                     </select>
                 </div>
 
-                <div className="flex items-center bg-white rounded-xl border border-slate-200 px-3 py-2 shadow-sm">
+                <div className="flex items-center bg-white rounded-xl border border-slate-200 px-3 py-2 shadow-sm focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-400 transition-all">
                     <CalendarIcon className="h-4 w-4 text-slate-400 mr-2" />
                     <input
                         type="date"
-                        className="bg-white text-sm text-slate-700 focus:outline-none font-medium w-28 rounded-md border-0 py-0.5 focus:ring-2 focus:ring-blue-500/20"
+                        className="bg-transparent text-sm text-slate-700 focus:outline-none font-medium w-28 py-0.5"
                         value={filters.dateFilter.start}
                         onChange={(e) => onDateFilterChange({ ...filters.dateFilter, start: e.target.value })}
                     />
                     <span className="text-slate-300 mx-2">-</span>
                     <input
                         type="date"
-                         className="bg-white text-sm text-slate-700 focus:outline-none font-medium w-28 rounded-md border-0 py-0.5 focus:ring-2 focus:ring-blue-500/20"
+                         className="bg-transparent text-sm text-slate-700 focus:outline-none font-medium w-28 py-0.5"
                         value={filters.dateFilter.end}
                         onChange={(e) => onDateFilterChange({ ...filters.dateFilter, end: e.target.value })}
                     />
@@ -309,7 +323,7 @@ const DefectReportList: React.FC<Props> = ({
 
                 <button
                     onClick={onExport}
-                    className="p-2.5 bg-white border border-slate-200 rounded-xl text-slate-600 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 transition-all shadow-sm"
+                    className="p-2.5 bg-white border border-slate-200 rounded-xl text-slate-600 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 transition-all shadow-sm active:scale-95"
                     title="Xuất Excel"
                 >
                     <ArrowDownTrayIcon className="h-5 w-5" />
@@ -318,13 +332,13 @@ const DefectReportList: React.FC<Props> = ({
                 <div className="relative" ref={settingsRef}>
                     <button
                         onClick={() => setShowSettings(!showSettings)}
-                        className={`p-2.5 bg-white border border-slate-200 rounded-xl hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 transition-all shadow-sm ${showSettings ? 'text-blue-600 border-blue-200 bg-blue-50' : 'text-slate-600'}`}
+                        className={`p-2.5 bg-white border border-slate-200 rounded-xl hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 transition-all shadow-sm active:scale-95 ${showSettings ? 'text-blue-600 border-blue-200 bg-blue-50' : 'text-slate-600'}`}
                         title="Cấu hình cột"
                     >
                         <Cog6ToothIcon className="h-5 w-5" />
                     </button>
                     {showSettings && (
-                        <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-slate-100 z-20 p-2 animate-fade-in-up">
+                        <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-slate-100 z-30 p-2 animate-fade-in-up">
                             <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 px-2 pt-1">Hiển thị cột</h4>
                             <div className="space-y-0.5 max-h-60 overflow-y-auto custom-scrollbar">
                                 {columns.map((col) => (
@@ -345,7 +359,7 @@ const DefectReportList: React.FC<Props> = ({
                 {areFiltersActive && (
                     <button 
                         onClick={resetFilters}
-                        className="p-2.5 ml-1 text-red-600 bg-red-50 hover:bg-red-100 rounded-xl transition-colors border border-transparent hover:border-red-200 shadow-sm"
+                        className="p-2.5 ml-1 text-red-600 bg-red-50 hover:bg-red-100 rounded-xl transition-colors border border-transparent hover:border-red-200 shadow-sm active:scale-95"
                         title="Xóa bộ lọc"
                     >
                         <XIcon className="h-5 w-5" />
@@ -354,15 +368,15 @@ const DefectReportList: React.FC<Props> = ({
             </div>
           </div>
 
-          <div className={`flex-1 overflow-hidden relative transition-opacity duration-300 flex flex-col ${isLoading ? 'opacity-60 pointer-events-none' : 'opacity-100'}`}>
+          <div className={`flex-1 overflow-hidden relative transition-opacity duration-300 flex flex-col bg-slate-50/30 ${isLoading ? 'opacity-60 pointer-events-none' : 'opacity-100'}`}>
             {reports.length > 0 ? (
                 <div className="flex-1 overflow-auto custom-scrollbar">
                     <div className="min-w-full inline-block align-middle">
-                        <div className="flex bg-slate-50 border-b border-slate-200 text-left text-sm font-bold text-slate-500 uppercase tracking-wider sticky top-0 z-10 shadow-sm">
+                        <div className="flex bg-white/80 backdrop-blur-md border-b border-slate-200 text-left text-xs font-bold text-slate-500 uppercase tracking-wider sticky top-0 z-10 shadow-sm">
                             {visibleColumns.map((col) => (
                                 <div 
                                     key={col.id} 
-                                    className="py-3 px-4 first:pl-6 last:pr-6" 
+                                    className="py-4 px-4 first:pl-6 last:pr-6" 
                                     style={{ flex: `${col.span} 1 0%`, minWidth: col.minWidth }}
                                 >
                                     {col.label}
@@ -378,7 +392,7 @@ const DefectReportList: React.FC<Props> = ({
                                     onMouseEnter={() => handleRowMouseEnter(report)}
                                     onMouseLeave={handleRowMouseLeave}
                                     onMouseMove={handleRowMouseMove}
-                                    className="group flex items-center odd:bg-white even:bg-slate-50 hover:bg-blue-100 transition-colors cursor-pointer relative"
+                                    className="group flex items-center odd:bg-white even:bg-slate-50/40 hover:bg-blue-50/60 transition-colors cursor-pointer relative will-change-transform border-l-2 border-transparent hover:border-blue-500"
                                 >
                                     {visibleColumns.map((col) => (
                                         <div 
@@ -396,7 +410,7 @@ const DefectReportList: React.FC<Props> = ({
                 </div>
             ) : (
                 <div className="flex-1 flex flex-col items-center justify-center p-16 text-center">
-                    <div className="bg-slate-50 p-6 rounded-full mb-4 ring-1 ring-slate-100">
+                    <div className="bg-slate-50 p-6 rounded-full mb-4 ring-1 ring-slate-100 shadow-inner">
                         <InboxIcon className="h-12 w-12 text-slate-300" />
                     </div>
                     <h3 className="text-lg font-bold text-slate-800">Không tìm thấy dữ liệu</h3>
@@ -408,7 +422,7 @@ const DefectReportList: React.FC<Props> = ({
                     {areFiltersActive && (
                         <button 
                             onClick={resetFilters}
-                            className="mt-6 px-5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 shadow-sm transition-all"
+                            className="mt-6 px-5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 shadow-sm transition-all hover:border-slate-400"
                         >
                             Xóa bộ lọc
                         </button>
@@ -416,7 +430,7 @@ const DefectReportList: React.FC<Props> = ({
                 </div>
             )}
 
-            <div className="p-4 border-t border-slate-200 bg-white">
+            <div className="p-4 border-t border-slate-200 bg-white shadow-[0_-5px_15px_rgba(0,0,0,0.01)]">
                 <Pagination
                     currentPage={currentPage}
                     totalItems={totalReports}
@@ -429,19 +443,19 @@ const DefectReportList: React.FC<Props> = ({
       </div>
 
       {reportToDelete && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 animate-fade-in-up">
-                <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mb-4 mx-auto">
-                    <TrashIcon className="h-6 w-6 text-red-600" />
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm transition-opacity">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 animate-fade-in-up border border-white/20">
+                <div className="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center mb-5 mx-auto shadow-sm ring-1 ring-red-100">
+                    <TrashIcon className="h-7 w-7 text-red-500" />
                 </div>
-                <h3 className="text-lg font-bold text-slate-900 text-center mb-2 uppercase">XÓA PHẢN ÁNH?</h3>
-                <p className="text-sm text-slate-500 text-center mb-6">
-                    Bạn sắp xóa phản ánh <span className="font-bold text-slate-800">{reportToDelete.maSanPham}</span>. Hành động này không thể hoàn tác.
+                <h3 className="text-xl font-black text-slate-900 text-center mb-2 uppercase tracking-tight">XÓA PHẢN ÁNH?</h3>
+                <p className="text-sm text-slate-500 text-center mb-8 font-medium">
+                    Bạn sắp xóa phản ánh <span className="font-bold text-slate-900 bg-slate-100 px-1 rounded">{reportToDelete.maSanPham}</span>. Hành động này không thể hoàn tác.
                 </p>
                 <div className="flex gap-3">
                     <button
                         onClick={() => setReportToDelete(null)}
-                        className="flex-1 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50"
+                        className="flex-1 py-3 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 transition-colors active:scale-95"
                     >
                         Hủy
                     </button>
@@ -450,7 +464,7 @@ const DefectReportList: React.FC<Props> = ({
                             onDelete(reportToDelete.id);
                             setReportToDelete(null);
                         }}
-                        className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-red-500/30"
+                        className="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-red-500/30 transition-all active:scale-95"
                     >
                         Xóa ngay
                     </button>
@@ -459,36 +473,39 @@ const DefectReportList: React.FC<Props> = ({
         </div>
       )}
 
-      {/* Floating Tooltip */}
+      {/* Floating Tooltip - Improved UI */}
       <div 
         ref={tooltipRef}
-        className={`fixed z-[100] bg-slate-900/95 backdrop-blur text-white p-3.5 rounded-xl shadow-2xl pointer-events-none transition-opacity duration-200 border border-slate-700/50 max-w-[320px] w-full ${hoveredReport ? 'opacity-100' : 'opacity-0'}`}
+        className={`fixed z-[100] bg-white/95 backdrop-blur-lg border border-white/40 p-4 rounded-xl shadow-2xl pointer-events-none transition-opacity duration-200 max-w-[340px] w-full ring-1 ring-black/5 ${hoveredReport ? 'opacity-100' : 'opacity-0'}`}
         style={{ left: 0, top: 0 }}
       >
         {hoveredReport && (
-            <div className="space-y-2">
-                <div className="flex items-center justify-between pb-2 border-b border-slate-700/50">
-                    <span className="font-bold text-sm text-blue-300 uppercase">{hoveredReport.maSanPham}</span>
-                    <span className={`text-xs px-1.5 py-0.5 rounded font-bold ${
-                        hoveredReport.trangThai === 'Mới' ? 'bg-blue-500/20 text-blue-300' : 
-                        hoveredReport.trangThai === 'Hoàn thành' ? 'bg-emerald-500/20 text-emerald-300' : 
-                        'bg-amber-500/20 text-amber-300'
+            <div className="space-y-3">
+                <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                    <span className="font-black text-sm text-blue-700 uppercase bg-blue-50 px-2 py-0.5 rounded-lg">{hoveredReport.maSanPham}</span>
+                    <span className={`text-[10px] px-2 py-1 rounded-full font-bold uppercase ${
+                        hoveredReport.trangThai === 'Mới' ? 'bg-blue-100 text-blue-700' : 
+                        hoveredReport.trangThai === 'Hoàn thành' ? 'bg-emerald-100 text-emerald-700' : 
+                        'bg-amber-100 text-amber-700'
                     }`}>
                         {hoveredReport.trangThai}
                     </span>
                 </div>
                 <div>
-                    <p className="text-sm font-bold text-slate-100 truncate mb-1">{hoveredReport.tenThuongMai}</p>
+                    <p className="text-sm font-bold text-slate-800 truncate mb-1 leading-tight">{hoveredReport.tenThuongMai}</p>
                     {hoveredReport.tenThietBi && (
-                         <p className="text-xs text-slate-400 truncate mb-1">{hoveredReport.tenThietBi}</p>
+                         <p className="text-xs text-slate-500 truncate mb-2">{hoveredReport.tenThietBi}</p>
                     )}
-                    <div className="flex items-center gap-2 text-xs text-slate-400 mb-2">
-                         <span className="bg-slate-800 px-1 rounded">Lô: {hoveredReport.soLo}</span>
-                         {hoveredReport.loaiLoi && <span className="bg-slate-800 px-1 rounded">{hoveredReport.loaiLoi}</span>}
+                    <div className="flex items-center gap-2 text-[11px] text-slate-500 font-bold mb-3">
+                         <span className="bg-slate-100 px-1.5 py-0.5 rounded text-slate-600">Lô: {hoveredReport.soLo}</span>
+                         {hoveredReport.loaiLoi && <span className="bg-slate-100 px-1.5 py-0.5 rounded text-slate-600 border border-slate-200">{hoveredReport.loaiLoi}</span>}
                     </div>
-                    <p className="text-sm text-slate-300 leading-relaxed line-clamp-3 italic">
-                        "{hoveredReport.noiDungPhanAnh}"
-                    </p>
+                    <div className="relative">
+                        <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-slate-200"></div>
+                        <p className="text-xs text-slate-600 leading-relaxed line-clamp-3 pl-3 italic">
+                            "{hoveredReport.noiDungPhanAnh}"
+                        </p>
+                    </div>
                 </div>
             </div>
         )}
