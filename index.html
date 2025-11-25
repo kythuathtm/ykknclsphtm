@@ -10,8 +10,8 @@
         theme: {
           extend: {
             fontFamily: {
-              sans: ['Arial', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-              mono: ['Arial', 'ui-sans-serif', 'system-ui', 'sans-serif'], /* Force mono to use Arial as well */
+              sans: ['Arial', 'Helvetica', 'sans-serif'],
+              mono: ['Arial', 'Helvetica', 'sans-serif'], /* Force mono to use Arial */
             },
             colors: {
               gray: {
@@ -26,13 +26,6 @@
                 800: '#1f2937',
                 900: '#111827',
               },
-              primary: {
-                50: '#eff6ff',
-                100: '#dbeafe',
-                500: '#3b82f6',
-                600: '#2563eb',
-                700: '#1d4ed8',
-              }
             },
             animation: {
               'fade-in': 'fadeIn 0.3s ease-out',
@@ -57,17 +50,18 @@
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
         font-family: 'Arial', sans-serif;
+        font-size: 16px; /* Approx 12pt */
       }
       
-      /* Force all form elements to inherit font-family for consistency */
-      input, button, select, textarea, code, pre {
+      /* Force all elements to inherit font-family */
+      input, button, select, textarea, code, pre, table, th, td {
         font-family: 'Arial', sans-serif !important;
       }
 
-      /* Custom scrollbar for better UX */
+      /* Custom scrollbar */
       ::-webkit-scrollbar {
-        width: 6px;
-        height: 6px;
+        width: 8px;
+        height: 8px;
       }
       ::-webkit-scrollbar-track {
         background: transparent; 
@@ -81,8 +75,8 @@
       }
       
       .custom-scrollbar::-webkit-scrollbar {
-        width: 6px;
-        height: 6px;
+        width: 8px;
+        height: 8px;
       }
       .no-scrollbar::-webkit-scrollbar {
         display: none;

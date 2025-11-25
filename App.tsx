@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo, useEffect, useTransition, Suspense } from 'react';
 import { DefectReport, UserRole, ToastType, User, RoleSettings, PermissionField, SystemSettings, Product } from './types';
-import { PlusIcon, BarChartIcon, ArrowDownTrayIcon, ListBulletIcon, ArrowRightOnRectangleIcon, UserGroupIcon, ChartPieIcon, TableCellsIcon, ShieldCheckIcon, ArrowUpTrayIcon, CalendarIcon, Cog8ToothIcon } from './components/Icons';
+import { PlusIcon, BarChartIcon, ArrowDownTrayIcon, ListBulletIcon, ArrowRightOnRectangleIcon, UserGroupIcon, ChartPieIcon, TableCellsIcon, ShieldCheckIcon, CalendarIcon, Cog8ToothIcon } from './components/Icons';
 import * as XLSX from 'xlsx';
 import Loading from './components/Loading';
 
@@ -77,7 +77,6 @@ const INITIAL_USERS: User[] = [
   { username: 'tgd', fullName: 'Nguyễn Tổng', role: UserRole.TongGiamDoc, password: '123' },
 ];
 
-// Empty Initial Products List as requested
 const INITIAL_PRODUCTS: Product[] = [];
 
 const DEFAULT_ROLE_SETTINGS: RoleSettings = {
@@ -100,10 +99,8 @@ const DEFAULT_SYSTEM_SETTINGS: SystemSettings = {
 // --- Main App Component ---
 
 export const App: React.FC = () => {
-  // State
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   
-  // Data State (Sync with Firebase)
   const [users, setUsers] = useState<User[]>([]);
   const [reports, setReports] = useState<DefectReport[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
@@ -121,19 +118,15 @@ export const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<'list' | 'dashboard'>('list');
   const [isLoadingDB, setIsLoadingDB] = useState(true);
 
-  // Filters & Pagination State
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [defectTypeFilter, setDefectTypeFilter] = useState('All');
-  const [yearFilter, setYearFilter] = useState('All'); // Added Year Filter
+  const [yearFilter, setYearFilter] = useState('All');
   const [dateFilter, setDateFilter] = useState({ start: '', end: '' });
   const [isPending, startTransition] = useTransition();
 
-  // --- FIREBASE REAL-TIME LISTENERS ---
-
-  // 1. Listen to REPORTS
   useEffect(() => {
     const q = query(collection(db, "reports"), orderBy("ngayTao", "desc"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -150,21 +143,14 @@ export const App: React.FC = () => {
     return () => unsubscribe();
   }, []);
 
-  // 2. Listen to USERS (and Seed if empty)
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, "users"), async (snapshot) => {
       const usersData = snapshot.docs.map(doc => doc.data()) as User[];
-      
-      // AUTO-SEED: If database is completely empty, create default users and data
-      if (usersData.length === 0 && !isLoadingDB) {
-         console.log("Database empty. Seeding initial data...");
-      } 
       setUsers(usersData);
     });
     return () => unsubscribe();
   }, [isLoadingDB]);
 
-  // 3. Listen to PRODUCTS
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, "products"), (snapshot) => {
       const productsData = snapshot.docs.map(doc => doc.data() as Product);
@@ -173,7 +159,6 @@ export const App: React.FC = () => {
     return () => unsubscribe();
   }, []);
 
-  // 4. Listen to SETTINGS (Role Config & System Settings)
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, "settings"), (snapshot) => {
       if (!snapshot.empty) {
@@ -190,7 +175,6 @@ export const App: React.FC = () => {
     return () => unsubscribe();
   }, []);
 
-  // Safety timeout for loading
   useEffect(() => {
       const timer = setTimeout(() => {
           if (isLoadingDB) {
@@ -200,44 +184,10 @@ export const App: React.FC = () => {
       return () => clearTimeout(timer);
   }, [isLoadingDB]);
 
-
-  // --- SEEDING FUNCTION ---
-  const seedDatabase = async () => {
-      try {
-          const batch = writeBatch(db);
-
-          // Seed Users
-          INITIAL_USERS.forEach(u => {
-              const userRef = doc(db, "users", u.username);
-              batch.set(userRef, u);
-          });
-
-          // Seed Products
-          INITIAL_PRODUCTS.forEach(p => {
-              const prodRef = doc(db, "products", p.maSanPham);
-              batch.set(prodRef, p);
-          });
-
-          // Seed Settings
-          const roleSettingsRef = doc(db, "settings", "roleSettings");
-          batch.set(roleSettingsRef, DEFAULT_ROLE_SETTINGS);
-          
-          const systemSettingsRef = doc(db, "settings", "systemSettings");
-          batch.set(systemSettingsRef, DEFAULT_SYSTEM_SETTINGS);
-
-          await batch.commit();
-          showToast("Khởi tạo dữ liệu mẫu thành công!", "success");
-      } catch (error) {
-          console.error("Seeding error:", error);
-      }
-  };
-
-
-  // Derived State for Permission Checking
   const userPermissions = useMemo(() => {
     if (!currentUser) return { canCreate: false, canEdit: false, canDelete: false };
     const role = currentUser.role;
-    const config = roleSettings[role] || DEFAULT_ROLE_SETTINGS[role]; // Fallback
+    const config = roleSettings[role] || DEFAULT_ROLE_SETTINGS[role];
     
     return {
       canCreate: config.canCreate,
@@ -251,14 +201,12 @@ export const App: React.FC = () => {
      return (roleSettings[currentUser.role] || DEFAULT_ROLE_SETTINGS[currentUser.role]).canViewDashboard;
   }, [currentUser, roleSettings]);
 
-  // Filter Logic
   const filteredReports = useMemo(() => {
     let result = reports;
 
     if (currentUser) {
         const config = roleSettings[currentUser.role] || DEFAULT_ROLE_SETTINGS[currentUser.role];
         if (!config.viewableDefectTypes.includes('All')) {
-            // Flexible check for legacy/new types
             result = result.filter(r => config.viewableDefectTypes.some(type => {
                 const loaiLoi = r.loaiLoi as string;
                 if (type === 'Lỗi Sản xuất') return loaiLoi === 'Lỗi Sản xuất' || loaiLoi === 'Lỗi bộ phận sản xuất';
@@ -275,6 +223,7 @@ export const App: React.FC = () => {
         (r) =>
           r.maSanPham.toLowerCase().includes(lowerTerm) ||
           r.tenThuongMai.toLowerCase().includes(lowerTerm) ||
+          (r.tenThietBi && r.tenThietBi.toLowerCase().includes(lowerTerm)) ||
           r.dongSanPham.toLowerCase().includes(lowerTerm) ||
           r.nhaPhanPhoi.toLowerCase().includes(lowerTerm) ||
           r.donViSuDung.toLowerCase().includes(lowerTerm) ||
@@ -290,7 +239,6 @@ export const App: React.FC = () => {
 
     if (defectTypeFilter !== 'All') {
         result = result.filter((r) => {
-             // Handle backward compatibility for filtering
             const loaiLoi = r.loaiLoi as string;
             if (defectTypeFilter === 'Lỗi Sản xuất') return loaiLoi === 'Lỗi Sản xuất' || loaiLoi === 'Lỗi bộ phận sản xuất';
             if (defectTypeFilter === 'Lỗi Hỗn hợp') return loaiLoi === 'Lỗi Hỗn hợp' || loaiLoi === 'Lỗi vừa sản xuất vừa NCC';
@@ -299,7 +247,6 @@ export const App: React.FC = () => {
         });
     }
 
-    // Year Filter Logic
     if (yearFilter !== 'All') {
         result = result.filter((r) => {
             if (!r.ngayPhanAnh) return false;
@@ -335,7 +282,6 @@ export const App: React.FC = () => {
       }
   }, [filteredReports]);
   
-  // Calculate available years for global filter
   const availableYears = useMemo(() => {
       const years = new Set<string>();
       const currentYear = new Date().getFullYear().toString();
@@ -355,9 +301,6 @@ export const App: React.FC = () => {
     setCurrentPage(1);
   }, [searchTerm, statusFilter, defectTypeFilter, yearFilter, dateFilter]);
 
-
-  // Handlers
-
   const showToast = (message: string, type: ToastType) => {
     setToast({ message, type });
   };
@@ -376,8 +319,6 @@ export const App: React.FC = () => {
       setIsPermissionModalOpen(false);
       setIsSystemSettingsModalOpen(false);
   };
-
-  // --- FIRESTORE ACTIONS ---
 
   const handleSaveReport = async (report: DefectReport) => {
     try {
@@ -405,7 +346,6 @@ export const App: React.FC = () => {
   };
 
   const handleDeleteReport = async (id: string) => {
-    // Rely on the UI component (list or detail) to handle confirmation
     try {
         await deleteDoc(doc(db, "reports", id));
         if (selectedReport?.id === id) setSelectedReport(null);
@@ -435,6 +375,7 @@ export const App: React.FC = () => {
         'Mã sản phẩm': r.maSanPham,
         'Dòng sản phẩm': r.dongSanPham,
         'Tên thương mại': r.tenThuongMai,
+        'Tên thiết bị': r.tenThietBi || '',
         'Nhãn hàng': r.nhanHang || '',
         'Nhà phân phối': r.nhaPhanPhoi,
         'Đơn vị sử dụng': r.donViSuDung,
@@ -460,8 +401,7 @@ export const App: React.FC = () => {
   
   const handleImportProducts = async (newProducts: Product[]) => {
       try {
-          // Chunking logic to avoid Firebase limit
-          const chunkSize = 450; // Limit per batch
+          const chunkSize = 450; 
           const chunks = [];
           for (let i = 0; i < newProducts.length; i += chunkSize) {
               chunks.push(newProducts.slice(i, i + chunkSize));
@@ -513,7 +453,6 @@ export const App: React.FC = () => {
     if (!window.confirm("CẢNH BÁO QUAN TRỌNG:\n\nBạn đang thực hiện xóa TOÀN BỘ danh sách sản phẩm.\nHành động này KHÔNG THỂ khôi phục.\n\nBạn có chắc chắn muốn tiếp tục?")) return;
 
     try {
-        // Fetch all product docs
         const q = query(collection(db, "products"));
         const snapshot = await getDocs(q);
         
@@ -522,7 +461,6 @@ export const App: React.FC = () => {
             return;
         }
 
-        // Chunking for batch delete (limit 500)
         const chunkSize = 450;
         const chunks = [];
         const docs = snapshot.docs;
@@ -577,7 +515,7 @@ export const App: React.FC = () => {
   const handleSaveSystemSettings = async (newSettings: SystemSettings) => {
       try {
           await setDoc(doc(db, "settings", "systemSettings"), newSettings);
-          setSystemSettings(newSettings); // Optimistic update
+          setSystemSettings(newSettings);
           showToast('Cập nhật cấu hình hệ thống thành công.', 'success');
       } catch (error) {
           console.error("System settings save error:", error);
@@ -590,47 +528,33 @@ export const App: React.FC = () => {
     setCurrentPage(1);
   };
 
-  // Search & Filter Handlers used in List Component
   const handleSearchTermChange = (term: string) => startTransition(() => setSearchTerm(term));
   const handleStatusFilterChange = (status: string) => startTransition(() => setStatusFilter(status));
   const handleDefectTypeFilterChange = (type: string) => startTransition(() => setDefectTypeFilter(type));
   const handleYearFilterChange = (year: string) => startTransition(() => setYearFilter(year));
   const handleDateFilterChange = (dates: {start: string, end: string}) => startTransition(() => setDateFilter(dates));
   
-  // Dashboard interaction handler
   const handleDashboardFilterSelect = (filterType: 'status' | 'defectType' | 'all' | 'search' | 'brand', value?: string) => {
       startTransition(() => {
-          setYearFilter('All'); // Reset year on dashboard click
+          setYearFilter('All');
           if (filterType === 'search' && value) {
               setSearchTerm(value);
               setStatusFilter('All');
               setDefectTypeFilter('All');
-          } else if (filterType === 'status' && value) {
-              setStatusFilter(value);
-              setDefectTypeFilter('All');
-              setSearchTerm('');
-          } else if (filterType === 'defectType' && value) {
-              setDefectTypeFilter(value);
-              setStatusFilter('All');
-              setSearchTerm('');
-          } else if (filterType === 'brand' && value) {
-              setSearchTerm(value);
-              setStatusFilter('All');
-              setDefectTypeFilter('All');
+              setCurrentView('list'); // Only switch to list for search
           } else if (filterType === 'all') {
               setStatusFilter('All');
               setDefectTypeFilter('All');
               setSearchTerm('');
+              setCurrentView('list');
           }
-          setCurrentView('list');
+          // For status and defect type, the Dashboard component will handle expansion
       });
   };
 
   if (!currentUser) {
       return (
         <Suspense fallback={<Loading />}>
-             {/* Fallback to INITIAL_USERS if DB is empty or not connected */}
-             {/* Use merged system settings */}
              <Login 
                 onLogin={handleLogin} 
                 users={users.length > 0 ? users : INITIAL_USERS} 
@@ -642,11 +566,9 @@ export const App: React.FC = () => {
 
   return (
     <div className="flex flex-col h-dvh bg-slate-100 font-sans text-slate-900">
-      {/* Header */}
       <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-30 transition-all">
         <div className="max-w-[1920px] mx-auto px-2 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2 sm:gap-4">
           
-          {/* Left: Logo & Title */}
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <div className="bg-blue-600 p-1.5 sm:p-2 rounded-xl shadow-lg shadow-blue-600/20 flex-shrink-0">
                <BarChartIcon className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
@@ -657,10 +579,8 @@ export const App: React.FC = () => {
             {isLoadingDB && <span className="text-xs text-blue-500 animate-pulse ml-2">● Đồng bộ...</span>}
           </div>
 
-          {/* Center: View Switcher & Global Year Filter */}
           {canViewDashboard && (
              <div className="flex items-center gap-1 sm:gap-2">
-                 {/* Year Filter Button */}
                  <div className="bg-white rounded-xl border border-slate-200 shadow-sm px-2 py-1.5 flex items-center active:scale-95 transition-transform">
                     <CalendarIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-slate-500 mr-1 sm:mr-2" />
                     <span className="text-xs font-semibold text-slate-500 mr-1 hidden sm:inline">Năm:</span>
@@ -684,7 +604,7 @@ export const App: React.FC = () => {
                             ? 'bg-white text-blue-700 shadow-sm ring-1 ring-slate-200' 
                             : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
                         }`}
-                        title="Xem danh sách báo cáo"
+                        title="Xem danh sách phản ánh"
                     >
                         <ListBulletIcon className="h-4 w-4 mr-2" />
                         Danh sách
@@ -705,7 +625,6 @@ export const App: React.FC = () => {
             </div>
           )}
 
-          {/* Right: Actions & User */}
           <div className="flex items-center gap-1 sm:gap-3">
             
             {userPermissions.canCreate && (
@@ -718,7 +637,6 @@ export const App: React.FC = () => {
               </button>
             )}
 
-            {/* Secondary Actions Group */}
             <div className="flex items-center gap-1">
                 {currentView === 'list' && (
                     <button
@@ -754,7 +672,6 @@ export const App: React.FC = () => {
                         >
                             <UserGroupIcon className="h-5 w-5 sm:h-6 sm:w-6" />
                         </button>
-                         {/* System Settings Trigger */}
                          <button 
                             className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors active:scale-95"
                             onClick={() => setIsSystemSettingsModalOpen(true)}
@@ -766,10 +683,8 @@ export const App: React.FC = () => {
                 )}
             </div>
             
-            {/* Divider */}
             <div className="h-8 w-px bg-slate-200 mx-1 hidden sm:block"></div>
 
-            {/* User Profile */}
             <div className="flex items-center gap-2 sm:gap-3 pl-1">
                 <div className="text-right hidden md:block leading-tight">
                     {currentUser.role !== UserRole.Admin && (
@@ -791,7 +706,6 @@ export const App: React.FC = () => {
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="flex-1 overflow-hidden relative">
         <Suspense fallback={<Loading />}>
             {currentView === 'list' || !canViewDashboard ? (
@@ -820,12 +734,12 @@ export const App: React.FC = () => {
                 <DashboardReport 
                     reports={filteredReports} 
                     onFilterSelect={handleDashboardFilterSelect}
+                    onSelectReport={setSelectedReport} // Pass this so Dashboard can open details
                 />
             )}
         </Suspense>
       </main>
 
-      {/* Modals */}
       <Suspense fallback={null}>
           {selectedReport && (
             <div className="fixed inset-0 z-50 flex justify-center items-center p-4 sm:p-6">
@@ -895,7 +809,6 @@ export const App: React.FC = () => {
           )}
       </Suspense>
 
-      {/* Toast Notification */}
       {toast && (
         <Toast
           message={toast.message}

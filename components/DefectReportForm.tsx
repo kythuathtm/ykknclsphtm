@@ -35,9 +35,9 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
   const [isProductInfoLocked, setIsProductInfoLocked] = useState(false);
   const productCodeInputRef = useRef<HTMLInputElement>(null);
 
-  // --- DERIVED LISTS FOR CASCADING SELECTS ---
+  // --- CASCADING SELECT LOGIC ---
 
-  // 1. Available Product Lines based on selected Brand
+  // 1. Lines based on Brand
   const availableLines = useMemo(() => {
       let filtered = products;
       if (formData.nhanHang && formData.nhanHang !== 'Khác') {
@@ -46,7 +46,7 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
       return Array.from(new Set(filtered.map(p => p.dongSanPham).filter(Boolean))).sort();
   }, [products, formData.nhanHang]);
 
-  // 2. Available Device Names based on Brand AND Product Line
+  // 2. Devices based on Brand & Line
   const availableDeviceNames = useMemo(() => {
       let filtered = products;
       if (formData.nhanHang && formData.nhanHang !== 'Khác') {
@@ -58,18 +58,15 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
       return Array.from(new Set(filtered.map(p => p.tenThietBi).filter(Boolean))).sort();
   }, [products, formData.nhanHang, formData.dongSanPham]);
 
-  // 3. Available Trade Names based on selected Brand, Line AND Device Name
+  // 3. Trade Names based on Brand, Line & Device
   const availableTradeNames = useMemo(() => {
       let filtered = products;
-      // Filter by Brand
       if (formData.nhanHang && formData.nhanHang !== 'Khác') {
           filtered = filtered.filter(p => p.nhanHang === formData.nhanHang);
       }
-      // Filter by Line (if selected)
       if (formData.dongSanPham) {
           filtered = filtered.filter(p => p.dongSanPham === formData.dongSanPham);
       }
-      // Filter by Device Name (if selected)
       if (formData.tenThietBi) {
           filtered = filtered.filter(p => p.tenThietBi === formData.tenThietBi);
       }
@@ -79,8 +76,6 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
   const isFieldDisabled = (fieldName: keyof Omit<DefectReport, 'id'>) => {
     if (!initialData) return false; 
     
-    // Allow editing product info if not strictly locked by an existing product reference, 
-    // but usually we lock to ensure consistency if it came from DB.
     if (isProductInfoLocked && ['dongSanPham', 'tenThuongMai', 'nhanHang', 'tenThietBi'].includes(fieldName)) return true;
 
     let permissionKey: PermissionField;
@@ -136,9 +131,7 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
     setFormData(prev => {
         const newState = { ...prev };
         
-        // --- LOGIC FOR PRODUCT SELECTION FLOW ---
-
-        // 1. BRAND CHANGE -> Reset everything below
+        // 1. BRAND CHANGE -> Clear below
         if (name === 'nhanHang') {
             newState.nhanHang = value as any;
             if (value !== 'Khác') {
@@ -149,7 +142,7 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
                 setIsProductInfoLocked(false);
             }
         }
-        // 2. LINE CHANGE -> Reset Device Name, Trade Name and Code
+        // 2. LINE CHANGE -> Clear below
         else if (name === 'dongSanPham') {
             newState.dongSanPham = value;
             newState.tenThietBi = '';
@@ -157,18 +150,17 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
             newState.maSanPham = '';
             setIsProductInfoLocked(false);
         }
-        // 3. DEVICE NAME CHANGE -> Reset Trade Name and Code
+        // 3. DEVICE NAME CHANGE -> Clear below
         else if (name === 'tenThietBi') {
             newState.tenThietBi = value;
             newState.tenThuongMai = '';
             newState.maSanPham = '';
             setIsProductInfoLocked(false);
         }
-        // 4. TRADE NAME CHANGE -> Try to find Code
+        // 4. TRADE NAME CHANGE -> Find Code
         else if (name === 'tenThuongMai') {
             newState.tenThuongMai = value;
             
-            // Try to find a unique product match based on current selections
             const matches = products.filter(p => 
                 (newState.nhanHang === 'Khác' || !p.nhanHang || p.nhanHang === newState.nhanHang) &&
                 (!newState.dongSanPham || p.dongSanPham === newState.dongSanPham) &&
@@ -177,22 +169,17 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
             );
 
             if (matches.length === 1) {
-                // Exact match found
                 newState.maSanPham = matches[0].maSanPham;
-                newState.dongSanPham = matches[0].dongSanPham; // Auto-correct line if needed
-                newState.tenThietBi = matches[0].tenThietBi || ''; // Auto-correct device if needed
+                newState.dongSanPham = matches[0].dongSanPham;
+                newState.tenThietBi = matches[0].tenThietBi || '';
                 if (matches[0].nhanHang) newState.nhanHang = matches[0].nhanHang as any;
                 setIsProductInfoLocked(true);
-            } else if (matches.length === 0) {
-                 // No match (New product?), unlock code
-                 if (isProductInfoLocked) {
-                     newState.maSanPham = '';
-                     // Keep device name and line as typed
-                     setIsProductInfoLocked(false);
-                 }
+            } else if (matches.length === 0 && isProductInfoLocked) {
+                 newState.maSanPham = '';
+                 setIsProductInfoLocked(false);
             }
         }
-        // 5. CODE CHANGE (Manual Entry) -> Reverse Fill
+        // 5. CODE CHANGE (Manual) -> Reverse Fill
         else if (name === 'maSanPham') {
             newState.maSanPham = value;
             const product = products.find(p => p.maSanPham.toLowerCase() === value.toLowerCase());
@@ -206,8 +193,6 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
                 if (isProductInfoLocked) setIsProductInfoLocked(false);
             }
         } 
-        
-        // --- OTHER FIELDS ---
         else if (name === 'trangThai') {
             newState.trangThai = value as any;
             if (value === 'Hoàn thành' && !newState.ngayHoanThanh) newState.ngayHoanThanh = getTodayDateString();
@@ -244,7 +229,7 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
   };
   
   const getInputClasses = (fieldName: keyof Omit<DefectReport, 'id'>, isReadOnly: boolean = false) => {
-    const base = "transition-all duration-200 mt-1 block w-full rounded-xl text-sm py-2.5 px-3 border shadow-sm outline-none";
+    const base = "transition-all duration-200 mt-1 block w-full rounded-xl text-base py-2.5 px-3 border shadow-sm outline-none";
     const normal = "bg-white text-slate-900 border-slate-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 placeholder-slate-400";
     const errorClass = errors[fieldName] ? "border-red-500 ring-2 ring-red-500/10 bg-red-50" : "";
     const disabled = isFieldDisabled(fieldName) ? "bg-slate-50 text-slate-500 border-slate-200 cursor-not-allowed shadow-none" : normal;
@@ -271,7 +256,6 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
     <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-opacity font-sans">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[90vh] flex flex-col overflow-hidden animate-slide-up">
         
-        {/* Header */}
         <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 bg-white">
           <div>
               <h2 className="text-xl font-bold text-slate-900 uppercase">{initialData ? 'CHỈNH SỬA PHẢN ÁNH' : 'TẠO PHẢN ÁNH MỚI'}</h2>
@@ -282,22 +266,17 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
           </button>
         </div>
 
-        {/* Scrollable Form */}
         <form id="report-form" onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 bg-slate-50/50" noValidate>
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8">
             
-            {/* LEFT COLUMN: Product & Customer */}
             <div className="md:col-span-7 space-y-8">
-                 {/* Product Info */}
                  <section>
                     <SectionHeader title="Thông tin Sản phẩm" icon={<TagIcon className="h-4 w-4" />} />
                     
-                    {/* Reorganized Layout: Brand -> Line -> Device Name -> Trade Name -> Code */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                          
-                        {/* Row 1: Brand & Line */}
                         <div className="sm:col-span-1">
-                            <label className="block text-xs font-bold text-slate-700 ml-1">Nhãn hàng <span className="text-red-500">*</span></label>
+                            <label className="block text-sm font-bold text-slate-700 ml-1">Nhãn hàng <span className="text-red-500">*</span></label>
                             <select name="nhanHang" value={formData.nhanHang} onChange={handleChange} className={getInputClasses('nhanHang')} disabled={isFieldDisabled('nhanHang')}>
                                 <option value="HTM">HTM</option>
                                 <option value="VMA">VMA</option>
@@ -306,7 +285,7 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
                              <ErrorMessage field="nhanHang" />
                         </div>
                         <div className="sm:col-span-1">
-                            <label className="block text-xs font-bold text-slate-700 ml-1">Dòng sản phẩm <span className="text-red-500">*</span></label>
+                            <label className="block text-sm font-bold text-slate-700 ml-1">Dòng sản phẩm <span className="text-red-500">*</span></label>
                             <input 
                                 type="text" 
                                 name="dongSanPham" 
@@ -323,9 +302,8 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
                              <ErrorMessage field="dongSanPham" />
                         </div>
 
-                        {/* Row 2: Device Name (Moved up) */}
                         <div className="sm:col-span-2">
-                            <label className="block text-xs font-bold text-slate-700 ml-1">Tên thiết bị y tế</label>
+                            <label className="block text-sm font-bold text-slate-700 ml-1">Tên thiết bị y tế</label>
                             <input 
                                 type="text" 
                                 name="tenThietBi" 
@@ -340,9 +318,8 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
                             </datalist>
                         </div>
 
-                        {/* Row 3: Trade Name (Full Width) */}
                         <div className="sm:col-span-2">
-                            <label className="block text-xs font-bold text-slate-700 ml-1">Tên thương mại <span className="text-red-500">*</span></label>
+                            <label className="block text-sm font-bold text-slate-700 ml-1">Tên thương mại <span className="text-red-500">*</span></label>
                             <input 
                                 type="text" 
                                 list="trade-names"
@@ -358,9 +335,8 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
                             <ErrorMessage field="tenThuongMai" />
                         </div>
 
-                         {/* Row 4: Code & Batch */}
                          <div className="sm:col-span-1">
-                            <label className="block text-xs font-bold text-slate-700 ml-1">Mã sản phẩm <span className="text-red-500">*</span></label>
+                            <label className="block text-sm font-bold text-slate-700 ml-1">Mã sản phẩm <span className="text-red-500">*</span></label>
                             <input 
                                 ref={productCodeInputRef} 
                                 type="text" 
@@ -375,55 +351,52 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
                             <ErrorMessage field="maSanPham" />
                         </div>
                         <div className="sm:col-span-1">
-                            <label className="block text-xs font-bold text-slate-700 ml-1">Số lô <span className="text-red-500">*</span></label>
+                            <label className="block text-sm font-bold text-slate-700 ml-1">Số lô <span className="text-red-500">*</span></label>
                             <input type="text" name="soLo" value={formData.soLo} onChange={handleChange} required className={getInputClasses('soLo')} disabled={isFieldDisabled('soLo')}/>
                             <ErrorMessage field="soLo" />
                         </div>
 
-                        {/* Row 5: Mfg Date & Stats */}
                         <div className="sm:col-span-1">
-                            <label className="block text-xs font-bold text-slate-700 ml-1">Mã NSX</label>
+                            <label className="block text-sm font-bold text-slate-700 ml-1">Mã NSX</label>
                             <input type="text" name="maNgaySanXuat" value={formData.maNgaySanXuat} onChange={handleChange} className={getInputClasses('maNgaySanXuat')} disabled={isFieldDisabled('maNgaySanXuat')}/>
                         </div>
 
-                        {/* Quantities */}
                         <div className="sm:col-span-2 grid grid-cols-3 gap-3 pt-2">
                              <div>
-                                <label className="block text-xs font-bold text-slate-500 ml-1 mb-1">Đã nhập</label>
+                                <label className="block text-sm font-bold text-slate-500 ml-1 mb-1">Đã nhập</label>
                                 <input type="number" name="soLuongDaNhap" value={formData.soLuongDaNhap} onChange={handleChange} min="0" className={getInputClasses('soLuongDaNhap')} disabled={isFieldDisabled('soLuongDaNhap')}/>
                              </div>
                              <div>
-                                <label className="block text-xs font-bold text-red-500 ml-1 mb-1">Lỗi</label>
+                                <label className="block text-sm font-bold text-red-500 ml-1 mb-1">Lỗi</label>
                                 <input type="number" name="soLuongLoi" value={formData.soLuongLoi} onChange={handleChange} min="0" className={getInputClasses('soLuongLoi')} disabled={isFieldDisabled('soLuongLoi')}/>
                              </div>
                              <div>
-                                <label className="block text-xs font-bold text-green-600 ml-1 mb-1">Đổi</label>
+                                <label className="block text-sm font-bold text-green-600 ml-1 mb-1">Đổi</label>
                                 <input type="number" name="soLuongDoi" value={formData.soLuongDoi} onChange={handleChange} min="0" className={getInputClasses('soLuongDoi')} disabled={isFieldDisabled('soLuongDoi')}/>
                              </div>
                         </div>
                     </div>
                  </section>
 
-                 {/* Customer Info */}
                  <section>
                     <SectionHeader title="Thông tin Khách hàng & Phản ánh" icon={<UserIcon className="h-4 w-4" />} />
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="sm:col-span-1">
-                             <label className="block text-xs font-bold text-slate-700 ml-1">Ngày phản ánh <span className="text-red-500">*</span></label>
+                             <label className="block text-sm font-bold text-slate-700 ml-1">Ngày phản ánh <span className="text-red-500">*</span></label>
                              <input type="date" name="ngayPhanAnh" value={formData.ngayPhanAnh} onChange={handleChange} required className={getInputClasses('ngayPhanAnh')} disabled={isFieldDisabled('ngayPhanAnh')}/>
                              <ErrorMessage field="ngayPhanAnh" />
                         </div>
                         <div className="sm:col-span-1">
-                             <label className="block text-xs font-bold text-slate-700 ml-1">Nhà phân phối <span className="text-red-500">*</span></label>
+                             <label className="block text-sm font-bold text-slate-700 ml-1">Nhà phân phối <span className="text-red-500">*</span></label>
                              <input type="text" name="nhaPhanPhoi" value={formData.nhaPhanPhoi} onChange={handleChange} required className={getInputClasses('nhaPhanPhoi')} disabled={isFieldDisabled('nhaPhanPhoi')}/>
                              <ErrorMessage field="nhaPhanPhoi" />
                         </div>
                          <div className="sm:col-span-2">
-                             <label className="block text-xs font-bold text-slate-700 ml-1">Đơn vị sử dụng</label>
+                             <label className="block text-sm font-bold text-slate-700 ml-1">Đơn vị sử dụng</label>
                              <input type="text" name="donViSuDung" value={formData.donViSuDung} onChange={handleChange} className={getInputClasses('donViSuDung')} disabled={isFieldDisabled('donViSuDung')}/>
                         </div>
                         <div className="sm:col-span-2">
-                            <label className="block text-xs font-bold text-slate-700 ml-1">Nội dung phản ánh <span className="text-red-500">*</span></label>
+                            <label className="block text-sm font-bold text-slate-700 ml-1">Nội dung phản ánh <span className="text-red-500">*</span></label>
                             <textarea name="noiDungPhanAnh" rows={3} value={formData.noiDungPhanAnh} onChange={handleChange} required className={getInputClasses('noiDungPhanAnh')} disabled={isFieldDisabled('noiDungPhanAnh')}></textarea>
                             <ErrorMessage field="noiDungPhanAnh" />
                         </div>
@@ -431,14 +404,13 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
                  </section>
             </div>
 
-            {/* RIGHT COLUMN: Resolution & Status */}
             <div className="md:col-span-5 space-y-8">
                  <section className="bg-slate-100 p-5 rounded-xl border border-slate-200">
                     <SectionHeader title="Phân tích & Xử lý" icon={<WrenchIcon className="h-4 w-4" />} />
                     
                     <div className="space-y-4">
                         <div>
-                            <label className="block text-xs font-bold text-slate-700 ml-1">Phân loại lỗi <span className="text-red-500">*</span></label>
+                            <label className="block text-sm font-bold text-slate-700 ml-1">Phân loại lỗi <span className="text-red-500">*</span></label>
                             <select name="loaiLoi" value={formData.loaiLoi} onChange={handleChange} className={getInputClasses('loaiLoi')} required disabled={isFieldDisabled('loaiLoi')}>
                                 <option value="" disabled>-- Chọn --</option>
                                 <option value="Lỗi Sản xuất">Lỗi Sản xuất</option>
@@ -450,7 +422,7 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
                         </div>
 
                          <div>
-                            <label className="block text-xs font-bold text-slate-700 ml-1 flex justify-between">
+                            <label className="block text-sm font-bold text-slate-700 ml-1 flex justify-between">
                                 Nguyên nhân {formData.trangThai === 'Hoàn thành' && <span className="text-red-500">*</span>}
                             </label>
                             <textarea name="nguyenNhan" rows={4} value={formData.nguyenNhan} onChange={handleChange} className={getInputClasses('nguyenNhan')} placeholder="Mô tả nguyên nhân..." disabled={isFieldDisabled('nguyenNhan')}></textarea>
@@ -458,7 +430,7 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
                         </div>
 
                         <div>
-                            <label className="block text-xs font-bold text-slate-700 ml-1 flex justify-between">
+                            <label className="block text-sm font-bold text-slate-700 ml-1 flex justify-between">
                                 Hướng khắc phục {formData.trangThai === 'Hoàn thành' && <span className="text-red-500">*</span>}
                             </label>
                             <textarea name="huongKhacPhuc" rows={4} value={formData.huongKhacPhuc} onChange={handleChange} className={getInputClasses('huongKhacPhuc')} placeholder="Đề xuất xử lý..." disabled={isFieldDisabled('huongKhacPhuc')}></textarea>
@@ -471,7 +443,7 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
                     <SectionHeader title="Trạng thái hồ sơ" icon={<StatusIcon className="h-4 w-4" />} />
                     <div className="space-y-4">
                         <div>
-                            <label className="block text-xs font-bold text-slate-700 ml-1">Trạng thái xử lý</label>
+                            <label className="block text-sm font-bold text-slate-700 ml-1">Trạng thái xử lý</label>
                             <select name="trangThai" value={formData.trangThai} onChange={handleChange} className={getInputClasses('trangThai')} disabled={isFieldDisabled('trangThai')}>
                                 <option value="Mới">✨ Mới</option>
                                 <option value="Đang xử lý">⏳ Đang xử lý</option>
@@ -481,7 +453,7 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
                         </div>
                         
                         <div>
-                            <label className="block text-xs font-bold text-slate-700 ml-1">
+                            <label className="block text-sm font-bold text-slate-700 ml-1">
                                 Ngày hoàn thành {formData.trangThai === 'Hoàn thành' && <span className="text-red-500">*</span>}
                             </label>
                             <input 
@@ -501,7 +473,6 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
           </div>
         </form>
         
-        {/* Footer Actions */}
         <div className="flex justify-between items-center px-6 py-4 bg-white border-t border-slate-200 gap-3">
           <div className="text-xs text-slate-400 italic hidden sm:block">Kiểm tra kỹ thông tin trước khi lưu.</div>
           <div className="flex gap-3">

@@ -12,7 +12,6 @@ interface Props {
 const PermissionManagementModal: React.FC<Props> = ({ roleSettings, onSave, onClose }) => {
   const [settings, setSettings] = useState<RoleSettings>(roleSettings);
 
-  // Danh sách các loại lỗi để lựa chọn
   const defectTypes = [
     'Lỗi Sản xuất',
     'Lỗi Nhà cung cấp',
@@ -46,14 +45,11 @@ const PermissionManagementModal: React.FC<Props> = ({ roleSettings, onSave, onCl
         let newTypes: string[];
 
         if (type === 'All') {
-            // Nếu chọn 'All', nếu đang có thì bỏ, chưa có thì set chỉ 'All'
             newTypes = currentTypes.includes('All') ? [] : ['All'];
         } else {
-            // Nếu đang chọn 'All', bỏ 'All' và thêm type mới
             if (currentTypes.includes('All')) {
                  newTypes = [type];
             } else {
-                // Toggle type
                 if (currentTypes.includes(type)) {
                     newTypes = currentTypes.filter(t => t !== type);
                 } else {

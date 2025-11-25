@@ -10,29 +10,28 @@ export enum UserRole {
 
 export interface User {
   username: string;
-  fullName?: string; // Họ và tên hiển thị
+  fullName?: string;
   role: UserRole;
   password?: string; 
 }
 
-// Cấu trúc Sản phẩm mới
 export interface Product {
   maSanPham: string;
   tenThuongMai: string;
   tenThietBi: string; // Tên thiết bị y tế
   dongSanPham: string;
   nhanHang?: string;
-  GPLH: string; // Giấy phép lưu hành
+  GPLH: string;
 }
 
 export interface DefectReport {
   id: string;
-  ngayTao: string; // Added field: Creation timestamp
+  ngayTao: string;
   ngayPhanAnh: string;
   maSanPham: string;
   dongSanPham: string;
   tenThuongMai: string;
-  tenThietBi?: string; // New field added
+  tenThietBi?: string; // New field
   nhaPhanPhoi: string;
   donViSuDung: string;
   noiDungPhanAnh: string;
@@ -53,21 +52,19 @@ export type ToastType = 'success' | 'error' | 'info';
 
 export type PermissionField = 'general' | 'soLuongDoi' | 'loaiLoi' | 'nguyenNhan' | 'huongKhacPhuc' | 'trangThai' | 'ngayHoanThanh';
 
-// Cấu hình phân quyền
 export interface RoleConfig {
-  canCreate: boolean; // Quyền thêm mới
-  canViewDashboard: boolean; // Quyền xem báo cáo thống kê
-  viewableDefectTypes: string[]; // Danh sách các loại lỗi được phép xem ('All' hoặc cụ thể)
-  editableFields: PermissionField[]; // Danh sách các trường được phép chỉnh sửa
+  canCreate: boolean;
+  canViewDashboard: boolean;
+  viewableDefectTypes: string[];
+  editableFields: PermissionField[];
 }
 
 export type RoleSettings = Record<UserRole, RoleConfig>;
 
-// Cấu hình Hệ thống (Logo, Tên App, Background)
 export interface SystemSettings {
   appName: string;
-  companyName: string; // Tên công ty hiển thị ở footer/login
-  logoUrl: string; // Base64 string hoặc URL
+  companyName: string;
+  logoUrl: string;
   backgroundType: 'default' | 'image' | 'color';
-  backgroundValue: string; // URL ảnh hoặc mã màu
+  backgroundValue: string;
 }

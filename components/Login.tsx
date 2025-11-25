@@ -115,7 +115,6 @@ const Login: React.FC<Props> = ({ onLogin, users, settings }) => {
         </div>
       </div>
       
-      {/* Footer moved outside */}
       <div className="absolute bottom-6 w-full text-center z-10 p-4">
            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
                Copyright © 2025 Công ty Cổ phần Vật tư Hồng Thiện Mỹ
