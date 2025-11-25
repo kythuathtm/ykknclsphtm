@@ -88,7 +88,11 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onDelete, permiss
             )}
             {permissions.canDelete && (
                 <button 
-                  onClick={() => onDelete(report.id)}
+                  onClick={() => {
+                      if (window.confirm('Bạn có chắc chắn muốn xóa báo cáo này?')) {
+                          onDelete(report.id);
+                      }
+                  }}
                   className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-all active:scale-95"
                   title="Xóa"
                 >

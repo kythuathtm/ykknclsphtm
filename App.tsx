@@ -391,15 +391,14 @@ export const App: React.FC = () => {
   };
 
   const handleDeleteReport = async (id: string) => {
-    if (window.confirm('Bạn có chắc chắn muốn xóa báo cáo này?')) {
-      try {
-          await deleteDoc(doc(db, "reports", id));
-          if (selectedReport?.id === id) setSelectedReport(null);
-          showToast('Đã xóa báo cáo.', 'info');
-      } catch (error) {
-          console.error("Error deleting:", error);
-          showToast('Lỗi khi xóa', 'error');
-      }
+    // Rely on the UI component (list or detail) to handle confirmation
+    try {
+        await deleteDoc(doc(db, "reports", id));
+        if (selectedReport?.id === id) setSelectedReport(null);
+        showToast('Đã xóa báo cáo.', 'info');
+    } catch (error) {
+        console.error("Error deleting:", error);
+        showToast('Lỗi khi xóa', 'error');
     }
   };
 
@@ -628,7 +627,7 @@ export const App: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col h-dvh bg-slate-100 font-sans text-slate-900 font-medium">
+    <div className="flex flex-col h-dvh bg-slate-100 font-sans text-slate-900">
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-30 transition-all">
         <div className="max-w-[1920px] mx-auto px-2 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2 sm:gap-4">

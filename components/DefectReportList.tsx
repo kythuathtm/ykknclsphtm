@@ -466,7 +466,7 @@ const DefectReportList: React.FC<Props> = ({
                 </div>
                 <h3 className="text-lg font-bold text-slate-900 text-center mb-2">Xác nhận xóa?</h3>
                 <p className="text-sm text-slate-500 text-center mb-6 px-4">
-                    Bạn có chắc chắn muốn xóa báo cáo <span className="font-bold text-slate-800">{reportToDelete.maSanPham}</span>? Hành động này không thể hoàn tác.
+                    Bạn có chắc chắn muốn xóa báo cáo <span className="font-bold text-slate-800">{reportToDelete.maSanPham} - {reportToDelete.tenThuongMai}</span>? Hành động này không thể hoàn tác.
                 </p>
                 <div className="flex gap-3 justify-center">
                     <button
