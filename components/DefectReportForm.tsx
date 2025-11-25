@@ -127,7 +127,14 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (validate()) onSave({ ...formData, id: initialData?.id || '' });
+    if (validate()) {
+        if (formData.trangThai === 'Hoàn thành') {
+            if (!window.confirm("Bạn đang chuyển trạng thái thành 'Hoàn thành'.\n\nHành động này xác nhận việc xử lý đã kết thúc và hồ sơ sẽ được lưu trữ. Bạn có chắc chắn muốn tiếp tục?")) {
+                return;
+            }
+        }
+        onSave({ ...formData, id: initialData?.id || '' });
+    }
   };
   
   const getInputClasses = (fieldName: keyof Omit<DefectReport, 'id'>, isReadOnly: boolean = false) => {
