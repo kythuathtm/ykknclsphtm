@@ -18,7 +18,7 @@ const DetailItem = ({ label, value, className, fullWidth }: any) => {
     if (value === null || value === undefined || value === '') return null;
     return (
         <div className={fullWidth ? 'col-span-full' : ''}>
-            <dt className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">{label}</dt>
+            <dt className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">{label}</dt>
             <dd className={`text-base text-slate-800 break-words font-medium ${className}`}>{value}</dd>
         </div>
     );
@@ -26,7 +26,7 @@ const DetailItem = ({ label, value, className, fullWidth }: any) => {
 
 const Section = ({ title, icon, children }: any) => (
     <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm h-full flex flex-col">
-        <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wide border-b border-slate-100 pb-3 mb-5 flex items-center gap-2">
+        <h4 className="text-sm font-bold text-slate-900 uppercase tracking-wide border-b border-slate-100 pb-3 mb-5 flex items-center gap-2">
             <span className="p-1.5 bg-slate-50 text-slate-500 rounded-lg border border-slate-100">{icon}</span>
             {title}
         </h4>
@@ -151,17 +151,17 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onDelete, permiss
                 </dl>
                 <div className="mt-8 pt-6 border-t border-slate-100 grid grid-cols-3 gap-4">
                     <div className="bg-white rounded-xl p-3 border border-slate-100 text-center shadow-sm">
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Đã nhập</p>
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-wide">Đã nhập</p>
                         {/* Changed font-black to font-bold */}
                         <p className="font-bold text-xl text-slate-700 mt-1">{report.soLuongDaNhap}</p>
                     </div>
                     <div className="bg-red-50 rounded-xl p-3 border border-red-100 text-center shadow-sm">
-                        <p className="text-[10px] font-bold text-red-400 uppercase tracking-wide">Lỗi</p>
+                        <p className="text-xs font-bold text-red-400 uppercase tracking-wide">Lỗi</p>
                         {/* Changed font-black to font-bold */}
                         <p className="font-bold text-xl text-red-600 mt-1">{report.soLuongLoi}</p>
                     </div>
                     <div className="bg-emerald-50 rounded-xl p-3 border border-emerald-100 text-center shadow-sm">
-                        <p className="text-[10px] font-bold text-emerald-400 uppercase tracking-wide">Đổi</p>
+                        <p className="text-xs font-bold text-emerald-400 uppercase tracking-wide">Đổi</p>
                         {/* Changed font-black to font-bold */}
                         <p className="font-bold text-xl text-emerald-600 mt-1">{report.soLuongDoi}</p>
                     </div>
@@ -173,7 +173,7 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onDelete, permiss
                     <DetailItem label="Nhà phân phối" value={report.nhaPhanPhoi} fullWidth/>
                     <DetailItem label="Đơn vị sử dụng" value={report.donViSuDung} fullWidth/>
                     <div className="col-span-full mt-2">
-                        <dt className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Nội dung phản ánh</dt>
+                        <dt className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Nội dung phản ánh</dt>
                         <dd className="text-base text-slate-700 bg-slate-50 p-4 rounded-xl border border-slate-200 leading-relaxed shadow-inner">
                             {report.noiDungPhanAnh}
                         </dd>
@@ -293,7 +293,7 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onDelete, permiss
                           onClick={enableEditMode}
                       >
                            <div className="flex flex-col items-center justify-center text-center">
-                               <label className="text-[10px] font-bold text-emerald-600 uppercase mb-2 cursor-pointer tracking-wider">Số lượng đổi</label>
+                               <label className="text-xs font-bold text-emerald-600 uppercase mb-2 cursor-pointer tracking-wider">Số lượng đổi</label>
                                {isEditingQuickAction ? (
                                    <div className="flex items-center justify-center w-full">
                                        <input 
@@ -316,7 +316,7 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onDelete, permiss
                            <div className="border-t border-emerald-200/50 pt-3 mt-1">
                                <div className="flex items-center justify-center gap-2 mb-1 text-emerald-700">
                                    <CalendarIcon className="w-3.5 h-3.5" />
-                                   <label className="text-[10px] font-bold uppercase cursor-pointer tracking-wide">Ngày đổi hàng</label>
+                                   <label className="text-xs font-bold uppercase cursor-pointer tracking-wide">Ngày đổi hàng</label>
                                </div>
                                {isEditingQuickAction ? (
                                    <input 
@@ -338,7 +338,7 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onDelete, permiss
                       <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 space-y-3">
                            {report.ngayHoanThanh && (
                                 <div className="flex justify-between items-center">
-                                    <span className="text-[10px] font-bold text-slate-400 uppercase">Ngày hoàn thành</span>
+                                    <span className="text-xs font-bold text-slate-400 uppercase">Ngày hoàn thành</span>
                                     <span className="text-xs font-bold text-slate-700 bg-white px-2 py-1 rounded border border-slate-200 shadow-sm">
                                         {new Date(report.ngayHoanThanh).toLocaleDateString('en-GB')}
                                     </span>
@@ -346,7 +346,7 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onDelete, permiss
                            )}
                            {canSeeLoaiLoi && report.loaiLoi && (
                                 <div>
-                                    <span className="text-[10px] font-bold text-slate-400 uppercase block mb-1.5">Phân loại lỗi</span>
+                                    <span className="text-xs font-bold text-slate-400 uppercase block mb-1.5">Nguồn gốc lỗi</span>
                                     {getLoaiLoiBadge(report.loaiLoi)}
                                 </div>
                            )}

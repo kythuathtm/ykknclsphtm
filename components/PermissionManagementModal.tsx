@@ -30,10 +30,10 @@ const PermissionManagementModal: React.FC<Props> = ({ roleSettings, onSave, onRe
   const editableFieldOptions: { key: PermissionField; label: string }[] = [
       { key: 'general', label: 'Thông tin chung' },
       { key: 'soLuongDoi', label: 'SL Đổi' },
-      { key: 'loaiLoi', label: 'Loại lỗi' },
+      { key: 'loaiLoi', label: 'Nguồn gốc lỗi' },
       { key: 'nguyenNhan', label: 'Nguyên nhân' },
       { key: 'huongKhacPhuc', label: 'Hướng khắc phục' },
-      { key: 'trangThai', label: 'Trạng thái' },
+      { key: 'trangThai', label: 'Trạng thái xử lý' },
       { key: 'ngayHoanThanh', label: 'Ngày hoàn thành' },
       { key: 'ngayDoiHang', label: 'Ngày đổi hàng' },
   ];
@@ -243,7 +243,7 @@ const PermissionManagementModal: React.FC<Props> = ({ roleSettings, onSave, onRe
                             <th scope="col" className="px-6 py-3 text-center text-xs font-bold text-slate-500 uppercase tracking-wider w-20">Xóa</th>
                             <th scope="col" className="px-6 py-3 text-center text-xs font-bold text-slate-500 uppercase tracking-wider w-20">Báo cáo</th>
                             <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider min-w-[300px]">Các trường được phép chỉnh sửa</th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider min-w-[250px]">Loại lỗi được xem</th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider min-w-[250px]">Nguồn gốc lỗi được xem</th>
                         </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-slate-200">

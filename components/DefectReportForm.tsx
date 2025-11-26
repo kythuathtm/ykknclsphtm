@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { DefectReport, UserRole, PermissionField, Product } from '../types';
 import { XIcon, CheckCircleIcon, TagIcon, UserIcon, WrenchIcon, CheckCircleIcon as StatusIcon } from './Icons';
@@ -149,7 +150,7 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
     if (!formData.soLo) newErrors.soLo = "Vui lòng nhập số lô.";
     if (!formData.nhaPhanPhoi) newErrors.nhaPhanPhoi = "Vui lòng nhập nhà phân phối.";
     if (!formData.noiDungPhanAnh) newErrors.noiDungPhanAnh = "Nội dung phản ánh không được để trống.";
-    if (!formData.loaiLoi) newErrors.loaiLoi = "Vui lòng chọn phân loại lỗi.";
+    if (!formData.loaiLoi) newErrors.loaiLoi = "Vui lòng chọn nguồn gốc lỗi.";
     
     // New Mandatory Fields
     if (!formData.tenThuongMai) newErrors.tenThuongMai = "Tên thương mại là bắt buộc.";
@@ -425,19 +426,19 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
 
                         <div className="sm:col-span-2 grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
                              <div>
-                                <label className="block text-[10px] font-bold text-slate-400 uppercase ml-1 mb-1">Đã nhập</label>
+                                <label className="block text-xs font-bold text-slate-400 uppercase ml-1 mb-1">Đã nhập</label>
                                 <input type="number" name="soLuongDaNhap" value={formData.soLuongDaNhap} onChange={handleChange} min="0" className={getInputClasses('soLuongDaNhap')} disabled={isFieldDisabled('soLuongDaNhap')}/>
                              </div>
                              <div>
-                                <label className="block text-[10px] font-bold text-red-500 uppercase ml-1 mb-1">Lỗi</label>
+                                <label className="block text-xs font-bold text-red-500 uppercase ml-1 mb-1">Lỗi</label>
                                 <input type="number" name="soLuongLoi" value={formData.soLuongLoi} onChange={handleChange} min="0" className={getInputClasses('soLuongLoi')} disabled={isFieldDisabled('soLuongLoi')}/>
                              </div>
                              <div>
-                                <label className="block text-[10px] font-bold text-emerald-600 uppercase ml-1 mb-1">Đổi</label>
+                                <label className="block text-xs font-bold text-emerald-600 uppercase ml-1 mb-1">Đổi</label>
                                 <input type="number" name="soLuongDoi" value={formData.soLuongDoi} onChange={handleChange} min="0" className={getInputClasses('soLuongDoi')} disabled={isFieldDisabled('soLuongDoi')}/>
                              </div>
                              <div>
-                                <label className="block text-[10px] font-bold text-emerald-600 uppercase ml-1 mb-1">Ngày đổi</label>
+                                <label className="block text-xs font-bold text-emerald-600 uppercase ml-1 mb-1">Ngày đổi</label>
                                 <input type="date" name="ngayDoiHang" value={formData.ngayDoiHang || ''} onChange={handleChange} className={getInputClasses('ngayDoiHang')} disabled={isFieldDisabled('ngayDoiHang')}/>
                              </div>
                         </div>
@@ -477,7 +478,7 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
                     
                     <div className="space-y-5">
                         <div>
-                            <label className="block text-xs font-bold text-slate-700 ml-1 mb-1">Phân loại lỗi <span className="text-red-500">*</span></label>
+                            <label className="block text-xs font-bold text-slate-700 ml-1 mb-1">Nguồn gốc lỗi <span className="text-red-500">*</span></label>
                             <select name="loaiLoi" value={formData.loaiLoi} onChange={handleChange} className={getInputClasses('loaiLoi')} required disabled={isFieldDisabled('loaiLoi')}>
                                 <option value="" disabled>-- Chọn --</option>
                                 <option value="Lỗi Sản xuất">Lỗi Sản xuất</option>
