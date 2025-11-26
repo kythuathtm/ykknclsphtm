@@ -76,4 +76,5 @@ export interface SystemSettings {
   logoUrl: string;
   backgroundType: 'default' | 'image' | 'color';
   backgroundValue: string;
+  fontFamily?: string; // New: Configurable Font
 }

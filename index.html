@@ -9,10 +9,6 @@
       tailwind.config = {
         theme: {
           extend: {
-            fontFamily: {
-              sans: ['Arial', 'Helvetica', 'sans-serif'],
-              mono: ['Arial', 'Helvetica', 'sans-serif'],
-            },
             colors: {
               gray: {
                 50: '#f9fafb',
@@ -71,16 +67,20 @@
       }
     </script>
     <style>
+      :root {
+        --app-font: 'Arial', sans-serif;
+      }
+
       body {
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
-        font-family: 'Arial', sans-serif;
+        font-family: var(--app-font);
         font-size: 16px;
       }
       
-      /* Force all elements to inherit font-family */
-      input, button, select, textarea, code, pre, table, th, td {
-        font-family: 'Arial', sans-serif !important;
+      /* Force all elements to inherit the dynamic font-family */
+      input, button, select, textarea, code, pre, table, th, td, div, span, p, h1, h2, h3, h4, h5, h6 {
+        font-family: var(--app-font) !important;
       }
 
       /* Modern Scrollbar */

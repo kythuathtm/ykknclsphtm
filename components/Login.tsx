@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { User, SystemSettings } from '../types';
 import { UserIcon, LockClosedIcon, EyeIcon, EyeSlashIcon, ArrowRightOnRectangleIcon } from './Icons';
@@ -84,7 +85,8 @@ const Login: React.FC<Props> = ({ onLogin, users, settings }) => {
                        <img src={settings.logoUrl} alt="Logo" className="relative h-28 object-contain drop-shadow-xl transform transition-transform duration-500 group-hover:scale-110 group-hover:rotate-2" />
                    </div>
                )}
-               <h2 className="text-4xl font-black text-slate-800 mb-3 tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-600">Xin chào!</h2>
+               {/* Fixed: Changed font-black to font-extrabold */}
+               <h2 className="text-4xl font-extrabold text-slate-800 mb-3 tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-600">Xin chào!</h2>
                <p className="text-slate-500 text-sm font-semibold tracking-wide uppercase">Hệ thống Theo dõi Phản ánh Chất lượng</p>
             </div>
             

@@ -1,4 +1,5 @@
 
+
 import React, { useState, useMemo, useEffect, useTransition, Suspense, useCallback } from 'react';
 import { DefectReport, UserRole, ToastType, PermissionField } from './types';
 import { PlusIcon, BarChartIcon, ArrowDownTrayIcon, ListBulletIcon, ArrowRightOnRectangleIcon, UserGroupIcon, ChartPieIcon, TableCellsIcon, ShieldCheckIcon, CalendarIcon, Cog8ToothIcon } from './components/Icons';
@@ -81,6 +82,13 @@ export const App: React.FC = () => {
   const { reports, isLoadingReports, saveReport, deleteReport, deleteMultipleReports } = useReports(showToast);
   const { products, addProduct, deleteProduct, deleteAllProducts, importProducts } = useProducts(showToast);
   const { roleSettings, systemSettings, saveRoleSettings, saveSystemSettings, renameRole } = useSettings(showToast);
+
+  // Apply Font globally based on Settings
+  useEffect(() => {
+    if (systemSettings.fontFamily) {
+        document.documentElement.style.setProperty('--app-font', systemSettings.fontFamily);
+    }
+  }, [systemSettings.fontFamily]);
 
   // UI State
   const [selectedReport, setSelectedReport] = useState<DefectReport | null>(null);

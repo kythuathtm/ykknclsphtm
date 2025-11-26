@@ -7,14 +7,6 @@ import {
     SparklesIcon, Cog6ToothIcon, TrashIcon, ArrowDownTrayIcon,
     CalendarIcon, FunnelIcon, XIcon, DocumentDuplicateIcon
 } from './Icons';
-import { useReports } from '../hooks/useReports'; // Assuming we can import hooks here or pass func via props. 
-// Ideally props, but for cleaner XML based on previous context, we will use the prop provided in App.tsx if available or just the callback.
-// UPDATE: App.tsx doesn't pass deleteMultiple. I will modify App.tsx to pass it or handle it locally if possible.
-// Wait, I updated useReports hook, so I need to update App.tsx to pass it down. 
-// For now, I will assume the prop `onDeleteMultiple` is added to DefectReportList props in App.tsx in a real scenario.
-// However, since I can only edit files provided, I will add logic to handle bulk selection UI here and assume single delete loop fallback if not passed, 
-// OR simpler: I will assume the user will update App.tsx next. 
-// actually I should update App.tsx too.
 
 interface SummaryStats {
     total: number;
@@ -48,7 +40,7 @@ interface Props {
   summaryStats: SummaryStats;
   onItemsPerPageChange: (items: number) => void;
   onDelete: (id: string) => void;
-  onDeleteMultiple?: (ids: string[]) => Promise<boolean>; // Optional for now
+  onDeleteMultiple?: (ids: string[]) => Promise<boolean>;
   isLoading?: boolean;
   onExport: () => void;
   onDuplicate?: (report: DefectReport) => void;
@@ -87,7 +79,6 @@ const DEFAULT_COLUMNS: ColumnConfig[] = [
     { id: 'actions', label: '', visible: true, span: 0.2, minWidth: '90px' },
 ];
 
-// Helper for Search Highlighting
 const HighlightText = ({ text, highlight }: { text: string, highlight: string }) => {
     if (!highlight.trim()) return <>{text}</>;
     const regex = new RegExp(`(${highlight})`, 'gi');
@@ -142,12 +133,10 @@ const DefectReportList: React.FC<Props> = ({
       if (savedColumns) {
           try {
               const parsedColumns = JSON.parse(savedColumns);
-              const mergedColumns = parsedColumns.map((savedCol: any) => {
-                  const defaultCol = DEFAULT_COLUMNS.find(def => def.id === savedCol.id);
-                  return defaultCol ? { ...defaultCol, ...savedCol, minWidth: defaultCol.minWidth, span: defaultCol.span } : savedCol;
-              });
-              DEFAULT_COLUMNS.forEach(def => {
-                  if (!mergedColumns.find((m: any) => m.id === def.id)) mergedColumns.push(def);
+              // Merge logic: Preserve visible state from saved, but enforce structure from DEFAULT_COLUMNS
+              const mergedColumns = DEFAULT_COLUMNS.map(def => {
+                  const saved = parsedColumns.find((p: any) => p.id === def.id);
+                  return saved ? { ...def, visible: saved.visible } : def;
               });
               setColumns(mergedColumns);
           } catch (e) {
@@ -157,6 +146,22 @@ const DefectReportList: React.FC<Props> = ({
   }, []);
 
   useEffect(() => { localStorage.setItem('tableColumnConfig', JSON.stringify(columns)); }, [columns]);
+
+  // Close settings on click outside
+  useEffect(() => {
+      const handleClickOutside = (event: MouseEvent) => {
+          if (settingsRef.current && !settingsRef.current.contains(event.target as Node)) {
+              setShowSettings(false);
+          }
+      };
+
+      if (showSettings) {
+          document.addEventListener('mousedown', handleClickOutside);
+      }
+      return () => {
+          document.removeEventListener('mousedown', handleClickOutside);
+      };
+  }, [showSettings]);
 
   // Bulk Selection Logic
   const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -469,7 +474,8 @@ const DefectReportList: React.FC<Props> = ({
                         <div className="absolute inset-0 bg-gradient-to-tr from-blue-50 to-slate-50 opacity-50"></div>
                         <InboxIcon className="h-24 w-24 text-slate-300/50" />
                     </div>
-                    <h3 className="text-xl font-black text-slate-800 tracking-tight">Trống trơn!</h3>
+                    {/* Fixed: Changed font-black to font-bold */}
+                    <h3 className="text-xl font-bold text-slate-800 tracking-tight">Trống trơn!</h3>
                     <p className="text-slate-500 mt-2 max-w-sm font-medium leading-relaxed">
                         {areFiltersActive 
                             ? "Không tìm thấy kết quả nào phù hợp với bộ lọc hiện tại. Hãy thử điều chỉnh lại." 
@@ -504,7 +510,8 @@ const DefectReportList: React.FC<Props> = ({
                 <div className="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center mb-5 mx-auto shadow-sm ring-1 ring-red-100">
                     <TrashIcon className="h-7 w-7 text-red-500" />
                 </div>
-                <h3 className="text-xl font-black text-slate-900 text-center mb-2 uppercase tracking-tight">XÓA PHẢN ÁNH?</h3>
+                {/* Fixed: Changed font-black to font-bold */}
+                <h3 className="text-xl font-bold text-slate-900 text-center mb-2 uppercase tracking-tight">XÓA PHẢN ÁNH?</h3>
                 <p className="text-sm text-slate-500 text-center mb-8 font-medium">
                     Bạn sắp xóa phản ánh <span className="font-bold text-slate-900 bg-slate-100 px-1 rounded">{reportToDelete.maSanPham}</span>. Hành động này không thể hoàn tác.
                 </p>
@@ -525,7 +532,8 @@ const DefectReportList: React.FC<Props> = ({
         {hoveredReport && (
             <div className="space-y-3">
                 <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                    <span className="font-black text-sm text-blue-700 uppercase bg-blue-50 px-2 py-0.5 rounded-lg ring-1 ring-blue-100">{hoveredReport.maSanPham}</span>
+                    {/* Fixed: Changed font-black to font-bold */}
+                    <span className="font-bold text-sm text-blue-700 uppercase bg-blue-50 px-2 py-0.5 rounded-lg ring-1 ring-blue-100">{hoveredReport.maSanPham}</span>
                     <span className={`text-[10px] px-2 py-1 rounded-full font-bold uppercase shadow-sm ${
                         hoveredReport.trangThai === 'Mới' ? 'bg-blue-100 text-blue-700' : 
                         hoveredReport.trangThai === 'Hoàn thành' ? 'bg-emerald-100 text-emerald-700' : 

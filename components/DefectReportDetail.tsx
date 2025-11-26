@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { DefectReport, UserRole } from '../types';
 import { PencilIcon, TrashIcon, XIcon, WrenchIcon, QuestionMarkCircleIcon, ClipboardDocumentListIcon, TagIcon, UserIcon, CheckCircleIcon, CalendarIcon } from './Icons';
@@ -115,7 +116,8 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onDelete, permiss
                     {new Date(report.ngayPhanAnh).toLocaleDateString('en-GB')}
                 </span>
             </div>
-            <h3 className="text-xl font-black text-slate-900 leading-tight">{report.tenThuongMai}</h3>
+            {/* Changed from font-black to font-bold for better rendering */}
+            <h3 className="text-xl font-bold text-slate-900 leading-tight">{report.tenThuongMai}</h3>
           </div>
           <div className="flex items-center gap-2 ml-4">
             {permissions.canEdit && (
@@ -150,15 +152,18 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onDelete, permiss
                 <div className="mt-8 pt-6 border-t border-slate-100 grid grid-cols-3 gap-4">
                     <div className="bg-white rounded-xl p-3 border border-slate-100 text-center shadow-sm">
                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Đã nhập</p>
-                        <p className="font-black text-xl text-slate-700 mt-1">{report.soLuongDaNhap}</p>
+                        {/* Changed font-black to font-bold */}
+                        <p className="font-bold text-xl text-slate-700 mt-1">{report.soLuongDaNhap}</p>
                     </div>
                     <div className="bg-red-50 rounded-xl p-3 border border-red-100 text-center shadow-sm">
                         <p className="text-[10px] font-bold text-red-400 uppercase tracking-wide">Lỗi</p>
-                        <p className="font-black text-xl text-red-600 mt-1">{report.soLuongLoi}</p>
+                        {/* Changed font-black to font-bold */}
+                        <p className="font-bold text-xl text-red-600 mt-1">{report.soLuongLoi}</p>
                     </div>
                     <div className="bg-emerald-50 rounded-xl p-3 border border-emerald-100 text-center shadow-sm">
                         <p className="text-[10px] font-bold text-emerald-400 uppercase tracking-wide">Đổi</p>
-                        <p className="font-black text-xl text-emerald-600 mt-1">{report.soLuongDoi}</p>
+                        {/* Changed font-black to font-bold */}
+                        <p className="font-bold text-xl text-emerald-600 mt-1">{report.soLuongDoi}</p>
                     </div>
                 </div>
              </Section>
@@ -294,14 +299,16 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onDelete, permiss
                                        <input 
                                             type="number" 
                                             min="0"
-                                            className="w-24 text-center text-3xl font-black text-emerald-700 bg-white border border-emerald-200 rounded-lg py-1 focus:ring-2 focus:ring-emerald-500/20 outline-none shadow-sm"
+                                            // Fixed: Changed from font-black to font-bold
+                                            className="w-24 text-center text-3xl font-bold text-emerald-700 bg-white border border-emerald-200 rounded-lg py-1 focus:ring-2 focus:ring-emerald-500/20 outline-none shadow-sm"
                                             value={quickUpdateData.soLuongDoi}
                                             onChange={(e) => setQuickUpdateData({...quickUpdateData, soLuongDoi: Number(e.target.value)})}
                                             onClick={(e) => e.stopPropagation()} 
                                        />
                                    </div>
                                ) : (
-                                   <p className="text-4xl font-black text-emerald-600">{report.soLuongDoi}</p>
+                                   // Fixed: Changed from font-black to font-bold
+                                   <p className="text-4xl font-bold text-emerald-600">{report.soLuongDoi}</p>
                                )}
                            </div>
                            

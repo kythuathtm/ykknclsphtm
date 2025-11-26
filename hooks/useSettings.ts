@@ -1,5 +1,6 @@
 
 
+
 import { useState, useEffect } from 'react';
 import { RoleSettings, SystemSettings, UserRole, ToastType } from '../types';
 import { db } from '../firebaseConfig';
@@ -19,7 +20,8 @@ const DEFAULT_SYSTEM_SETTINGS: SystemSettings = {
   companyName: 'Công ty Cổ phần Vật tư Y tế Hồng Thiện Mỹ',
   logoUrl: '',
   backgroundType: 'default',
-  backgroundValue: ''
+  backgroundValue: '',
+  fontFamily: 'Arial, sans-serif'
 };
 
 export const useSettings = (showToast: (msg: string, type: ToastType) => void) => {
@@ -36,7 +38,10 @@ export const useSettings = (showToast: (msg: string, type: ToastType) => void) =
         }
         const systemDoc = snapshot.docs.find(d => d.id === 'systemSettings');
         if (systemDoc) {
-            setSystemSettings(systemDoc.data() as SystemSettings);
+            setSystemSettings({
+                ...DEFAULT_SYSTEM_SETTINGS, // Merge with defaults to ensure new fields like fontFamily exist
+                ...systemDoc.data() as SystemSettings
+            });
         }
       }
     });
