@@ -116,8 +116,8 @@ const ProductListModal: React.FC<Props> = ({ products, onClose, onImport, onAdd,
   );
 
   return (
-    <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-opacity font-sans">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-7xl max-h-[90vh] flex flex-col overflow-hidden ring-1 ring-black/5">
+    <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center sm:p-4 transition-opacity font-sans">
+      <div className="bg-white sm:rounded-2xl rounded-t-2xl w-full max-w-7xl h-[100dvh] sm:h-auto sm:max-h-[90vh] flex flex-col overflow-hidden ring-1 ring-black/5">
         
         {/* Header */}
         <div className="flex justify-between items-center p-5 border-b border-slate-200 bg-white">

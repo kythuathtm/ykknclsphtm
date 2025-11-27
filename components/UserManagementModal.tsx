@@ -47,8 +47,8 @@ const UserManagementModal: React.FC<Props> = ({ users, onSaveUser, onDeleteUser,
   }
 
   return (
-    <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-opacity">
-      <div className="bg-white rounded-lg shadow-2xl max-w-3xl w-full max-h-[80vh] flex flex-col overflow-hidden">
+    <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center sm:p-4 transition-opacity">
+      <div className="bg-white sm:rounded-lg rounded-t-lg w-full max-w-3xl h-[100dvh] sm:h-auto sm:max-h-[80vh] flex flex-col overflow-hidden">
         <div className="flex justify-between items-center p-4 border-b border-slate-200 bg-white">
           <h2 className="text-xl font-bold text-slate-800">Quản lý Tài khoản</h2>
           <button onClick={onClose} className="p-2 text-slate-500 hover:text-slate-800 rounded-full hover:bg-slate-100 transition-all active:scale-95">

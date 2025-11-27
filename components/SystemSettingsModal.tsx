@@ -52,8 +52,8 @@ const SystemSettingsModal: React.FC<Props> = ({ currentSettings, onSave, onClose
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-opacity">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full flex flex-col overflow-hidden ring-1 ring-black/5 animate-fade-in-up">
+    <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center sm:p-4 transition-opacity">
+      <div className="bg-white sm:rounded-2xl rounded-t-2xl w-full max-w-lg h-auto sm:h-auto flex flex-col overflow-hidden ring-1 ring-black/5 animate-fade-in-up pb-6 sm:pb-0">
         <div className="flex justify-between items-center p-5 border-b border-slate-200 bg-white">
           <h2 className="text-xl font-bold text-slate-800">Cấu hình Hệ thống</h2>
           <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-800 rounded-full hover:bg-slate-100 transition-all active:scale-95">

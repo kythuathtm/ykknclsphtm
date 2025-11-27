@@ -1,6 +1,7 @@
-import React, { useState, useMemo, useEffect, useTransition, Suspense } from 'react';
+
+import React, { useState, useMemo, useEffect, useTransition, Suspense, useRef } from 'react';
 import { DefectReport, UserRole, ToastType, User, RoleSettings, PermissionField, SystemSettings, Product } from './types';
-import { PlusIcon, BarChartIcon, ArrowDownTrayIcon, ListBulletIcon, ArrowRightOnRectangleIcon, UserGroupIcon, ChartPieIcon, TableCellsIcon, ShieldCheckIcon, CalendarIcon, Cog8ToothIcon } from './components/Icons';
+import { PlusIcon, BarChartIcon, ArrowDownTrayIcon, ListBulletIcon, ArrowRightOnRectangleIcon, UserGroupIcon, ChartPieIcon, TableCellsIcon, ShieldCheckIcon, CalendarIcon, Cog8ToothIcon, EllipsisHorizontalIcon } from './components/Icons';
 import * as XLSX from 'xlsx';
 import Loading from './components/Loading';
 
@@ -117,6 +118,8 @@ export const App: React.FC = () => {
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
   const [currentView, setCurrentView] = useState<'list' | 'dashboard'>('list');
   const [isLoadingDB, setIsLoadingDB] = useState(true);
+  const [isAdminMenuOpen, setIsAdminMenuOpen] = useState(false);
+  const adminMenuRef = useRef<HTMLDivElement>(null);
 
   // Filters & Pagination State
   const [currentPage, setCurrentPage] = useState(1);
@@ -198,6 +201,21 @@ export const App: React.FC = () => {
       }, 3000);
       return () => clearTimeout(timer);
   }, [isLoadingDB]);
+  
+  // Close admin menu on outside click
+  useEffect(() => {
+      const handleClickOutside = (event: MouseEvent) => {
+          if (adminMenuRef.current && !adminMenuRef.current.contains(event.target as Node)) {
+              setIsAdminMenuOpen(false);
+          }
+      };
+      if (isAdminMenuOpen) {
+          document.addEventListener('mousedown', handleClickOutside);
+      }
+      return () => {
+          document.removeEventListener('mousedown', handleClickOutside);
+      };
+  }, [isAdminMenuOpen]);
 
 
   // Derived State for Permission Checking
@@ -595,7 +613,7 @@ export const App: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col h-dvh bg-slate-100 font-sans text-slate-900" style={{ fontFamily: systemSettings.fontFamily }}>
+    <div className="flex flex-col h-dvh bg-slate-100 font-sans text-slate-900">
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-30 transition-all">
         <div className="max-w-[1920px] mx-auto px-2 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2 sm:gap-4">
@@ -606,13 +624,9 @@ export const App: React.FC = () => {
                <BarChartIcon className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
             </div>
             <h1 className="text-sm sm:text-lg font-bold text-slate-800 tracking-tight truncate hidden sm:block uppercase">
-              {systemSettings.appName || 'THEO DÕI LỖI SẢN PHẨM'}
+              THEO DÕI LỖI SẢN PHẨM
             </h1>
-            <h1 className="sm:hidden text-sm font-bold text-slate-800 tracking-tight uppercase">
-                {/* Short title for mobile */}
-                TDL SP
-            </h1>
-            {isLoadingDB && <span className="text-xs text-blue-500 animate-pulse ml-2">●</span>}
+            {isLoadingDB && <span className="text-xs text-blue-500 animate-pulse ml-2">● Đồng bộ...</span>}
           </div>
 
           {/* Center: View Switcher & Global Year Filter */}
@@ -634,31 +648,31 @@ export const App: React.FC = () => {
                     </select>
                  </div>
 
-                 {/* View Switcher: Mobile Optimized */}
-                 <div className="bg-slate-100/80 p-1 rounded-xl flex items-center gap-1 border border-slate-200/50">
+                 {/* Desktop View Switcher */}
+                 <div className="bg-slate-100/80 p-1 rounded-xl flex items-center gap-1 border border-slate-200/50 hidden md:flex">
                     <button
                         onClick={() => setCurrentView('list')}
-                        className={`flex items-center p-1.5 sm:px-3 sm:py-1.5 rounded-lg text-sm font-bold transition-all duration-200 active:scale-95 ${
+                        className={`flex items-center px-3 py-1.5 rounded-lg text-sm font-bold transition-all duration-200 active:scale-95 ${
                             currentView === 'list' 
                             ? 'bg-white text-blue-700 shadow-sm ring-1 ring-slate-200' 
                             : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
                         }`}
                         title="Xem danh sách báo cáo"
                     >
-                        <ListBulletIcon className="h-4 w-4 sm:mr-2" />
-                        <span className="hidden sm:inline">Danh sách</span>
+                        <ListBulletIcon className="h-4 w-4 mr-2" />
+                        Danh sách
                     </button>
                     <button
                         onClick={() => setCurrentView('dashboard')}
-                        className={`flex items-center p-1.5 sm:px-3 sm:py-1.5 rounded-lg text-sm font-bold transition-all duration-200 active:scale-95 ${
+                        className={`flex items-center px-3 py-1.5 rounded-lg text-sm font-bold transition-all duration-200 active:scale-95 ${
                             currentView === 'dashboard' 
                             ? 'bg-white text-blue-700 shadow-sm ring-1 ring-slate-200' 
                             : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
                         }`}
                         title="Xem báo cáo thống kê"
                     >
-                        <ChartPieIcon className="h-4 w-4 sm:mr-2" />
-                        <span className="hidden sm:inline">Báo cáo</span>
+                        <ChartPieIcon className="h-4 w-4 mr-2" />
+                        Báo cáo
                     </button>
                 </div>
             </div>
@@ -691,36 +705,80 @@ export const App: React.FC = () => {
                 )}
 
                 {currentUser.role === UserRole.Admin && (
-                    <div className="flex items-center gap-1">
+                    <div className="relative" ref={adminMenuRef}>
+                        {/* Mobile Dropdown Trigger */}
                          <button
-                            onClick={() => setIsPermissionModalOpen(true)}
-                            className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors active:scale-95"
-                            title="Cấu hình phân quyền"
+                            onClick={() => setIsAdminMenuOpen(!isAdminMenuOpen)}
+                            className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors active:scale-95 sm:hidden"
                         >
-                            <ShieldCheckIcon className="h-5 w-5 sm:h-6 sm:w-6" />
+                            <EllipsisHorizontalIcon className="h-6 w-6" />
                         </button>
-                        <button
-                            onClick={() => setIsProductModalOpen(true)}
-                            className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors active:scale-95"
-                            title="Danh sách Sản phẩm"
-                        >
-                            <TableCellsIcon className="h-5 w-5 sm:h-6 sm:w-6" />
-                        </button>
-                        <button
-                            onClick={() => setIsUserModalOpen(true)}
-                            className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors active:scale-95 hidden sm:block"
-                            title="Quản lý Người dùng"
-                        >
-                            <UserGroupIcon className="h-5 w-5 sm:h-6 sm:w-6" />
-                        </button>
-                         {/* System Settings Trigger */}
-                         <button 
-                            className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors active:scale-95"
-                            onClick={() => setIsSystemSettingsModalOpen(true)}
-                            title="Cấu hình / Cài đặt web"
-                        >
-                             <Cog8ToothIcon className="h-5 w-5 sm:h-6 sm:w-6" />
-                        </button>
+                        
+                        {/* Dropdown Menu (Mobile Only) */}
+                        {isAdminMenuOpen && (
+                            <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-xl border border-slate-100 py-1 z-50 sm:hidden animate-fade-in-up">
+                                <button
+                                    onClick={() => { setIsPermissionModalOpen(true); setIsAdminMenuOpen(false); }}
+                                    className="flex w-full items-center px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 hover:text-blue-600"
+                                >
+                                    <ShieldCheckIcon className="h-5 w-5 mr-3 text-slate-400" />
+                                    Phân quyền
+                                </button>
+                                <button
+                                    onClick={() => { setIsProductModalOpen(true); setIsAdminMenuOpen(false); }}
+                                    className="flex w-full items-center px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 hover:text-blue-600"
+                                >
+                                    <TableCellsIcon className="h-5 w-5 mr-3 text-slate-400" />
+                                    Sản phẩm
+                                </button>
+                                <button
+                                    onClick={() => { setIsUserModalOpen(true); setIsAdminMenuOpen(false); }}
+                                    className="flex w-full items-center px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 hover:text-blue-600"
+                                >
+                                    <UserGroupIcon className="h-5 w-5 mr-3 text-slate-400" />
+                                    Người dùng
+                                </button>
+                                <button
+                                    onClick={() => { setIsSystemSettingsModalOpen(true); setIsAdminMenuOpen(false); }}
+                                    className="flex w-full items-center px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 hover:text-blue-600"
+                                >
+                                    <Cog8ToothIcon className="h-5 w-5 mr-3 text-slate-400" />
+                                    Hệ thống
+                                </button>
+                            </div>
+                        )}
+
+                        {/* Desktop Icons Row */}
+                        <div className="hidden sm:flex items-center gap-1">
+                            <button
+                                onClick={() => setIsPermissionModalOpen(true)}
+                                className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors active:scale-95"
+                                title="Cấu hình phân quyền"
+                            >
+                                <ShieldCheckIcon className="h-5 w-5 sm:h-6 sm:w-6" />
+                            </button>
+                            <button
+                                onClick={() => setIsProductModalOpen(true)}
+                                className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors active:scale-95"
+                                title="Danh sách Sản phẩm"
+                            >
+                                <TableCellsIcon className="h-5 w-5 sm:h-6 sm:w-6" />
+                            </button>
+                            <button
+                                onClick={() => setIsUserModalOpen(true)}
+                                className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors active:scale-95"
+                                title="Quản lý Người dùng"
+                            >
+                                <UserGroupIcon className="h-5 w-5 sm:h-6 sm:w-6" />
+                            </button>
+                            <button 
+                                className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors active:scale-95"
+                                onClick={() => setIsSystemSettingsModalOpen(true)}
+                                title="Cấu hình / Cài đặt web"
+                            >
+                                <Cog8ToothIcon className="h-5 w-5 sm:h-6 sm:w-6" />
+                            </button>
+                        </div>
                     </div>
                 )}
             </div>
@@ -774,6 +832,7 @@ export const App: React.FC = () => {
                     summaryStats={summaryStats}
                     isLoading={isPending}
                     onExport={handleExportData}
+                    onDuplicate={handleCreateClick} 
                 />
             ) : (
                 <DashboardReport 
@@ -785,12 +844,32 @@ export const App: React.FC = () => {
         </Suspense>
       </main>
 
+      {/* Mobile Bottom Navigation - Visible ONLY on small screens */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 flex justify-around p-2 pb-safe z-40 shadow-[0_-5px_15px_rgba(0,0,0,0.05)]">
+            <button 
+                onClick={() => setCurrentView('list')} 
+                className={`flex flex-col items-center p-2 rounded-xl transition-colors active:scale-95 flex-1 ${currentView === 'list' ? 'text-blue-600 bg-blue-50' : 'text-slate-400 hover:text-slate-600'}`}
+            >
+                <ListBulletIcon className="h-6 w-6" />
+                <span className="text-[10px] font-bold mt-1">Danh sách</span>
+            </button>
+            {canViewDashboard && (
+                <button 
+                    onClick={() => setCurrentView('dashboard')} 
+                    className={`flex flex-col items-center p-2 rounded-xl transition-colors active:scale-95 flex-1 ${currentView === 'dashboard' ? 'text-blue-600 bg-blue-50' : 'text-slate-400 hover:text-slate-600'}`}
+                >
+                    <ChartPieIcon className="h-6 w-6" />
+                    <span className="text-[10px] font-bold mt-1">Báo cáo</span>
+                </button>
+            )}
+      </div>
+
       {/* Modals */}
       <Suspense fallback={null}>
           {selectedReport && (
-            <div className="fixed inset-0 z-50 flex justify-center items-center p-4 sm:p-6">
+            <div className="fixed inset-0 z-50 flex justify-center items-end sm:items-center sm:p-6">
                <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onClick={() => setSelectedReport(null)}></div>
-               <div className="relative w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col animate-fade-in-up ring-1 ring-slate-900/5">
+               <div className="relative w-full max-w-4xl bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl overflow-hidden h-[95dvh] sm:h-auto sm:max-h-[90vh] flex flex-col animate-slide-up ring-1 ring-slate-900/5 z-50">
                   <DefectReportDetail
                     report={selectedReport}
                     onEdit={handleEditClick}

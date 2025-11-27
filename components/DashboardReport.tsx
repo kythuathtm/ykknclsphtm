@@ -38,7 +38,7 @@ const StatCard = React.memo(({ title, value, percentage, icon, onClick, gradient
                 </div>
 
                 <div className="flex items-end justify-between mt-4">
-                    <h3 className="text-6xl font-extrabold text-white tracking-tight leading-none drop-shadow-sm">
+                    <h3 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-none drop-shadow-sm">
                         {value.toLocaleString('vi-VN')}
                     </h3>
                     {percentage !== undefined && (
@@ -236,7 +236,7 @@ const BrandPerformanceCard = React.memo(({ data, onClick }: { data: any; onClick
     const StatColumn = ({ title, value, percent, colorClass }: any) => (
         <div className="flex flex-col items-center justify-center p-3 rounded-xl hover:bg-white/50 transition-colors">
             <span className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5">{title}</span>
-            <span className={`text-3xl lg:text-4xl font-extrabold ${colorClass} leading-tight`}>{value}</span>
+            <span className={`text-2xl sm:text-3xl lg:text-4xl font-extrabold ${colorClass} leading-tight`}>{value}</span>
             <span className="text-xs font-bold text-slate-500 bg-white border border-slate-100 px-2 py-0.5 rounded-full mt-1 shadow-sm">
                 {percent}%
             </span>
@@ -534,7 +534,8 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
 
   return (
     <div className="flex flex-col h-full bg-slate-50/50">
-         <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-8 custom-scrollbar">
+         {/* Added pb-24 to handle mobile navigation */}
+         <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-8 custom-scrollbar pb-24 md:pb-8">
              
              {/* 1.1 TỔNG QUAN */}
              <div className="flex flex-col gap-4">
@@ -661,8 +662,8 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
 
         {/* MODAL WINDOW FOR DRILL-DOWN LIST */}
         {activeFilter && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-900/60 backdrop-blur-sm transition-opacity">
-                <div className="relative w-full max-w-5xl bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col animate-fade-in-up ring-1 ring-white/20">
+            <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-6 bg-slate-900/60 backdrop-blur-sm transition-opacity">
+                <div className="relative w-full max-w-5xl bg-white sm:rounded-2xl rounded-t-2xl shadow-2xl overflow-hidden h-[95dvh] sm:h-auto sm:max-h-[90vh] flex flex-col animate-fade-in-up ring-1 ring-white/20">
                     {/* Modal Header */}
                     <div className="flex justify-between items-center px-6 py-5 bg-white border-b border-slate-100">
                         <div className="flex items-center gap-4">

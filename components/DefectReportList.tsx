@@ -1,10 +1,12 @@
+
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { DefectReport, UserRole } from '../types';
 import Pagination from './Pagination';
 import { 
     MagnifyingGlassIcon, InboxIcon, ClockIcon, CheckCircleIcon, 
     SparklesIcon, Cog6ToothIcon, TrashIcon, ArrowDownTrayIcon,
-    CalendarIcon, FunnelIcon, XIcon, DocumentDuplicateIcon
+    CalendarIcon, FunnelIcon, XIcon, DocumentDuplicateIcon,
+    ArrowUpIcon, ArrowDownIcon, AdjustmentsIcon
 } from './Icons';
 
 interface SummaryStats {
@@ -94,61 +96,67 @@ const HighlightText = React.memo(({ text, highlight }: { text: string, highlight
     );
 });
 
-// Mobile Card Component
+// Mobile Card Component with Fixed Height for Virtualization
 const MobileReportCard = React.memo(({ 
-    report, isSelected, onSelect, onDuplicate, onDelete, canDelete, highlight 
+    report, isSelected, onSelect, onDuplicate, onDelete, canDelete, highlight, style 
 }: { 
     report: DefectReport, isSelected: boolean, onSelect: () => void, 
     onDuplicate: ((r: DefectReport) => void) | undefined, 
-    onDelete: (id: string) => void, canDelete: boolean, highlight: string 
+    onDelete: (id: string) => void, canDelete: boolean, highlight: string, style?: React.CSSProperties 
 }) => {
     return (
         <div 
+            style={style}
             onClick={onSelect}
-            className={`bg-white p-4 rounded-xl shadow-sm border mb-3 active:scale-[0.98] transition-all ${isSelected ? 'border-blue-500 ring-1 ring-blue-500 bg-blue-50/50' : 'border-slate-200'}`}
+            className={`absolute left-0 right-0 w-full px-4 py-3 border-b border-slate-100 active:bg-slate-100 transition-colors touch-manipulation flex flex-col justify-between ${isSelected ? 'bg-blue-50/50' : 'bg-white'}`}
         >
-            <div className="flex justify-between items-start mb-2">
-                 <div className="flex items-center gap-2">
-                     <span className="font-bold text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded border border-slate-200">
-                        <HighlightText text={report.maSanPham} highlight={highlight} />
-                     </span>
-                     <span className="text-xs text-slate-400 font-medium flex items-center gap-1">
-                        <CalendarIcon className="w-3 h-3" />
-                        {new Date(report.ngayPhanAnh).toLocaleDateString('en-GB')}
-                     </span>
-                 </div>
-                 <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase border ${statusColorMap[report.trangThai]}`}>
-                    {report.trangThai}
-                 </span>
+            <div>
+                <div className="flex justify-between items-start mb-2">
+                    <div className="flex items-center gap-2">
+                        <span className="font-bold text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded border border-slate-200">
+                            <HighlightText text={report.maSanPham} highlight={highlight} />
+                        </span>
+                        <span className="text-xs text-slate-400 font-medium flex items-center gap-1">
+                            <CalendarIcon className="w-3 h-3" />
+                            {new Date(report.ngayPhanAnh).toLocaleDateString('en-GB')}
+                        </span>
+                    </div>
+                    <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase border ${statusColorMap[report.trangThai]}`}>
+                        {report.trangThai}
+                    </span>
+                </div>
+                
+                <h4 className="font-bold text-slate-800 text-sm mb-1.5 leading-snug line-clamp-2">
+                    <HighlightText text={report.tenThuongMai} highlight={highlight} />
+                </h4>
+                
+                <div className="text-xs text-slate-500 mb-2 leading-relaxed bg-slate-50 p-2 rounded-lg border border-slate-100 italic line-clamp-2">
+                    <HighlightText text={report.noiDungPhanAnh || 'Không có nội dung'} highlight={highlight} />
+                </div>
             </div>
             
-            <h4 className="font-bold text-slate-800 text-sm mb-1 line-clamp-2">
-                <HighlightText text={report.tenThuongMai} highlight={highlight} />
-            </h4>
-            <p className="text-xs text-slate-500 line-clamp-2 mb-3 italic">
-                 <HighlightText text={report.noiDungPhanAnh} highlight={highlight} />
-            </p>
-            
-            <div className="flex justify-between items-center pt-3 border-t border-slate-100 mt-2">
+            <div className="flex justify-between items-center mt-1">
                  <div className="text-xs font-semibold text-slate-500">
                     Lô: <span className="text-slate-800 font-bold"><HighlightText text={report.soLo} highlight={highlight} /></span>
                  </div>
                  
-                 <div className="flex items-center gap-2">
+                 <div className="flex items-center gap-3">
                       {onDuplicate && (
                           <button 
                              onClick={(e) => { e.stopPropagation(); onDuplicate(report); }}
-                             className="p-2 bg-slate-50 text-slate-500 rounded-lg hover:bg-blue-50 hover:text-blue-600 border border-slate-200 active:scale-90 transition-transform"
+                             className="text-slate-400 hover:text-blue-600 active:scale-95 p-2 -m-2"
+                             title="Sao chép"
                           >
-                             <DocumentDuplicateIcon className="h-4 w-4" />
+                             <DocumentDuplicateIcon className="h-5 w-5" />
                           </button>
                       )}
                       {canDelete && (
                           <button 
                              onClick={(e) => { e.stopPropagation(); onDelete(report.id); }}
-                             className="p-2 bg-slate-50 text-slate-500 rounded-lg hover:bg-red-50 hover:text-red-600 border border-slate-200 active:scale-90 transition-transform"
+                             className="text-slate-400 hover:text-red-600 active:scale-95 p-2 -m-2"
+                             title="Xóa"
                           >
-                             <TrashIcon className="h-4 w-4" />
+                             <TrashIcon className="h-5 w-5" />
                           </button>
                       )}
                  </div>
@@ -168,6 +176,7 @@ const DefectReportList: React.FC<Props> = ({
   const [columns, setColumns] = useState<ColumnConfig[]>(DEFAULT_COLUMNS);
   const [showSettings, setShowSettings] = useState(false);
   const settingsRef = useRef<HTMLDivElement>(null);
+  const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
   
   // Selection State
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -177,12 +186,18 @@ const DefectReportList: React.FC<Props> = ({
   const [hoveredReport, setHoveredReport] = useState<DefectReport | null>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
 
-  // Virtualization State (Desktop only)
-  const parentRef = useRef<HTMLDivElement>(null);
-  const [scrollTop, setScrollTop] = useState(0);
-  const [containerHeight, setContainerHeight] = useState(600);
+  // --- VIRTUALIZATION STATE ---
+  const parentRef = useRef<HTMLDivElement>(null);       // Desktop Container
+  const mobileListRef = useRef<HTMLDivElement>(null);   // Mobile Container
   
-  const ROW_HEIGHT = 72; 
+  const [scrollTop, setScrollTop] = useState(0);              // Desktop Scroll
+  const [mobileScrollTop, setMobileScrollTop] = useState(0);  // Mobile Scroll
+  
+  const [containerHeight, setContainerHeight] = useState(600);
+  const [mobileContainerHeight, setMobileContainerHeight] = useState(600);
+  
+  const ROW_HEIGHT = 72;            // Desktop Row Height
+  const MOBILE_ROW_HEIGHT = 190;    // Mobile Card Height (Increased to accommodate content)
 
   // --- RESIZING LOGIC ---
   const resizingRef = useRef<{ startX: number; startWidth: number; colId: ColumnId } | null>(null);
@@ -220,40 +235,56 @@ const DefectReportList: React.FC<Props> = ({
       window.removeEventListener('mouseup', handleMouseUp);
   }, [handleMouseMove]);
 
-  // --- VIRTUALIZATION LOGIC (Desktop) ---
+  // --- VIRTUALIZATION HANDLERS ---
+  
+  // 1. Measure Containers
   useEffect(() => {
       const handleResize = () => {
           if (parentRef.current) {
               setContainerHeight(parentRef.current.clientHeight);
           }
+          if (mobileListRef.current) {
+              setMobileContainerHeight(mobileListRef.current.clientHeight);
+          }
       };
+      
+      // Initial measure
       handleResize();
+      
       window.addEventListener('resize', handleResize);
       return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // 2. Scroll Handlers (Throttled with rAF)
   const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
-      setScrollTop(e.currentTarget.scrollTop);
+      const target = e.currentTarget;
+      requestAnimationFrame(() => {
+          setScrollTop(target.scrollTop);
+      });
   }, []);
 
+  const handleMobileScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+      const target = e.currentTarget;
+      requestAnimationFrame(() => {
+          setMobileScrollTop(target.scrollTop);
+      });
+  }, []);
+
+  // 3. Reset Scroll on Data Change
   useEffect(() => {
       if (parentRef.current) {
           parentRef.current.scrollTop = 0;
           setScrollTop(0);
       }
-      setSelectedIds(new Set()); // Reset selection on page change
+      if (mobileListRef.current) {
+          mobileListRef.current.scrollTop = 0;
+          setMobileScrollTop(0);
+      }
+      setSelectedIds(new Set()); 
   }, [currentPage, filters]);
 
-  // Virtualization calculations (Desktop only)
-  // Note: reports passed here are already paginated (e.g., 10 or 20 items).
-  // So virtualization is mostly just rendering the small list, 
-  // but we keep the structure for potential larger page sizes.
-  // With page size 10-20, virtualization doesn't save much but doesn't hurt.
+  // 4. Calculate Visible Items (Desktop)
   const totalContentHeight = reports.length * ROW_HEIGHT;
-  
-  // Since pagination limits items (e.g. 50 max), we can just render all in the table for simplicity 
-  // OR keep virtualization if page size is large.
-  // With page size 10-20, virtualization doesn't save much but doesn't hurt.
   const startIndex = Math.max(0, Math.floor(scrollTop / ROW_HEIGHT) - 2); 
   const endIndex = Math.min(
       reports.length, 
@@ -261,6 +292,16 @@ const DefectReportList: React.FC<Props> = ({
   );
   const visibleReports = reports.slice(startIndex, endIndex);
   const offsetY = startIndex * ROW_HEIGHT;
+
+  // 5. Calculate Visible Items (Mobile)
+  const totalMobileContentHeight = reports.length * MOBILE_ROW_HEIGHT;
+  const mobileStartIndex = Math.max(0, Math.floor(mobileScrollTop / MOBILE_ROW_HEIGHT) - 2);
+  const mobileEndIndex = Math.min(
+      reports.length,
+      Math.ceil((mobileScrollTop + mobileContainerHeight) / MOBILE_ROW_HEIGHT) + 2
+  );
+  const visibleMobileReports = reports.slice(mobileStartIndex, mobileEndIndex);
+  const mobileOffsetY = mobileStartIndex * MOBILE_ROW_HEIGHT;
 
   // --- SELECTION LOGIC ---
   const handleSelectOne = (id: string) => {
@@ -288,6 +329,32 @@ const DefectReportList: React.FC<Props> = ({
       }
   };
 
+  // --- DRAG & DROP COLUMN ORDERING ---
+  const handleHeaderDragStart = (e: React.DragEvent, colId: ColumnId) => {
+    e.dataTransfer.setData('colId', colId);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleHeaderDrop = (e: React.DragEvent, targetColId: ColumnId) => {
+    e.preventDefault();
+    const draggedColId = e.dataTransfer.getData('colId') as ColumnId;
+    if (!draggedColId || draggedColId === targetColId) return;
+
+    // Don't allow dropping on fixed columns if preferred, or just handle logic carefully
+    const fromIndex = columns.findIndex(c => c.id === draggedColId);
+    const toIndex = columns.findIndex(c => c.id === targetColId);
+
+    if (fromIndex !== -1 && toIndex !== -1) {
+        // Prevent moving fixed columns
+        if (columns[fromIndex].fixed) return;
+
+        const newCols = [...columns];
+        const [movedCol] = newCols.splice(fromIndex, 1);
+        newCols.splice(toIndex, 0, movedCol);
+        setColumns(newCols);
+    }
+  };
+
   // --- MISC HANDLERS ---
   const handleRowMouseEnter = (report: DefectReport) => setHoveredReport(report);
   const handleRowMouseLeave = () => setHoveredReport(null);
@@ -305,16 +372,38 @@ const DefectReportList: React.FC<Props> = ({
       }
   };
 
+  // Load Columns Config with Order Preservation
   useEffect(() => {
-      const savedColumns = localStorage.getItem('tableColumnConfigV14'); 
-      if (savedColumns) {
+      const savedColumnsStr = localStorage.getItem('tableColumnConfigV14'); 
+      if (savedColumnsStr) {
           try {
-              const parsedColumns = JSON.parse(savedColumns);
-              const mergedColumns = DEFAULT_COLUMNS.map(def => {
-                  const saved = parsedColumns.find((p: any) => p.id === def.id);
-                  return saved ? { ...def, visible: saved.visible, width: saved.width } : def;
+              const parsedColumns = JSON.parse(savedColumnsStr) as ColumnConfig[];
+              const defaultColMap = new Map(DEFAULT_COLUMNS.map(c => [c.id, c]));
+              const newColumns: ColumnConfig[] = [];
+              const processedIds = new Set<string>();
+
+              // 1. Add saved columns in their saved order, if they still exist in defaults
+              parsedColumns.forEach(savedCol => {
+                  const defaultCol = defaultColMap.get(savedCol.id);
+                  if (defaultCol) {
+                      newColumns.push({
+                          ...defaultCol, // Keep code-defined props (label, etc)
+                          width: savedCol.width,
+                          visible: savedCol.visible
+                      });
+                      processedIds.add(savedCol.id);
+                  }
               });
-              setColumns(mergedColumns);
+
+              // 2. Add any new default columns that weren't in storage
+              DEFAULT_COLUMNS.forEach(defCol => {
+                  if (!processedIds.has(defCol.id)) {
+                      newColumns.push(defCol);
+                  }
+              });
+              
+              if (newColumns.length > 0) setColumns(newColumns);
+              else setColumns(DEFAULT_COLUMNS);
           } catch (e) {
               setColumns(DEFAULT_COLUMNS);
           }
@@ -341,6 +430,26 @@ const DefectReportList: React.FC<Props> = ({
 
   const toggleColumnVisibility = (id: ColumnId) => {
       setColumns(prev => prev.map(col => col.id === id ? { ...col, visible: !col.visible } : col));
+  };
+
+  const resetColumnsToDefault = () => {
+      setColumns(DEFAULT_COLUMNS);
+  };
+
+  // Function to move column up or down
+  const moveColumn = (index: number, direction: -1 | 1) => {
+    const newCols = [...columns];
+    const targetIndex = index + direction;
+    
+    // Bounds check
+    if (targetIndex < 0 || targetIndex >= newCols.length) return;
+    
+    // Fixed check
+    if (newCols[targetIndex].fixed) return;
+
+    // Swap
+    [newCols[index], newCols[targetIndex]] = [newCols[targetIndex], newCols[index]];
+    setColumns(newCols);
   };
 
   const resetFilters = () => {
@@ -473,7 +582,7 @@ const DefectReportList: React.FC<Props> = ({
   const StatTab = ({ label, count, active, onClick, icon }: any) => (
       <button 
           onClick={onClick}
-          className={`relative flex items-center gap-2 px-4 py-3 text-sm font-bold transition-all border-b-2 whitespace-nowrap z-10 flex-shrink-0 ${
+          className={`relative flex items-center gap-2 px-4 py-3 text-sm font-bold transition-all border-b-2 whitespace-nowrap z-10 flex-shrink-0 snap-start ${
               active 
               ? 'text-blue-700 border-blue-600 bg-blue-50/40' 
               : 'text-slate-500 border-transparent hover:text-slate-700 hover:bg-slate-50'
@@ -492,12 +601,12 @@ const DefectReportList: React.FC<Props> = ({
   const canDeleteRole = ([UserRole.Admin, UserRole.KyThuat] as string[]).includes(currentUserRole);
 
   return (
-    <div className="flex flex-col h-full w-full relative sm:px-4 lg:px-8 sm:py-4">
+    <div className="flex flex-col h-full w-full relative px-0 sm:px-4 lg:px-8 py-0 sm:py-4">
       
       <div className="flex flex-col h-full bg-slate-50 sm:bg-white sm:rounded-2xl sm:shadow-soft sm:border sm:border-slate-200 overflow-hidden sm:ring-1 sm:ring-slate-100 relative">
           
           {/* TABS (Scrollable on Mobile) */}
-          <div className="flex border-b border-slate-200 overflow-x-auto no-scrollbar bg-white shadow-sm z-20 sticky top-0 h-12 w-full">
+          <div className="flex border-b border-slate-200 overflow-x-auto no-scrollbar bg-white shadow-sm z-20 sticky top-0 h-12 w-full snap-x">
               <StatTab label="Tất cả" count={summaryStats.total} active={filters.statusFilter === 'All'} onClick={() => onStatusFilterChange('All')} icon={<InboxIcon className="h-4 w-4"/>} />
               <StatTab label="Mới" count={summaryStats.moi} active={filters.statusFilter === 'Mới'} onClick={() => onStatusFilterChange('Mới')} icon={<SparklesIcon className="h-4 w-4"/>} />
               <StatTab label="Đang xử lý" count={summaryStats.dangXuLy} active={filters.statusFilter === 'Đang xử lý'} onClick={() => onStatusFilterChange('Đang xử lý')} icon={<ClockIcon className="h-4 w-4"/>} />
@@ -505,84 +614,148 @@ const DefectReportList: React.FC<Props> = ({
               <StatTab label="Hoàn thành" count={summaryStats.hoanThanh} active={filters.statusFilter === 'Hoàn thành'} onClick={() => onStatusFilterChange('Hoàn thành')} icon={<CheckCircleIcon className="h-4 w-4"/>} />
           </div>
 
-          {/* FILTER BAR (Responsive Stack) */}
-          <div className="p-3 flex flex-col lg:flex-row gap-3 items-stretch lg:items-center justify-between bg-white border-b border-slate-100">
-             <div className="relative w-full lg:w-80 xl:w-96 group">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-600 transition-colors">
-                    <MagnifyingGlassIcon className="h-5 w-5" />
+          {/* FILTER BAR (Responsive) */}
+          <div className="p-2 sm:p-3 flex flex-col lg:flex-row gap-2 sm:gap-3 items-stretch lg:items-center justify-between bg-white border-b border-slate-100">
+             
+             {/* Mobile Filter Toggle & Search */}
+             <div className="flex gap-2 items-center w-full lg:w-auto">
+                <div className="relative w-full lg:w-80 xl:w-96 group flex-1">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-600 transition-colors">
+                        <MagnifyingGlassIcon className="h-5 w-5" />
+                    </div>
+                    <input
+                        type="text"
+                        className="block w-full pl-10 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white transition-all shadow-sm hover:border-slate-300"
+                        placeholder="Tìm theo mã, tên, lô..."
+                        value={filters.searchTerm}
+                        onChange={(e) => onSearchTermChange(e.target.value)}
+                    />
                 </div>
-                <input
-                    type="text"
-                    className="block w-full pl-10 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white transition-all shadow-sm hover:border-slate-300"
-                    placeholder="Tìm theo mã, tên, lô..."
-                    value={filters.searchTerm}
-                    onChange={(e) => onSearchTermChange(e.target.value)}
-                />
-            </div>
+                <button 
+                    onClick={() => setIsMobileFiltersOpen(!isMobileFiltersOpen)}
+                    className={`lg:hidden p-2 rounded-xl border transition-all ${isMobileFiltersOpen ? 'bg-blue-50 text-blue-600 border-blue-200' : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'}`}
+                >
+                    <AdjustmentsIcon className="h-5 w-5" />
+                </button>
+             </div>
 
-            <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2 w-full lg:w-auto">
-                <div className="relative group flex-1 sm:flex-none">
-                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-500 transition-colors">
-                        <FunnelIcon className="h-4 w-4" />
-                    </div>
-                    <select
-                        className="w-full sm:w-auto pl-9 pr-8 py-2 text-sm font-bold border border-slate-200 rounded-xl bg-white text-slate-700 focus:outline-none focus:border-blue-500 hover:bg-slate-50 cursor-pointer appearance-none min-w-[160px] shadow-sm focus:ring-2 focus:ring-blue-500/20 hover:border-slate-300"
-                        value={filters.defectTypeFilter}
-                        onChange={(e) => onDefectTypeFilterChange(e.target.value)}
-                    >
-                        <option value="All">Tất cả nguồn gốc</option>
-                        <option value="Lỗi Sản xuất">Lỗi Sản xuất</option>
-                        <option value="Lỗi Nhà cung cấp">Lỗi Nhà cung cấp</option>
-                        <option value="Lỗi Hỗn hợp">Lỗi Hỗn hợp</option>
-                        <option value="Lỗi Khác">Lỗi Khác</option>
-                    </select>
-                </div>
-                 
-                 {/* DATE FILTER RANGE */}
-                 <div className="flex flex-1 sm:flex-none items-center bg-white rounded-xl border border-slate-200 px-3 py-1.5 shadow-sm focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-400 transition-all hover:border-slate-300 min-w-[200px]">
-                    <CalendarIcon className="h-4 w-4 text-slate-400 mr-2 flex-shrink-0" />
-                    <div className="flex items-center gap-1 w-full justify-between sm:justify-start">
-                        <input
-                            type="date"
-                            className="bg-transparent text-sm text-slate-700 focus:outline-none font-bold py-0.5 w-[90px] cursor-pointer"
-                            value={filters.dateFilter.start}
-                            max={filters.dateFilter.end}
-                            onChange={(e) => onDateFilterChange({ ...filters.dateFilter, start: e.target.value })}
-                            title="Từ ngày"
-                        />
-                        <span className="text-slate-300 font-medium">–</span>
-                        <input
-                            type="date"
-                            className="bg-transparent text-sm text-slate-700 focus:outline-none font-bold py-0.5 w-[90px] cursor-pointer"
-                            value={filters.dateFilter.end}
-                            min={filters.dateFilter.start}
-                            onChange={(e) => onDateFilterChange({ ...filters.dateFilter, end: e.target.value })}
-                            title="Đến ngày"
-                        />
-                    </div>
-                    {(filters.dateFilter.start || filters.dateFilter.end) && (
-                        <button 
-                            onClick={() => onDateFilterChange({ start: '', end: '' })}
-                            className="ml-1 text-slate-400 hover:text-red-500 p-0.5 rounded-full hover:bg-red-50 transition-colors active:scale-90 flex-shrink-0"
-                            title="Xóa lọc ngày"
+            {/* Collapsible Filter Area (Hidden on Mobile unless toggled) */}
+            <div className={`
+                flex flex-col lg:flex-row gap-2 w-full lg:w-auto overflow-hidden transition-all duration-300 ease-in-out lg:!h-auto lg:!opacity-100
+                ${isMobileFiltersOpen ? 'max-h-[300px] opacity-100 pt-2 lg:pt-0 border-t border-slate-100 lg:border-none' : 'max-h-0 opacity-0 lg:overflow-visible'}
+            `}>
+                <div className="flex flex-col sm:flex-row gap-2 w-full items-center">
+                    <div className="relative group w-full sm:w-auto sm:min-w-[150px]">
+                        <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-500 transition-colors">
+                            <FunnelIcon className="h-4 w-4" />
+                        </div>
+                        <select
+                            className="w-full pl-8 pr-8 py-2 text-sm font-bold border border-slate-200 rounded-xl bg-white text-slate-700 focus:outline-none focus:border-blue-500 hover:bg-slate-50 cursor-pointer appearance-none shadow-sm focus:ring-2 focus:ring-blue-500/20"
+                            value={filters.defectTypeFilter}
+                            onChange={(e) => onDefectTypeFilterChange(e.target.value)}
                         >
-                            <XIcon className="h-3.5 w-3.5" />
-                        </button>
-                    )}
+                            <option value="All">Tất cả nguồn</option>
+                            <option value="Lỗi Sản xuất">Lỗi Sản xuất</option>
+                            <option value="Lỗi Nhà cung cấp">Lỗi NCC</option>
+                            <option value="Lỗi Hỗn hợp">Lỗi Hỗn hợp</option>
+                            <option value="Lỗi Khác">Lỗi Khác</option>
+                        </select>
+                    </div>
+                    
+                    {/* DATE FILTER RANGE */}
+                    <div className="flex w-full sm:w-auto items-center bg-white rounded-xl border border-slate-200 px-2 sm:px-3 py-1.5 shadow-sm focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-400 transition-all hover:border-slate-300">
+                        <CalendarIcon className="h-4 w-4 text-slate-400 mr-2 flex-shrink-0" />
+                        <div className="flex items-center gap-1 flex-1">
+                            <input
+                                type="date"
+                                className="bg-transparent text-sm text-slate-700 focus:outline-none font-bold py-0.5 w-[85px] cursor-pointer"
+                                value={filters.dateFilter.start}
+                                max={filters.dateFilter.end}
+                                onChange={(e) => onDateFilterChange({ ...filters.dateFilter, start: e.target.value })}
+                            />
+                            <span className="text-slate-300 font-medium">-</span>
+                            <input
+                                type="date"
+                                className="bg-transparent text-sm text-slate-700 focus:outline-none font-bold py-0.5 w-[85px] cursor-pointer"
+                                value={filters.dateFilter.end}
+                                min={filters.dateFilter.start}
+                                onChange={(e) => onDateFilterChange({ ...filters.dateFilter, end: e.target.value })}
+                            />
+                        </div>
+                        {(filters.dateFilter.start || filters.dateFilter.end) && (
+                            <button 
+                                onClick={() => onDateFilterChange({ start: '', end: '' })}
+                                className="ml-1 text-slate-400 hover:text-red-500 p-0.5 rounded-full hover:bg-red-50 transition-colors active:scale-90 flex-shrink-0"
+                            >
+                                <XIcon className="h-3.5 w-3.5" />
+                            </button>
+                        )}
+                    </div>
                 </div>
 
-                <div className="flex items-center gap-2 mt-2 sm:mt-0 justify-end w-full sm:w-auto">
+                <div className="flex items-center gap-2 justify-end pt-2 lg:pt-0 lg:ml-auto w-full lg:w-auto">
                      <div className="h-8 w-px bg-slate-200 mx-1 hidden lg:block"></div>
-                     <button onClick={onExport} className="p-2 bg-white border border-slate-200 rounded-xl text-slate-600 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 transition-all shadow-sm active:scale-95" title="Xuất Excel"><ArrowDownTrayIcon className="h-5 w-5" /></button>
+                     <button onClick={onExport} className="flex-1 lg:flex-none p-2 bg-white border border-slate-200 rounded-xl text-slate-600 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 transition-all shadow-sm active:scale-95 flex items-center justify-center gap-2 lg:block" title="Xuất Excel">
+                        <ArrowDownTrayIcon className="h-5 w-5" />
+                        <span className="lg:hidden text-sm font-bold">Xuất Excel</span>
+                     </button>
                      <div className="relative hidden md:block" ref={settingsRef}>
                         <button onClick={() => setShowSettings(!showSettings)} className={`p-2 bg-white border border-slate-200 rounded-xl hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 transition-all shadow-sm active:scale-95 ${showSettings ? 'text-blue-600 border-blue-200 bg-blue-50' : 'text-slate-600'}`} title="Cấu hình cột"><Cog6ToothIcon className="h-5 w-5" /></button>
                         {showSettings && (
-                            <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-slate-100 z-30 p-2 animate-fade-in-up">
-                                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 px-2 pt-1">Hiển thị cột</h4>
-                                <div className="space-y-0.5 max-h-60 overflow-y-auto custom-scrollbar">
-                                    {columns.map((col) => !col.fixed && (
-                                        <button key={col.id} onClick={() => toggleColumnVisibility(col.id)} className={`w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-sm transition-colors ${col.visible ? 'text-blue-700 bg-blue-50 font-medium' : 'text-slate-500 hover:bg-slate-50'}`}><span>{col.label || 'Thao tác'}</span>{col.visible && <CheckCircleIcon className="h-4 w-4" />}</button>
-                                    ))}
+                            <div className="absolute right-0 mt-2 w-72 bg-white rounded-xl shadow-xl border border-slate-100 z-30 p-3 animate-fade-in-up">
+                                <div className="flex items-center justify-between mb-3 pb-2 border-b border-slate-100">
+                                    <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Cấu hình cột</h4>
+                                    <button 
+                                        onClick={resetColumnsToDefault} 
+                                        className="text-xs font-bold text-blue-600 hover:text-blue-700 hover:bg-blue-50 px-2 py-1 rounded transition-colors"
+                                    >
+                                        Mặc định
+                                    </button>
+                                </div>
+                                <div className="space-y-1 max-h-[60vh] overflow-y-auto custom-scrollbar pr-1">
+                                    {columns.map((col, index) => {
+                                        if (col.fixed) return null;
+                                        const isTop = columns[index - 1]?.fixed;
+                                        const isBottom = columns[index + 1]?.fixed;
+
+                                        return (
+                                            <div key={col.id} className="flex items-center justify-between p-2 hover:bg-slate-50 rounded-lg group transition-colors">
+                                                <button 
+                                                    onClick={() => toggleColumnVisibility(col.id)} 
+                                                    className="flex items-center flex-1 gap-3 min-w-0"
+                                                >
+                                                    <div className={`flex-shrink-0 w-5 h-5 rounded border flex items-center justify-center transition-all ${col.visible ? 'bg-blue-500 border-blue-500' : 'border-slate-300 bg-white'}`}>
+                                                        {col.visible && <CheckCircleIcon className="w-4 h-4 text-white" />}
+                                                    </div>
+                                                    <span className={`text-sm font-medium truncate ${col.visible ? 'text-slate-700' : 'text-slate-400'}`}>
+                                                        {col.label}
+                                                    </span>
+                                                </button>
+                                                
+                                                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity ml-2">
+                                                     <button
+                                                        onClick={(e) => { e.stopPropagation(); moveColumn(index, -1); }}
+                                                        disabled={isTop}
+                                                        className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-md disabled:opacity-20 disabled:hover:bg-transparent disabled:hover:text-slate-400 transition-colors"
+                                                        title="Di chuyển lên"
+                                                     >
+                                                        <ArrowUpIcon className="w-3.5 h-3.5" />
+                                                     </button>
+                                                     <button
+                                                        onClick={(e) => { e.stopPropagation(); moveColumn(index, 1); }}
+                                                        disabled={isBottom}
+                                                        className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-md disabled:opacity-20 disabled:hover:bg-transparent disabled:hover:text-slate-400 transition-colors"
+                                                        title="Di chuyển xuống"
+                                                     >
+                                                        <ArrowDownIcon className="w-3.5 h-3.5" />
+                                                     </button>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                                <div className="mt-3 pt-2 border-t border-slate-100 text-center">
+                                    <p className="text-[10px] text-slate-400">Kéo thả tiêu đề cột hoặc dùng mũi tên để sắp xếp</p>
                                 </div>
                             </div>
                         )}
@@ -599,23 +772,36 @@ const DefectReportList: React.FC<Props> = ({
             
             {reports.length > 0 ? (
                 <>
-                    {/* MOBILE CARD VIEW (< md) */}
-                    <div className="md:hidden flex-1 overflow-y-auto p-4 pb-20 custom-scrollbar space-y-3">
-                        {reports.map((report) => (
-                            <MobileReportCard
-                                key={report.id}
-                                report={report}
-                                isSelected={selectedIds.has(report.id)}
-                                onSelect={() => onSelectReport(report)}
-                                onDuplicate={onDuplicate}
-                                onDelete={(id) => setReportToDelete(reports.find(r => r.id === id) || null)}
-                                canDelete={canDeleteRole}
-                                highlight={filters.searchTerm}
-                            />
-                        ))}
+                    {/* MOBILE CARD VIEW (< md) - VIRTUALIZED */}
+                    {/* Added pb-24 to handle bottom navigation bar */}
+                    <div 
+                        ref={mobileListRef}
+                        onScroll={handleMobileScroll}
+                        className="md:hidden flex-1 overflow-y-auto bg-slate-50 pb-24 custom-scrollbar relative"
+                    >
+                        <div style={{ height: totalMobileContentHeight }} className="relative w-full">
+                            {visibleMobileReports.map((report, index) => (
+                                <MobileReportCard
+                                    key={report.id}
+                                    style={{
+                                        top: 0,
+                                        transform: `translateY(${mobileOffsetY + (index * MOBILE_ROW_HEIGHT)}px)`,
+                                        height: MOBILE_ROW_HEIGHT,
+                                        willChange: 'transform'
+                                    }}
+                                    report={report}
+                                    isSelected={selectedIds.has(report.id)}
+                                    onSelect={() => onSelectReport(report)}
+                                    onDuplicate={onDuplicate}
+                                    onDelete={(id) => setReportToDelete(reports.find(r => r.id === id) || null)}
+                                    canDelete={canDeleteRole}
+                                    highlight={filters.searchTerm}
+                                />
+                            ))}
+                        </div>
                     </div>
 
-                    {/* DESKTOP TABLE VIEW (>= md) */}
+                    {/* DESKTOP TABLE VIEW (>= md) - VIRTUALIZED */}
                     <div 
                         ref={parentRef} 
                         onScroll={handleScroll}
@@ -627,9 +813,14 @@ const DefectReportList: React.FC<Props> = ({
                                     const { className, style } = getColumnStyle(col);
                                     return (
                                         <div 
-                                            key={col.id} 
-                                            className={`relative flex items-center px-3 h-full border-r border-transparent hover:border-slate-100 ${className} whitespace-nowrap`} 
+                                            key={col.id}
+                                            draggable={!col.fixed}
+                                            onDragStart={(e) => handleHeaderDragStart(e, col.id)}
+                                            onDragOver={(e) => e.preventDefault()}
+                                            onDrop={(e) => handleHeaderDrop(e, col.id)}
+                                            className={`relative flex items-center px-3 h-full border-r border-transparent hover:border-slate-100 ${className} whitespace-nowrap ${!col.fixed ? 'cursor-move active:cursor-grabbing hover:bg-slate-50' : ''}`} 
                                             style={style}
+                                            title={!col.fixed ? "Kéo để sắp xếp lại cột" : undefined}
                                         >
                                             {col.id === 'select' ? (
                                                 <input 
@@ -643,6 +834,7 @@ const DefectReportList: React.FC<Props> = ({
                                             <div 
                                                 className="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-blue-400 transition-colors z-30"
                                                 onMouseDown={(e) => startResize(e, col.id, col.width)}
+                                                onClick={(e) => e.stopPropagation()}
                                             />
                                         </div>
                                     )
@@ -662,7 +854,8 @@ const DefectReportList: React.FC<Props> = ({
                                                 transform: `translateY(${offsetY + (index * ROW_HEIGHT)}px)`,
                                                 height: ROW_HEIGHT,
                                                 position: 'absolute',
-                                                top: 0, left: 0, right: 0
+                                                top: 0, left: 0, right: 0,
+                                                willChange: 'transform'
                                             }}
                                             onClick={() => onSelectReport(report)}
                                             onMouseEnter={() => handleRowMouseEnter(report)}
@@ -713,7 +906,7 @@ const DefectReportList: React.FC<Props> = ({
             )}
 
             {/* FLOATING ACTION BAR FOR BULK ACTIONS */}
-            <div className={`absolute bottom-4 left-1/2 -translate-x-1/2 z-40 transition-all duration-300 w-full max-w-md px-4 ${selectedIds.size > 0 ? 'translate-y-0 opacity-100' : 'translate-y-20 opacity-0 pointer-events-none'}`}>
+            <div className={`absolute bottom-20 md:bottom-4 left-1/2 -translate-x-1/2 z-40 transition-all duration-300 w-full max-w-md px-4 ${selectedIds.size > 0 ? 'translate-y-0 opacity-100' : 'translate-y-20 opacity-0 pointer-events-none'}`}>
                  <div className="bg-slate-900/90 backdrop-blur-md text-white rounded-2xl shadow-2xl p-2 pl-5 flex items-center justify-between gap-4 border border-white/10 ring-1 ring-black/20">
                      <span className="font-bold text-sm">Đã chọn {selectedIds.size}</span>
                      <div className="flex items-center gap-2">
@@ -734,7 +927,7 @@ const DefectReportList: React.FC<Props> = ({
                  </div>
             </div>
 
-            <div className="p-3 border-t border-slate-200 bg-white shadow-[0_-5px_15px_rgba(0,0,0,0.01)] relative z-20">
+            <div className="hidden md:block p-3 border-t border-slate-200 bg-white shadow-[0_-5px_15px_rgba(0,0,0,0.01)] relative z-20">
                 <Pagination
                     currentPage={currentPage}
                     totalItems={totalReports}
@@ -743,6 +936,17 @@ const DefectReportList: React.FC<Props> = ({
                     onItemsPerPageChange={onItemsPerPageChange}
                 />
             </div>
+            
+            {/* Mobile Pagination (Simplified) */}
+             <div className="md:hidden p-3 pb-safe bg-white border-t border-slate-200 relative z-20">
+                 <Pagination
+                    currentPage={currentPage}
+                    totalItems={totalReports}
+                    itemsPerPage={itemsPerPage}
+                    onPageChange={onPageChange}
+                    onItemsPerPageChange={onItemsPerPageChange}
+                />
+             </div>
           </div>
       </div>
       

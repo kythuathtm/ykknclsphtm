@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { DefectReport, UserRole } from '../types';
 import { PencilIcon, TrashIcon, XIcon, WrenchIcon, QuestionMarkCircleIcon, ClipboardDocumentListIcon, TagIcon, UserIcon, CheckCircleIcon, CalendarIcon } from './Icons';
@@ -25,7 +24,7 @@ const DetailItem = ({ label, value, className, fullWidth }: any) => {
 };
 
 const Section = ({ title, icon, children }: any) => (
-    <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-sm h-full flex flex-col">
+    <div className="bg-white p-4 sm:p-6 rounded-none sm:rounded-2xl border-y sm:border border-slate-200 shadow-none sm:shadow-sm h-full flex flex-col">
         <h4 className="text-sm font-bold text-slate-900 uppercase tracking-wide border-b border-slate-100 pb-3 mb-5 flex items-center gap-2">
             <span className="p-1.5 bg-slate-50 text-slate-500 rounded-lg border border-slate-100">{icon}</span>
             {title}
@@ -137,10 +136,10 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onDelete, permiss
           </div>
       </div>
       
-      <div className="flex-1 overflow-y-auto bg-slate-50/50 p-4 sm:p-6 space-y-6 custom-scrollbar">
+      <div className="flex-1 overflow-y-auto bg-slate-50 p-0 sm:p-6 space-y-0 sm:space-y-6 custom-scrollbar pb-20 sm:pb-6">
         
         {/* TOP ROW: PRODUCT & CUSTOMER - Stack on mobile, grid on large */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 sm:gap-6 bg-slate-50 sm:bg-transparent">
              <Section title="Thông tin Sản phẩm" icon={<TagIcon className="h-4 w-4"/>}>
                 <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-6">
                     <DetailItem label="Dòng sản phẩm" value={report.dongSanPham} />
@@ -167,6 +166,9 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onDelete, permiss
                     </div>
                 </div>
              </Section>
+             
+             {/* Spacing for mobile separation */}
+             <div className="h-2 sm:hidden"></div>
 
              <Section title="Khách hàng & Phản ánh" icon={<UserIcon className="h-4 w-4"/>}>
                 <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-6">
@@ -182,8 +184,11 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onDelete, permiss
              </Section>
         </div>
 
+        {/* Spacing for mobile separation */}
+        <div className="h-2 sm:hidden"></div>
+
         {/* BOTTOM ROW: PROCESSING (ACTIONABLE) */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
+        <div className="bg-white sm:rounded-2xl rounded-none border-y sm:border border-slate-200 shadow-none sm:shadow-sm relative overflow-hidden">
              
              {/* Header */}
              <div className="px-4 py-3 sm:px-6 sm:py-4 border-b border-slate-100 bg-gradient-to-r from-white to-slate-50 flex flex-col sm:flex-row justify-between sm:items-center relative z-10 gap-2">
@@ -248,7 +253,7 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onDelete, permiss
                           </div>
                           {isEditingQuickAction ? (
                               <textarea 
-                                className="w-full bg-white border border-amber-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-amber-500/20 outline-none resize-none shadow-sm"
+                                className="w-full bg-white border border-amber-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-amber-500/20 outline-none resize-none shadow-sm touch-manipulation"
                                 rows={3}
                                 placeholder="Nhập nguyên nhân..."
                                 value={quickUpdateData.nguyenNhan}
@@ -271,7 +276,7 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onDelete, permiss
                           </div>
                           {isEditingQuickAction ? (
                                <textarea 
-                                className="w-full bg-white border border-blue-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500/20 outline-none resize-none shadow-sm"
+                                className="w-full bg-white border border-blue-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500/20 outline-none resize-none shadow-sm touch-manipulation"
                                 rows={3}
                                 placeholder="Nhập hướng xử lý..."
                                 value={quickUpdateData.huongKhacPhuc}
@@ -300,7 +305,7 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onDelete, permiss
                                             type="number" 
                                             min="0"
                                             // Fixed: Changed from font-black to font-bold
-                                            className="w-24 text-center text-3xl font-bold text-emerald-700 bg-white border border-emerald-200 rounded-lg py-1 focus:ring-2 focus:ring-emerald-500/20 outline-none shadow-sm"
+                                            className="w-24 text-center text-3xl font-bold text-emerald-700 bg-white border border-emerald-200 rounded-lg py-1 focus:ring-2 focus:ring-emerald-500/20 outline-none shadow-sm touch-manipulation"
                                             value={quickUpdateData.soLuongDoi}
                                             onChange={(e) => setQuickUpdateData({...quickUpdateData, soLuongDoi: Number(e.target.value)})}
                                             onClick={(e) => e.stopPropagation()} 
@@ -321,7 +326,7 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onDelete, permiss
                                {isEditingQuickAction ? (
                                    <input 
                                         type="date"
-                                        className="w-full text-center text-sm font-bold text-emerald-800 bg-white border border-emerald-200 rounded-lg py-1.5 focus:ring-2 focus:ring-emerald-500/20 outline-none shadow-sm"
+                                        className="w-full text-center text-sm font-bold text-emerald-800 bg-white border border-emerald-200 rounded-lg py-1.5 focus:ring-2 focus:ring-emerald-500/20 outline-none shadow-sm touch-manipulation"
                                         value={quickUpdateData.ngayDoiHang}
                                         onChange={(e) => setQuickUpdateData({...quickUpdateData, ngayDoiHang: e.target.value})}
                                         onClick={(e) => e.stopPropagation()}

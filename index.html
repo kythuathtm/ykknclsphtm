@@ -2,7 +2,7 @@
 <html lang="vi">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>Hệ thống Theo dõi Sản phẩm Lỗi</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -97,6 +97,11 @@
       input:-webkit-autofill:active{
           -webkit-box-shadow: 0 0 0 30px white inset !important;
           transition: background-color 5000s ease-in-out 0s;
+      }
+      
+      /* Safe area padding for iPhones with notch */
+      .pb-safe {
+        padding-bottom: env(safe-area-inset-bottom);
       }
     </style>
   <script type="importmap">
