@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect, useTransition, Suspense, useRef } from 'react';
 import { DefectReport, UserRole, ToastType, User, RoleSettings, PermissionField, SystemSettings, Product } from './types';
 import { PlusIcon, BarChartIcon, ArrowDownTrayIcon, ListBulletIcon, ArrowRightOnRectangleIcon, UserGroupIcon, ChartPieIcon, TableCellsIcon, ShieldCheckIcon, CalendarIcon, Cog8ToothIcon, EllipsisHorizontalIcon } from './components/Icons';
@@ -53,7 +54,7 @@ const Toast: React.FC<ToastProps> = ({ message, type, onClose }) => {
   const { bg, icon } = config[type];
 
   return (
-    <div className={`fixed bottom-5 right-5 ${bg} text-white py-3 px-5 rounded-xl shadow-2xl flex items-center z-50 animate-fade-in-up`}>
+    <div className={`fixed bottom-5 right-5 ${bg} text-white py-3 px-5 rounded-xl shadow-2xl flex items-center z-[60] animate-fade-in-up`}>
       <style>{`
         @keyframes fade-in-up {
           0% { opacity: 0; transform: translateY(20px); }
@@ -65,6 +66,82 @@ const Toast: React.FC<ToastProps> = ({ message, type, onClose }) => {
       <span className="font-medium">{message}</span>
     </div>
   );
+};
+
+// --- Draggable FAB Component ---
+const DraggableFAB = ({ onClick }: { onClick: () => void }) => {
+    const [position, setPosition] = useState({ x: 0, y: 0 });
+    const [isDragging, setIsDragging] = useState(false);
+    const [isInitialized, setIsInitialized] = useState(false);
+    const dragStartRef = useRef({ x: 0, y: 0 });
+    const hasMovedRef = useRef(false);
+
+    useEffect(() => {
+        // Initialize position to bottom right
+        setPosition({ 
+            x: window.innerWidth - 80, 
+            y: window.innerHeight - 100 
+        });
+        setIsInitialized(true);
+
+        const handleResize = () => {
+             setPosition(prev => ({
+                 x: Math.min(prev.x, window.innerWidth - 80),
+                 y: Math.min(prev.y, window.innerHeight - 80)
+             }));
+        };
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    const handlePointerDown = (e: React.PointerEvent) => {
+        e.currentTarget.setPointerCapture(e.pointerId);
+        setIsDragging(true);
+        dragStartRef.current = { x: e.clientX - position.x, y: e.clientY - position.y };
+        hasMovedRef.current = false;
+    };
+
+    const handlePointerMove = (e: React.PointerEvent) => {
+        if (!isDragging) return;
+        e.preventDefault();
+        
+        const newX = e.clientX - dragStartRef.current.x;
+        const newY = e.clientY - dragStartRef.current.y;
+        
+        // Clamp within window
+        const clampedX = Math.max(10, Math.min(window.innerWidth - 70, newX));
+        const clampedY = Math.max(10, Math.min(window.innerHeight - 70, newY));
+
+        // Check if moved significantly (threshold 5px)
+        if (Math.abs(clampedX - position.x) > 2 || Math.abs(clampedY - position.y) > 2) {
+            hasMovedRef.current = true;
+        }
+
+        setPosition({ x: clampedX, y: clampedY });
+    };
+
+    const handlePointerUp = (e: React.PointerEvent) => {
+        setIsDragging(false);
+        e.currentTarget.releasePointerCapture(e.pointerId);
+        if (!hasMovedRef.current) {
+            onClick();
+        }
+    };
+
+    if (!isInitialized) return null;
+
+    return (
+        <button
+            style={{ left: position.x, top: position.y, touchAction: 'none' }}
+            className={`fixed z-40 p-4 bg-blue-600 text-white rounded-full shadow-xl shadow-blue-600/40 hover:bg-blue-700 hover:scale-110 transition-transform active:scale-95 flex items-center justify-center cursor-move group ${isDragging ? 'scale-110 cursor-grabbing shadow-2xl' : ''}`}
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
+            title="Tạo mới (Kéo để di chuyển)"
+        >
+            <PlusIcon className="h-7 w-7 transition-transform group-hover:rotate-90" />
+        </button>
+    );
 };
 
 // --- Initial Data for Seeding (Only used once) ---
@@ -662,7 +739,7 @@ export const App: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col h-dvh bg-slate-100 text-slate-900">
+    <div className="flex flex-col h-dvh bg-slate-100 text-slate-900 relative">
       {/* Header */}
       <header 
         className="backdrop-blur-md border-b border-slate-200 sticky top-0 z-30 transition-all"
@@ -736,16 +813,6 @@ export const App: React.FC = () => {
           {/* Right: Actions & User */}
           <div className="flex items-center gap-2 sm:gap-4">
             
-            {userPermissions.canCreate && (
-              <button
-                onClick={handleCreateClick}
-                className="flex items-center px-3 sm:px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs sm:text-sm font-bold shadow-md shadow-blue-500/20 transition-all hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:scale-95"
-              >
-                <PlusIcon className="h-4 w-4 sm:h-5 sm:w-5 sm:mr-2" />
-                <span className="hidden sm:inline">Tạo mới</span>
-              </button>
-            )}
-
             {/* Secondary Actions Group */}
             <div className="flex items-center gap-1">
                 {currentView === 'list' && (
@@ -887,6 +954,11 @@ export const App: React.FC = () => {
             )}
         </Suspense>
       </main>
+
+      {/* Draggable Create Button */}
+      {userPermissions.canCreate && (
+          <DraggableFAB onClick={handleCreateClick} />
+      )}
 
       {/* Modals */}
       <Suspense fallback={null}>
