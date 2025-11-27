@@ -77,4 +77,5 @@ export interface SystemSettings {
   backgroundType: 'default' | 'image' | 'color';
   backgroundValue: string;
   fontFamily?: string; // New: Configurable Font
+  baseFontSize?: string; // New: Configurable Base Font Size
 }

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { User, UserRole } from '../types';
 import { XIcon, PlusIcon, PencilIcon, TrashIcon } from './Icons';
@@ -66,7 +67,7 @@ const UserManagementModal: React.FC<Props> = ({ users, onSaveUser, onDeleteUser,
                         placeholder="Username"
                         value={formData.username}
                         onChange={(e) => setFormData({...formData, username: e.target.value})}
-                        className={`w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500 shadow-sm ${isEditing ? 'bg-slate-50 text-slate-500 cursor-not-allowed' : 'bg-white text-slate-900'}`}
+                        className={`w-full px-3 py-2 border border-slate-300 rounded-md text-base font-normal focus:ring-blue-500 focus:border-blue-500 shadow-sm ${isEditing ? 'bg-slate-50 text-slate-500 cursor-not-allowed' : 'bg-white text-slate-900'}`}
                         required
                         readOnly={isEditing}
                     />
@@ -78,7 +79,7 @@ const UserManagementModal: React.FC<Props> = ({ users, onSaveUser, onDeleteUser,
                         placeholder="Họ tên hiển thị"
                         value={formData.fullName || ''}
                         onChange={(e) => setFormData({...formData, fullName: e.target.value})}
-                        className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500 bg-white text-slate-900 shadow-sm"
+                        className="w-full px-3 py-2 border border-slate-300 rounded-md text-base font-normal focus:ring-blue-500 focus:border-blue-500 bg-white text-slate-900 shadow-sm"
                     />
                 </div>
                 <div className="sm:col-span-2">
@@ -88,7 +89,7 @@ const UserManagementModal: React.FC<Props> = ({ users, onSaveUser, onDeleteUser,
                         placeholder="******"
                         value={formData.password}
                         onChange={(e) => setFormData({...formData, password: e.target.value})}
-                        className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500 bg-white text-slate-900 shadow-sm"
+                        className="w-full px-3 py-2 border border-slate-300 rounded-md text-base font-normal focus:ring-blue-500 focus:border-blue-500 bg-white text-slate-900 shadow-sm"
                         required
                     />
                 </div>
@@ -97,7 +98,7 @@ const UserManagementModal: React.FC<Props> = ({ users, onSaveUser, onDeleteUser,
                     <select
                         value={formData.role}
                         onChange={(e) => setFormData({...formData, role: e.target.value as UserRole})}
-                        className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500 bg-white text-slate-900 shadow-sm"
+                        className="w-full px-3 py-2 border border-slate-300 rounded-md text-base font-normal focus:ring-blue-500 focus:border-blue-500 bg-white text-slate-900 shadow-sm"
                     >
                         {availableRoles.map((role) => (
                             <option key={role} value={role}>{role}</option>
@@ -132,11 +133,11 @@ const UserManagementModal: React.FC<Props> = ({ users, onSaveUser, onDeleteUser,
             <table className="min-w-full divide-y divide-slate-200">
                 <thead className="bg-slate-100">
                 <tr>
-                    <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider whitespace-nowrap">Username</th>
-                    <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider whitespace-nowrap">Họ và tên</th>
-                    <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider whitespace-nowrap">Mật khẩu</th>
-                    <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider whitespace-nowrap">Vai trò</th>
-                    <th scope="col" className="px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider whitespace-nowrap">Thao tác</th>
+                    <th scope="col" className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">Username</th>
+                    <th scope="col" className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">Họ và tên</th>
+                    <th scope="col" className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">Mật khẩu</th>
+                    <th scope="col" className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">Vai trò</th>
+                    <th scope="col" className="px-4 py-3 text-right text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">Thao tác</th>
                 </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-slate-200">
@@ -144,10 +145,10 @@ const UserManagementModal: React.FC<Props> = ({ users, onSaveUser, onDeleteUser,
                     const isRoleValid = availableRoles.includes(user.role);
                     return (
                         <tr key={index} className={`hover:bg-blue-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}`}>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm font-bold text-slate-900">{user.username}</td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm text-slate-700">{user.fullName || '-'}</td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm text-slate-500">******</td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm text-slate-500">
+                        <td className="px-4 py-3 whitespace-nowrap text-base font-normal text-slate-900">{user.username}</td>
+                        <td className="px-4 py-3 whitespace-nowrap text-base font-normal text-slate-700">{user.fullName || '-'}</td>
+                        <td className="px-4 py-3 whitespace-nowrap text-base font-normal text-slate-500">******</td>
+                        <td className="px-4 py-3 whitespace-nowrap text-base font-normal text-slate-500">
                             {isRoleValid ? (
                                 user.role
                             ) : (

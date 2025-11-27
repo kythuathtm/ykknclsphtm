@@ -482,11 +482,11 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
                 <table className="min-w-full divide-y divide-slate-100">
                     <thead className="bg-slate-50/80 backdrop-blur-sm sticky top-0 z-10 shadow-sm">
                         <tr>
-                            <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase w-32 tracking-wider">Ngày</th>
-                            <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase w-40 tracking-wider">Mã SP</th>
-                            <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Tên Sản phẩm</th>
-                            <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase w-48 tracking-wider">Nguồn gốc lỗi</th>
-                            <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase w-40 tracking-wider">Trạng thái xử lý</th>
+                            <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 w-32 tracking-wider">Ngày</th>
+                            <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 w-40 tracking-wider">Mã SP</th>
+                            <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 tracking-wider">Tên Sản phẩm</th>
+                            <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 w-48 tracking-wider">Nguồn gốc lỗi</th>
+                            <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 w-40 tracking-wider">Trạng thái xử lý</th>
                         </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-slate-50">

@@ -1,5 +1,4 @@
 
-
 import React, { useState, useRef } from 'react';
 import { SystemSettings } from '../types';
 import { XIcon, CheckCircleIcon, ArrowUpTrayIcon, TrashIcon } from './Icons';
@@ -22,6 +21,15 @@ const SystemSettingsModal: React.FC<Props> = ({ currentSettings, onSave, onClose
       { label: 'Courier New', value: "'Courier New', monospace" },
       { label: 'Segoe UI', value: "'Segoe UI', sans-serif" },
       { label: 'Roboto / Helvetica', value: "'Roboto', 'Helvetica', sans-serif" },
+  ];
+
+  const fontSizeOptions = [
+      { label: 'Nhỏ (12px)', value: '12px' },
+      { label: 'Trung bình (13px)', value: '13px' },
+      { label: 'Lớn (14px)', value: '14px' },
+      { label: 'Rất lớn (15px) (Mặc định)', value: '15px' },
+      { label: 'Cực lớn (16px)', value: '16px' },
+      { label: 'Khổng lồ (18px)', value: '18px' },
   ];
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -69,7 +77,7 @@ const SystemSettingsModal: React.FC<Props> = ({ currentSettings, onSave, onClose
                     type="text" 
                     value={settings.appName}
                     onChange={(e) => setSettings({...settings, appName: e.target.value})}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white shadow-sm"
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white text-base font-normal shadow-sm"
                     placeholder="Nhập tên hiển thị trên tab trình duyệt..."
                 />
             </div>
@@ -81,27 +89,45 @@ const SystemSettingsModal: React.FC<Props> = ({ currentSettings, onSave, onClose
                     type="text" 
                     value={settings.companyName || ''}
                     onChange={(e) => setSettings({...settings, companyName: e.target.value})}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white shadow-sm"
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white text-base font-normal shadow-sm"
                     placeholder="Công ty Cổ phần..."
                 />
             </div>
 
-            {/* Font Selection */}
-            <div>
-                 <label className="block text-sm font-bold text-slate-700 mb-1.5">Font chữ hệ thống</label>
-                 <select 
-                    value={settings.fontFamily || "'Arial', sans-serif"}
-                    onChange={(e) => setSettings({...settings, fontFamily: e.target.value})}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white shadow-sm cursor-pointer"
-                 >
-                     {fontOptions.map(font => (
-                         <option key={font.value} value={font.value} style={{ fontFamily: font.value }}>
-                             {font.label}
-                         </option>
-                     ))}
-                 </select>
-                 <p className="text-xs text-slate-500 mt-1">Font chữ sẽ được áp dụng thống nhất cho toàn bộ ứng dụng.</p>
+            <div className="grid grid-cols-2 gap-4">
+                {/* Font Selection */}
+                <div>
+                     <label className="block text-sm font-bold text-slate-700 mb-1.5">Font chữ hệ thống</label>
+                     <select 
+                        value={settings.fontFamily || "'Arial', sans-serif"}
+                        onChange={(e) => setSettings({...settings, fontFamily: e.target.value})}
+                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white text-base font-normal shadow-sm cursor-pointer"
+                     >
+                         {fontOptions.map(font => (
+                             <option key={font.value} value={font.value} style={{ fontFamily: font.value }}>
+                                 {font.label}
+                             </option>
+                         ))}
+                     </select>
+                </div>
+                
+                {/* Font Size Selection */}
+                <div>
+                     <label className="block text-sm font-bold text-slate-700 mb-1.5">Kích thước chữ (Base)</label>
+                     <select 
+                        value={settings.baseFontSize || '15px'}
+                        onChange={(e) => setSettings({...settings, baseFontSize: e.target.value})}
+                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white text-base font-normal shadow-sm cursor-pointer"
+                     >
+                         {fontSizeOptions.map(size => (
+                             <option key={size.value} value={size.value}>
+                                 {size.label}
+                             </option>
+                         ))}
+                     </select>
+                </div>
             </div>
+            <p className="text-xs text-slate-500">Cấu hình hiển thị sẽ được áp dụng thống nhất cho toàn bộ ứng dụng trên thiết bị này.</p>
 
             {/* Logo Upload */}
             <div>
@@ -170,7 +196,7 @@ const SystemSettingsModal: React.FC<Props> = ({ currentSettings, onSave, onClose
                             type="text" 
                             value={settings.backgroundValue}
                             onChange={(e) => setSettings({...settings, backgroundValue: e.target.value})}
-                            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm bg-white shadow-sm"
+                            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-base font-normal bg-white shadow-sm"
                             placeholder="Dán đường dẫn ảnh (URL) vào đây..."
                         />
                         <p className="text-xs text-slate-500 mt-1">Ví dụ: https://i.ibb.co/...</p>

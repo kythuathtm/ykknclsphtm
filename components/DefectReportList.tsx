@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { DefectReport, UserRole } from '../types';
 import Pagination from './Pagination';
@@ -45,6 +44,7 @@ interface Props {
   isLoading?: boolean;
   onExport: () => void;
   onDuplicate?: (report: DefectReport) => void;
+  baseFontSize?: string; // Prop for dynamic font scaling
 }
 
 const statusColorMap: { [key in DefectReport['trangThai']]: string } = {
@@ -54,7 +54,7 @@ const statusColorMap: { [key in DefectReport['trangThai']]: string } = {
   'Hoàn thành': 'bg-emerald-50 text-emerald-700 border-emerald-200',
 };
 
-type ColumnId = 'select' | 'stt' | 'ngayPhanAnh' | 'maSanPham' | 'tenThuongMai' | 'noiDungPhanAnh' | 'soLo' | 'maNgaySanXuat' | 'trangThai' | 'actions';
+type ColumnId = 'stt' | 'ngayPhanAnh' | 'maSanPham' | 'tenThuongMai' | 'noiDungPhanAnh' | 'soLo' | 'maNgaySanXuat' | 'trangThai' | 'actions';
 
 interface ColumnConfig {
   id: ColumnId;
@@ -65,17 +65,16 @@ interface ColumnConfig {
   fixed?: boolean;
 }
 
-// Optimized widths for single-page view with 2-line height constraint
+// Default Configuration - Removed 'select' column
 const DEFAULT_COLUMNS: ColumnConfig[] = [
-    { id: 'select', label: '', visible: true, width: 40, align: 'center', fixed: true },
-    { id: 'stt', label: 'STT', visible: true, width: 50, align: 'center' },
-    { id: 'ngayPhanAnh', label: 'Ngày P.Ánh', visible: true, width: 110, align: 'left' },
-    { id: 'maSanPham', label: 'Mã SP', visible: true, width: 120, align: 'left' },
-    { id: 'tenThuongMai', label: 'Tên thương mại', visible: true, width: 250, align: 'left' },
-    { id: 'noiDungPhanAnh', label: 'Nội dung phản ánh', visible: true, width: 350, align: 'left' },
+    { id: 'stt', label: 'STT', visible: true, width: 60, align: 'center' },
+    { id: 'ngayPhanAnh', label: 'Ngày phản ánh', visible: true, width: 130, align: 'left' },
+    { id: 'maSanPham', label: 'Mã sản phẩm', visible: true, width: 120, align: 'left' },
+    { id: 'tenThuongMai', label: 'Tên thương mại', visible: true, width: 250, align: 'left' }, 
+    { id: 'noiDungPhanAnh', label: 'Nội dung phản ánh', visible: true, width: 300, align: 'left' }, 
     { id: 'soLo', label: 'Số lô', visible: true, width: 100, align: 'left' },
     { id: 'maNgaySanXuat', label: 'Mã NSX', visible: true, width: 100, align: 'left' },
-    { id: 'trangThai', label: 'Trạng thái', visible: true, width: 160, align: 'left' },
+    { id: 'trangThai', label: 'Trạng thái', visible: true, width: 150, align: 'left' },
     { id: 'actions', label: '', visible: true, width: 80, align: 'center', fixed: true },
 ];
 
@@ -87,7 +86,7 @@ const HighlightText = React.memo(({ text, highlight }: { text: string, highlight
         <span>
             {parts.map((part, i) => 
                 regex.test(part) ? (
-                    <span key={i} className="bg-yellow-200 text-slate-900 rounded-[2px] px-0.5 font-semibold shadow-sm">{part}</span>
+                    <span key={i} className="bg-yellow-200 text-slate-900 rounded-[2px] px-0.5 shadow-sm">{part}</span>
                 ) : (
                     part
                 )
@@ -98,9 +97,9 @@ const HighlightText = React.memo(({ text, highlight }: { text: string, highlight
 
 // Mobile Card Component with Fixed Height for Virtualization
 const MobileReportCard = React.memo(({ 
-    report, isSelected, onSelect, onDuplicate, onDelete, canDelete, highlight, style 
+    report, onSelect, onDuplicate, onDelete, canDelete, highlight, style 
 }: { 
-    report: DefectReport, isSelected: boolean, onSelect: () => void, 
+    report: DefectReport, onSelect: () => void, 
     onDuplicate: ((r: DefectReport) => void) | undefined, 
     onDelete: (id: string) => void, canDelete: boolean, highlight: string, style?: React.CSSProperties 
 }) => {
@@ -108,36 +107,38 @@ const MobileReportCard = React.memo(({
         <div 
             style={style}
             onClick={onSelect}
-            className={`absolute left-0 right-0 w-full px-4 py-3 border-b border-slate-100 active:bg-slate-100 transition-colors touch-manipulation flex flex-col justify-between ${isSelected ? 'bg-blue-50/50' : 'bg-white'}`}
+            className={`absolute left-0 right-0 w-full px-4 py-3 border-b border-slate-100 active:bg-slate-100 transition-colors touch-manipulation flex flex-col justify-between bg-white`}
         >
             <div>
                 <div className="flex justify-between items-start mb-2">
                     <div className="flex items-center gap-2">
-                        <span className="font-bold text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded border border-slate-200">
+                        <span className="text-base text-slate-600 px-2 py-1 rounded border border-slate-200 bg-slate-100">
                             <HighlightText text={report.maSanPham} highlight={highlight} />
                         </span>
-                        <span className="text-xs text-slate-400 font-medium flex items-center gap-1">
+                        <span className="text-sm text-slate-400 flex items-center gap-1">
                             <CalendarIcon className="w-3 h-3" />
                             {new Date(report.ngayPhanAnh).toLocaleDateString('en-GB')}
                         </span>
                     </div>
-                    <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase border ${statusColorMap[report.trangThai]}`}>
+                    <span className={`px-2 py-1 rounded text-sm border ${statusColorMap[report.trangThai]}`}>
                         {report.trangThai}
                     </span>
                 </div>
                 
-                <h4 className="font-bold text-slate-800 text-sm mb-1.5 leading-snug line-clamp-2">
+                {/* Title: Bold */}
+                <h4 className="font-bold text-slate-800 text-base mb-1.5 leading-snug line-clamp-2">
                     <HighlightText text={report.tenThuongMai} highlight={highlight} />
                 </h4>
                 
-                <div className="text-xs text-slate-500 mb-2 leading-relaxed bg-slate-50 p-2 rounded-lg border border-slate-100 italic line-clamp-2">
+                {/* Content: Regular */}
+                <div className="text-base font-normal text-slate-500 mb-2 leading-relaxed bg-slate-50 p-2 rounded-lg border border-slate-100 italic line-clamp-2">
                     <HighlightText text={report.noiDungPhanAnh || 'Không có nội dung'} highlight={highlight} />
                 </div>
             </div>
             
             <div className="flex justify-between items-center mt-1">
-                 <div className="text-xs font-semibold text-slate-500">
-                    Lô: <span className="text-slate-800 font-bold"><HighlightText text={report.soLo} highlight={highlight} /></span>
+                 <div className="text-base text-slate-500">
+                    Lô: <span className="text-slate-800"><HighlightText text={report.soLo} highlight={highlight} /></span>
                  </div>
                  
                  <div className="flex items-center gap-3">
@@ -170,7 +171,7 @@ const DefectReportList: React.FC<Props> = ({
   reports, totalReports, currentPage, itemsPerPage, onPageChange, 
   onSelectReport, currentUserRole,
   filters, onSearchTermChange, onStatusFilterChange, onDefectTypeFilterChange, onYearFilterChange, onDateFilterChange,
-  summaryStats, onItemsPerPageChange, onDelete, onDeleteMultiple, isLoading, onExport, onDuplicate
+  summaryStats, onItemsPerPageChange, onDelete, isLoading, onExport, onDuplicate, baseFontSize = '15px'
 }) => {
   // Columns State
   const [columns, setColumns] = useState<ColumnConfig[]>(DEFAULT_COLUMNS);
@@ -178,9 +179,6 @@ const DefectReportList: React.FC<Props> = ({
   const settingsRef = useRef<HTMLDivElement>(null);
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
   
-  // Selection State
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-
   // Interaction State
   const [reportToDelete, setReportToDelete] = useState<DefectReport | null>(null);
   const [hoveredReport, setHoveredReport] = useState<DefectReport | null>(null);
@@ -196,13 +194,63 @@ const DefectReportList: React.FC<Props> = ({
   const [containerHeight, setContainerHeight] = useState(600);
   const [mobileContainerHeight, setMobileContainerHeight] = useState(600);
   
-  const ROW_HEIGHT = 72;            // Desktop Row Height
-  const MOBILE_ROW_HEIGHT = 190;    // Mobile Card Height (Increased to accommodate content)
+  // Dynamic Row Height Calculation
+  const fontSizePx = parseInt(baseFontSize, 10) || 15;
+  const ROW_HEIGHT = Math.max(50, fontSizePx * 3.4);        // Scale row height with font
+  const MOBILE_ROW_HEIGHT = Math.max(190, fontSizePx * 12.5); // Scale mobile card height
 
   // --- RESIZING LOGIC ---
   const resizingRef = useRef<{ startX: number; startWidth: number; colId: ColumnId } | null>(null);
   const [isResizing, setIsResizing] = useState(false);
 
+  // --- DRAG AND DROP STATE ---
+  const [draggedColId, setDraggedColId] = useState<ColumnId | null>(null);
+
+  // Load Columns Config with Order Preservation
+  useEffect(() => {
+    const savedColumnsStr = localStorage.getItem('tableColumnConfigV16'); 
+    if (savedColumnsStr) {
+        try {
+            const parsedColumns = JSON.parse(savedColumnsStr) as ColumnConfig[];
+            const defaultColMap = new Map(DEFAULT_COLUMNS.map(c => [c.id, c]));
+            const newColumns: ColumnConfig[] = [];
+            const processedIds = new Set<string>();
+
+            // 1. Add saved columns in their saved order, if they still exist in defaults
+            parsedColumns.forEach(savedCol => {
+                const defaultCol = defaultColMap.get(savedCol.id);
+                if (defaultCol) {
+                    newColumns.push({
+                        ...defaultCol, // Keep code-defined props (label, fixed status)
+                        width: savedCol.width, // Restore width
+                        visible: savedCol.visible // Restore visibility
+                    });
+                    processedIds.add(savedCol.id);
+                }
+            });
+
+            // 2. Add any new default columns that weren't in storage (e.g. after update)
+            DEFAULT_COLUMNS.forEach(defCol => {
+                if (!processedIds.has(defCol.id)) {
+                    newColumns.push(defCol);
+                }
+            });
+            
+            if (newColumns.length > 0) setColumns(newColumns);
+            else setColumns(DEFAULT_COLUMNS);
+        } catch (e) {
+            console.error("Failed to load column config", e);
+            setColumns(DEFAULT_COLUMNS);
+        }
+    }
+  }, []);
+
+  // Save Config on Change
+  useEffect(() => { 
+      localStorage.setItem('tableColumnConfigV16', JSON.stringify(columns)); 
+  }, [columns]);
+
+  // --- RESIZE HANDLERS ---
   const startResize = (e: React.MouseEvent, colId: ColumnId, currentWidth: number) => {
       e.stopPropagation();
       e.preventDefault();
@@ -211,29 +259,29 @@ const DefectReportList: React.FC<Props> = ({
       document.body.style.cursor = 'col-resize';
       document.body.style.userSelect = 'none';
 
-      window.addEventListener('mousemove', handleMouseMove);
-      window.addEventListener('mouseup', handleMouseUp);
+      window.addEventListener('mousemove', handleResizeMouseMove);
+      window.addEventListener('mouseup', handleResizeMouseUp);
   };
 
-  const handleMouseMove = useCallback((e: MouseEvent) => {
+  const handleResizeMouseMove = useCallback((e: MouseEvent) => {
       if (!resizingRef.current) return;
       const { startX, startWidth, colId } = resizingRef.current;
       const deltaX = e.clientX - startX;
-      const newWidth = Math.max(50, startWidth + deltaX);
+      const newWidth = Math.max(50, startWidth + deltaX); // Min width 50px
 
       setColumns(prev => prev.map(col => 
           col.id === colId ? { ...col, width: newWidth } : col
       ));
   }, []);
 
-  const handleMouseUp = useCallback(() => {
+  const handleResizeMouseUp = useCallback(() => {
       setIsResizing(false);
       resizingRef.current = null;
       document.body.style.cursor = '';
       document.body.style.userSelect = '';
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-  }, [handleMouseMove]);
+      window.removeEventListener('mousemove', handleResizeMouseMove);
+      window.removeEventListener('mouseup', handleResizeMouseUp);
+  }, [handleResizeMouseMove]);
 
   // --- VIRTUALIZATION HANDLERS ---
   
@@ -248,9 +296,7 @@ const DefectReportList: React.FC<Props> = ({
           }
       };
       
-      // Initial measure
       handleResize();
-      
       window.addEventListener('resize', handleResize);
       return () => window.removeEventListener('resize', handleResize);
   }, []);
@@ -280,7 +326,6 @@ const DefectReportList: React.FC<Props> = ({
           mobileListRef.current.scrollTop = 0;
           setMobileScrollTop(0);
       }
-      setSelectedIds(new Set()); 
   }, [currentPage, filters]);
 
   // 4. Calculate Visible Items (Desktop)
@@ -303,50 +348,44 @@ const DefectReportList: React.FC<Props> = ({
   const visibleMobileReports = reports.slice(mobileStartIndex, mobileEndIndex);
   const mobileOffsetY = mobileStartIndex * MOBILE_ROW_HEIGHT;
 
-  // --- SELECTION LOGIC ---
-  const handleSelectOne = (id: string) => {
-      setSelectedIds(prev => {
-          const newSet = new Set(prev);
-          if (newSet.has(id)) newSet.delete(id);
-          else newSet.add(id);
-          return newSet;
-      });
-  };
-
-  const handleSelectAll = () => {
-      if (selectedIds.size === reports.length && reports.length > 0) {
-          setSelectedIds(new Set());
-      } else {
-          setSelectedIds(new Set(reports.map(r => r.id)));
-      }
-  };
-
-  const handleDeleteSelected = () => {
-      if(selectedIds.size === 0) return;
-      if(window.confirm(`Bạn có chắc muốn xóa ${selectedIds.size} báo cáo đã chọn?`)) {
-          if(onDeleteMultiple) onDeleteMultiple(Array.from(selectedIds));
-          setSelectedIds(new Set());
-      }
-  };
-
   // --- DRAG & DROP COLUMN ORDERING ---
   const handleHeaderDragStart = (e: React.DragEvent, colId: ColumnId) => {
+    // Only allow left click drag
+    if (e.button !== 0) {
+        e.preventDefault();
+        return;
+    }
+    setDraggedColId(colId);
     e.dataTransfer.setData('colId', colId);
     e.dataTransfer.effectAllowed = 'move';
+    // Transparent ghost image if desired, or let browser handle it
+  };
+
+  const handleHeaderDragEnter = (e: React.DragEvent, targetColId: ColumnId) => {
+      e.preventDefault();
+      // Optional: Add visual indicator for drop target here
+  };
+  
+  const handleHeaderDragOver = (e: React.DragEvent) => {
+      e.preventDefault(); // Necessary to allow dropping
+      e.dataTransfer.dropEffect = 'move';
   };
 
   const handleHeaderDrop = (e: React.DragEvent, targetColId: ColumnId) => {
     e.preventDefault();
-    const draggedColId = e.dataTransfer.getData('colId') as ColumnId;
-    if (!draggedColId || draggedColId === targetColId) return;
+    const sourceColId = e.dataTransfer.getData('colId') as ColumnId;
+    
+    setDraggedColId(null); // Reset drag state
 
-    // Don't allow dropping on fixed columns if preferred, or just handle logic carefully
-    const fromIndex = columns.findIndex(c => c.id === draggedColId);
+    if (!sourceColId || sourceColId === targetColId) return;
+
+    const fromIndex = columns.findIndex(c => c.id === sourceColId);
     const toIndex = columns.findIndex(c => c.id === targetColId);
 
     if (fromIndex !== -1 && toIndex !== -1) {
-        // Prevent moving fixed columns
-        if (columns[fromIndex].fixed) return;
+        // Prevent moving fixed columns or dropping onto fixed columns if logic requires
+        // Here we allow moving non-fixed columns amongst themselves
+        if (columns[fromIndex].fixed || columns[toIndex].fixed) return;
 
         const newCols = [...columns];
         const [movedCol] = newCols.splice(fromIndex, 1);
@@ -372,46 +411,6 @@ const DefectReportList: React.FC<Props> = ({
       }
   };
 
-  // Load Columns Config with Order Preservation
-  useEffect(() => {
-      const savedColumnsStr = localStorage.getItem('tableColumnConfigV14'); 
-      if (savedColumnsStr) {
-          try {
-              const parsedColumns = JSON.parse(savedColumnsStr) as ColumnConfig[];
-              const defaultColMap = new Map(DEFAULT_COLUMNS.map(c => [c.id, c]));
-              const newColumns: ColumnConfig[] = [];
-              const processedIds = new Set<string>();
-
-              // 1. Add saved columns in their saved order, if they still exist in defaults
-              parsedColumns.forEach(savedCol => {
-                  const defaultCol = defaultColMap.get(savedCol.id);
-                  if (defaultCol) {
-                      newColumns.push({
-                          ...defaultCol, // Keep code-defined props (label, etc)
-                          width: savedCol.width,
-                          visible: savedCol.visible
-                      });
-                      processedIds.add(savedCol.id);
-                  }
-              });
-
-              // 2. Add any new default columns that weren't in storage
-              DEFAULT_COLUMNS.forEach(defCol => {
-                  if (!processedIds.has(defCol.id)) {
-                      newColumns.push(defCol);
-                  }
-              });
-              
-              if (newColumns.length > 0) setColumns(newColumns);
-              else setColumns(DEFAULT_COLUMNS);
-          } catch (e) {
-              setColumns(DEFAULT_COLUMNS);
-          }
-      }
-  }, []);
-
-  useEffect(() => { localStorage.setItem('tableColumnConfigV14', JSON.stringify(columns)); }, [columns]);
-
   // Close settings on click outside
   useEffect(() => {
       const handleClickOutside = (event: MouseEvent) => {
@@ -436,7 +435,7 @@ const DefectReportList: React.FC<Props> = ({
       setColumns(DEFAULT_COLUMNS);
   };
 
-  // Function to move column up or down
+  // Function to move column up or down via menu
   const moveColumn = (index: number, direction: -1 | 1) => {
     const newCols = [...columns];
     const targetIndex = index + direction;
@@ -463,53 +462,36 @@ const DefectReportList: React.FC<Props> = ({
   const areFiltersActive = filters.searchTerm || filters.statusFilter !== 'All' || filters.defectTypeFilter !== 'All' || filters.yearFilter !== 'All' || filters.dateFilter.start || filters.dateFilter.end;
   const visibleColumns = useMemo(() => columns.filter(c => c.visible), [columns]);
 
-  const totalTableMinWidth = useMemo(() => visibleColumns.reduce((acc, col) => acc + col.width, 0), [visibleColumns]);
-
   const getColumnStyle = (col: ColumnConfig) => {
-      if (col.id === 'tenThuongMai') {
-          return {
-              className: `flex-[1.5] justify-start`,
-              style: { minWidth: `${col.width}px` }
-          };
-      }
-      if (col.id === 'noiDungPhanAnh') {
-           return {
-              className: `flex-[2.5] justify-start`,
-              style: { minWidth: `${col.width}px` }
-          };
-      }
       return {
-          className: `flex-none ${col.align === 'center' ? 'justify-center' : col.align === 'right' ? 'justify-end' : 'justify-start'}`,
-          style: { width: `${col.width}px` }
+          // Use flex-none for fixed columns, flex-grow for others to fill space
+          className: `${col.fixed ? 'sticky right-0 z-10 bg-white/95 backdrop-blur shadow-[-4px_0_8px_-4px_rgba(0,0,0,0.1)] flex-none' : ''} ${col.align === 'center' ? 'justify-center' : col.align === 'right' ? 'justify-end' : 'justify-start'} flex items-center min-w-0`,
+          style: { 
+              // Flex grow proportional to width, shrink allowed, basis at width
+              flex: col.fixed ? 'none' : `${col.width} 1 ${col.width}px`,
+              minWidth: `${col.width}px`,
+              // width only needed for fixed columns to enforce size
+              width: col.fixed ? `${col.width}px` : undefined
+          }
       };
   };
 
   const renderCell = (report: DefectReport, columnId: ColumnId, index: number) => {
       switch (columnId) {
-          case 'select':
-              return (
-                  <input 
-                    type="checkbox" 
-                    checked={selectedIds.has(report.id)}
-                    onChange={() => handleSelectOne(report.id)}
-                    onClick={(e) => e.stopPropagation()}
-                    className="w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500 cursor-pointer"
-                  />
-              );
           case 'stt':
-              return <span className="text-slate-500 font-bold text-xs">{(currentPage - 1) * itemsPerPage + index + 1}</span>;
+              return <span className="text-slate-500 font-normal text-base">{(currentPage - 1) * itemsPerPage + index + 1}</span>;
           case 'ngayPhanAnh':
-              return <span className="text-slate-700 font-bold text-xs whitespace-nowrap">{new Date(report.ngayPhanAnh).toLocaleDateString('en-GB')}</span>;
+              return <span className="text-slate-700 font-normal text-base whitespace-nowrap">{new Date(report.ngayPhanAnh).toLocaleDateString('en-GB')}</span>;
           case 'maSanPham':
               return (
-                  <span className="text-blue-700 font-bold text-xs whitespace-nowrap block truncate" title={report.maSanPham}>
+                  <span className="text-blue-700 font-normal text-base whitespace-nowrap block truncate" title={report.maSanPham}>
                       <HighlightText text={report.maSanPham} highlight={filters.searchTerm} />
                   </span>
               );
           case 'tenThuongMai':
               return (
                 <div className="w-full pr-2" title={report.tenThuongMai}>
-                    <div className="font-bold text-slate-800 text-sm leading-snug line-clamp-2 whitespace-normal break-words">
+                    <div className="font-normal text-slate-800 text-base leading-snug line-clamp-2 whitespace-normal break-words">
                         <HighlightText text={report.tenThuongMai} highlight={filters.searchTerm} />
                     </div>
                 </div>
@@ -517,7 +499,7 @@ const DefectReportList: React.FC<Props> = ({
           case 'noiDungPhanAnh':
               return (
                 <div className="w-full pr-2" title={report.noiDungPhanAnh}>
-                    <div className="text-slate-600 text-xs leading-snug line-clamp-2 whitespace-normal break-words">
+                    <div className="text-slate-600 text-base font-normal leading-snug line-clamp-2 whitespace-normal break-words">
                         <HighlightText text={report.noiDungPhanAnh} highlight={filters.searchTerm} />
                     </div>
                 </div>
@@ -525,7 +507,7 @@ const DefectReportList: React.FC<Props> = ({
           case 'soLo':
               return (
                   <div className="w-full pr-1" title={report.soLo}>
-                      <div className="text-slate-700 text-xs font-bold leading-snug line-clamp-2 whitespace-normal break-words">
+                      <div className="text-slate-700 text-base font-normal leading-snug line-clamp-2 whitespace-normal break-words">
                           <HighlightText text={report.soLo} highlight={filters.searchTerm} />
                       </div>
                   </div>
@@ -533,15 +515,15 @@ const DefectReportList: React.FC<Props> = ({
           case 'maNgaySanXuat':
               return (
                   <div className="w-full pr-1" title={report.maNgaySanXuat}>
-                      <div className="text-slate-600 text-xs font-medium leading-snug line-clamp-2 whitespace-normal break-words">
+                      <div className="text-slate-600 text-base font-normal leading-snug line-clamp-2 whitespace-normal break-words">
                           {report.maNgaySanXuat}
                       </div>
                   </div>
               );
           case 'trangThai':
               return (
-                  <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-bold whitespace-nowrap border ${statusColorMap[report.trangThai]}`}>
-                      {report.trangThai.toUpperCase()}
+                  <span className={`inline-flex items-center px-2 py-0.5 rounded text-base font-normal whitespace-nowrap border ${statusColorMap[report.trangThai]}`}>
+                      {report.trangThai}
                   </span>
               );
           case 'actions':
@@ -623,9 +605,10 @@ const DefectReportList: React.FC<Props> = ({
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-600 transition-colors">
                         <MagnifyingGlassIcon className="h-5 w-5" />
                     </div>
+                    {/* Filter Input: Regular + Small */}
                     <input
                         type="text"
-                        className="block w-full pl-10 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white transition-all shadow-sm hover:border-slate-300"
+                        className="block w-full pl-10 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-normal placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white transition-all shadow-sm hover:border-slate-300"
                         placeholder="Tìm theo mã, tên, lô..."
                         value={filters.searchTerm}
                         onChange={(e) => onSearchTermChange(e.target.value)}
@@ -649,8 +632,9 @@ const DefectReportList: React.FC<Props> = ({
                         <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-500 transition-colors">
                             <FunnelIcon className="h-4 w-4" />
                         </div>
+                        {/* Filter Select: Regular + Small */}
                         <select
-                            className="w-full pl-8 pr-8 py-2 text-sm font-bold border border-slate-200 rounded-xl bg-white text-slate-700 focus:outline-none focus:border-blue-500 hover:bg-slate-50 cursor-pointer appearance-none shadow-sm focus:ring-2 focus:ring-blue-500/20"
+                            className="w-full pl-8 pr-8 py-2 text-sm font-normal border border-slate-200 rounded-xl bg-white text-slate-700 focus:outline-none focus:border-blue-500 hover:bg-slate-50 cursor-pointer appearance-none shadow-sm focus:ring-2 focus:ring-blue-500/20"
                             value={filters.defectTypeFilter}
                             onChange={(e) => onDefectTypeFilterChange(e.target.value)}
                         >
@@ -666,9 +650,10 @@ const DefectReportList: React.FC<Props> = ({
                     <div className="flex w-full sm:w-auto items-center bg-white rounded-xl border border-slate-200 px-2 sm:px-3 py-1.5 shadow-sm focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-400 transition-all hover:border-slate-300">
                         <CalendarIcon className="h-4 w-4 text-slate-400 mr-2 flex-shrink-0" />
                         <div className="flex items-center gap-1 flex-1">
+                            {/* Filter Date Input: Regular + Small */}
                             <input
                                 type="date"
-                                className="bg-transparent text-sm text-slate-700 focus:outline-none font-bold py-0.5 w-[85px] cursor-pointer"
+                                className="bg-transparent text-sm text-slate-700 focus:outline-none font-normal py-0.5 w-[85px] cursor-pointer"
                                 value={filters.dateFilter.start}
                                 max={filters.dateFilter.end}
                                 onChange={(e) => onDateFilterChange({ ...filters.dateFilter, start: e.target.value })}
@@ -676,7 +661,7 @@ const DefectReportList: React.FC<Props> = ({
                             <span className="text-slate-300 font-medium">-</span>
                             <input
                                 type="date"
-                                className="bg-transparent text-sm text-slate-700 focus:outline-none font-bold py-0.5 w-[85px] cursor-pointer"
+                                className="bg-transparent text-sm text-slate-700 focus:outline-none font-normal py-0.5 w-[85px] cursor-pointer"
                                 value={filters.dateFilter.end}
                                 min={filters.dateFilter.start}
                                 onChange={(e) => onDateFilterChange({ ...filters.dateFilter, end: e.target.value })}
@@ -759,7 +744,7 @@ const DefectReportList: React.FC<Props> = ({
                                 </div>
                             </div>
                         )}
-                    </div>
+                    </tbody>
                     {areFiltersActive && (
                         <button onClick={resetFilters} className="p-2 ml-1 text-red-600 bg-red-50 hover:bg-red-100 rounded-xl transition-colors border border-transparent hover:border-red-200 shadow-sm active:scale-95 flex-shrink-0" title="Xóa bộ lọc"><XIcon className="h-5 w-5" /></button>
                     )}
@@ -773,7 +758,6 @@ const DefectReportList: React.FC<Props> = ({
             {reports.length > 0 ? (
                 <>
                     {/* MOBILE CARD VIEW (< md) - VIRTUALIZED */}
-                    {/* Added pb-24 to handle bottom navigation bar */}
                     <div 
                         ref={mobileListRef}
                         onScroll={handleMobileScroll}
@@ -790,7 +774,6 @@ const DefectReportList: React.FC<Props> = ({
                                         willChange: 'transform'
                                     }}
                                     report={report}
-                                    isSelected={selectedIds.has(report.id)}
                                     onSelect={() => onSelectReport(report)}
                                     onDuplicate={onDuplicate}
                                     onDelete={(id) => setReportToDelete(reports.find(r => r.id === id) || null)}
@@ -801,14 +784,15 @@ const DefectReportList: React.FC<Props> = ({
                         </div>
                     </div>
 
-                    {/* DESKTOP TABLE VIEW (>= md) - VIRTUALIZED */}
+                    {/* DESKTOP TABLE VIEW (>= md) - VIRTUALIZED & RESIZABLE */}
                     <div 
                         ref={parentRef} 
                         onScroll={handleScroll}
                         className="hidden md:block flex-1 overflow-auto custom-scrollbar relative"
                     >
-                        <div className="min-w-full inline-block align-middle" style={{ minWidth: totalTableMinWidth }}>
-                            <div className="flex bg-white/95 backdrop-blur-md border-b border-slate-200 text-left text-xs font-bold text-slate-500 uppercase tracking-wider sticky top-0 z-20 shadow-sm h-[48px]">
+                        <div className="min-w-full inline-block align-middle">
+                            {/* Sticky Header */}
+                            <div className="flex bg-white/95 backdrop-blur-md border-b border-slate-200 text-left text-sm font-bold text-slate-600 tracking-wide sticky top-0 z-20 shadow-sm min-w-full w-full" style={{ height: ROW_HEIGHT }}>
                                 {visibleColumns.map((col) => {
                                     const { className, style } = getColumnStyle(col);
                                     return (
@@ -816,33 +800,31 @@ const DefectReportList: React.FC<Props> = ({
                                             key={col.id}
                                             draggable={!col.fixed}
                                             onDragStart={(e) => handleHeaderDragStart(e, col.id)}
-                                            onDragOver={(e) => e.preventDefault()}
+                                            onDragEnter={(e) => handleHeaderDragEnter(e, col.id)}
+                                            onDragOver={handleHeaderDragOver}
                                             onDrop={(e) => handleHeaderDrop(e, col.id)}
-                                            className={`relative flex items-center px-3 h-full border-r border-transparent hover:border-slate-100 ${className} whitespace-nowrap ${!col.fixed ? 'cursor-move active:cursor-grabbing hover:bg-slate-50' : ''}`} 
+                                            className={`relative flex items-center px-3 h-full border-r border-transparent hover:border-slate-100 ${className} whitespace-nowrap ${!col.fixed ? 'cursor-move active:cursor-grabbing hover:bg-slate-50' : ''} ${draggedColId === col.id ? 'opacity-50 bg-blue-50' : ''}`} 
                                             style={style}
                                             title={!col.fixed ? "Kéo để sắp xếp lại cột" : undefined}
                                         >
-                                            {col.id === 'select' ? (
-                                                <input 
-                                                    type="checkbox" 
-                                                    checked={reports.length > 0 && selectedIds.size === reports.length}
-                                                    onChange={handleSelectAll}
-                                                    className="w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500 cursor-pointer"
-                                                />
-                                            ) : col.label}
+                                            {col.label}
                                             
-                                            <div 
-                                                className="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-blue-400 transition-colors z-30"
-                                                onMouseDown={(e) => startResize(e, col.id, col.width)}
-                                                onClick={(e) => e.stopPropagation()}
-                                            />
+                                            {/* Resize handle */}
+                                            {!col.fixed && (
+                                                <div 
+                                                    className="absolute right-0 top-0 bottom-0 w-1.5 cursor-col-resize hover:bg-blue-400 z-30 opacity-0 hover:opacity-100 transition-opacity"
+                                                    onMouseDown={(e) => startResize(e, col.id, col.width)}
+                                                    onClick={(e) => e.stopPropagation()}
+                                                />
+                                            )}
                                         </div>
                                     )
                                 })}
                             </div>
                             
+                            {/* Rows Container */}
                             <div 
-                                className="relative" 
+                                className="relative min-w-full w-full" 
                                 style={{ height: totalContentHeight }}
                             >
                                 {visibleReports.map((report, index) => {
@@ -861,7 +843,7 @@ const DefectReportList: React.FC<Props> = ({
                                             onMouseEnter={() => handleRowMouseEnter(report)}
                                             onMouseLeave={handleRowMouseLeave}
                                             onMouseMove={handleRowMouseMove}
-                                            className={`group flex items-center transition-colors cursor-pointer border-b hover:z-10 ${selectedIds.has(report.id) ? 'bg-blue-50 border-blue-200' : 'bg-white border-slate-100 hover:border-blue-500 hover:bg-blue-50/60'}`}
+                                            className={`group flex items-center transition-colors cursor-pointer border-b hover:z-10 min-w-full w-full bg-white border-slate-100 hover:border-blue-500 hover:bg-blue-50/60`}
                                         >
                                             {visibleColumns.map((col) => {
                                                 const { className, style } = getColumnStyle(col);
@@ -904,28 +886,6 @@ const DefectReportList: React.FC<Props> = ({
                     )}
                 </div>
             )}
-
-            {/* FLOATING ACTION BAR FOR BULK ACTIONS */}
-            <div className={`absolute bottom-20 md:bottom-4 left-1/2 -translate-x-1/2 z-40 transition-all duration-300 w-full max-w-md px-4 ${selectedIds.size > 0 ? 'translate-y-0 opacity-100' : 'translate-y-20 opacity-0 pointer-events-none'}`}>
-                 <div className="bg-slate-900/90 backdrop-blur-md text-white rounded-2xl shadow-2xl p-2 pl-5 flex items-center justify-between gap-4 border border-white/10 ring-1 ring-black/20">
-                     <span className="font-bold text-sm">Đã chọn {selectedIds.size}</span>
-                     <div className="flex items-center gap-2">
-                        <button 
-                            onClick={() => setSelectedIds(new Set())}
-                            className="px-3 py-1.5 text-sm font-medium text-slate-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
-                        >
-                            Hủy
-                        </button>
-                        <button 
-                            onClick={handleDeleteSelected}
-                            className="px-4 py-1.5 bg-red-600 hover:bg-red-500 text-white text-sm font-bold rounded-xl shadow-lg shadow-red-500/30 transition-all active:scale-95 flex items-center"
-                        >
-                            <TrashIcon className="w-4 h-4 mr-2" />
-                            Xóa
-                        </button>
-                     </div>
-                 </div>
-            </div>
 
             <div className="hidden md:block p-3 border-t border-slate-200 bg-white shadow-[0_-5px_15px_rgba(0,0,0,0.01)] relative z-20">
                 <Pagination

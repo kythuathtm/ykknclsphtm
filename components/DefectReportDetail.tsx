@@ -18,7 +18,7 @@ const DetailItem = ({ label, value, className, fullWidth }: any) => {
     return (
         <div className={fullWidth ? 'col-span-full' : ''}>
             <dt className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">{label}</dt>
-            <dd className={`text-base text-slate-800 break-words font-medium ${className}`}>{value}</dd>
+            <dd className={`text-base text-slate-800 break-words font-normal ${className}`}>{value}</dd>
         </div>
     );
 };
@@ -46,7 +46,15 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onDelete, permiss
   });
   
   const [isUpdating, setIsUpdating] = useState(false);
-  const [isEditingQuickAction, setIsEditingQuickAction] = useState(false);
+  
+  // Granular edit state
+  const [editingSections, setEditingSections] = useState({
+      nguyenNhan: false,
+      huongKhacPhuc: false,
+      soLuong: false
+  });
+
+  const isEditing = Object.values(editingSections).some(Boolean);
 
   const getLoaiLoiBadge = (loaiLoi: string) => {
     let style = 'bg-slate-100 text-slate-600 border-slate-200';
@@ -78,7 +86,7 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onDelete, permiss
           }
 
           await updateDoc(reportRef, updates);
-          setIsEditingQuickAction(false);
+          setEditingSections({ nguyenNhan: false, huongKhacPhuc: false, soLuong: false });
       } catch (e) {
           console.error(e);
           alert("Lỗi khi cập nhật");
@@ -94,12 +102,18 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onDelete, permiss
           soLuongDoi: report.soLuongDoi || 0,
           ngayDoiHang: report.ngayDoiHang || ''
       });
-      setIsEditingQuickAction(false);
+      setEditingSections({ nguyenNhan: false, huongKhacPhuc: false, soLuong: false });
   };
   
-  const enableEditMode = () => {
-      if (!isEditingQuickAction && permissions.canEdit) {
-          setIsEditingQuickAction(true);
+  const startEditing = (section: keyof typeof editingSections) => {
+      if (permissions.canEdit) {
+          setEditingSections(prev => ({ ...prev, [section]: true }));
+      }
+  };
+
+  const enableEditAll = () => {
+      if (permissions.canEdit) {
+          setEditingSections({ nguyenNhan: true, huongKhacPhuc: true, soLuong: true });
       }
   };
 
@@ -115,7 +129,6 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onDelete, permiss
                     {new Date(report.ngayPhanAnh).toLocaleDateString('en-GB')}
                 </span>
             </div>
-            {/* Changed from font-black to font-bold for better rendering */}
             <h3 className="text-lg sm:text-xl font-bold text-slate-900 leading-tight line-clamp-2">{report.tenThuongMai}</h3>
           </div>
           <div className="flex items-center gap-1 sm:gap-2 ml-4">
@@ -151,17 +164,14 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onDelete, permiss
                 <div className="mt-8 pt-6 border-t border-slate-100 grid grid-cols-3 gap-4">
                     <div className="bg-white rounded-xl p-3 border border-slate-100 text-center shadow-sm">
                         <p className="text-xs font-bold text-slate-400 uppercase tracking-wide">Đã nhập</p>
-                        {/* Changed font-black to font-bold */}
                         <p className="font-bold text-xl text-slate-700 mt-1">{report.soLuongDaNhap}</p>
                     </div>
                     <div className="bg-red-50 rounded-xl p-3 border border-red-100 text-center shadow-sm">
                         <p className="text-xs font-bold text-red-400 uppercase tracking-wide">Lỗi</p>
-                        {/* Changed font-black to font-bold */}
                         <p className="font-bold text-xl text-red-600 mt-1">{report.soLuongLoi}</p>
                     </div>
                     <div className="bg-emerald-50 rounded-xl p-3 border border-emerald-100 text-center shadow-sm">
                         <p className="text-xs font-bold text-emerald-400 uppercase tracking-wide">Đổi</p>
-                        {/* Changed font-black to font-bold */}
                         <p className="font-bold text-xl text-emerald-600 mt-1">{report.soLuongDoi}</p>
                     </div>
                 </div>
@@ -176,7 +186,7 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onDelete, permiss
                     <DetailItem label="Đơn vị sử dụng" value={report.donViSuDung} fullWidth/>
                     <div className="col-span-full mt-2">
                         <dt className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Nội dung phản ánh</dt>
-                        <dd className="text-base text-slate-700 bg-slate-50 p-4 rounded-xl border border-slate-200 leading-relaxed shadow-inner">
+                        <dd className="text-base text-slate-700 bg-slate-50 p-4 rounded-xl border border-slate-200 leading-relaxed shadow-inner font-normal">
                             {report.noiDungPhanAnh}
                         </dd>
                     </div>
@@ -199,7 +209,7 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onDelete, permiss
                 <div className="flex gap-3 items-center justify-between sm:justify-end w-full sm:w-auto">
                      {report.trangThai !== 'Hoàn thành' && permissions.canEdit && (
                         <>
-                            {isEditingQuickAction ? (
+                            {isEditing ? (
                                 <div className="flex items-center gap-2 animate-fade-in">
                                     <button 
                                         onClick={cancelQuickEdit}
@@ -219,8 +229,9 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onDelete, permiss
                                 </div>
                             ) : (
                                 <button 
-                                    onClick={enableEditMode}
+                                    onClick={enableEditAll}
                                     className="text-xs bg-white border border-blue-200 text-blue-600 hover:bg-blue-50 font-bold px-3 py-1.5 rounded-lg shadow-sm active:scale-95 transition-all flex items-center"
+                                    title="Chỉnh sửa tất cả các trường"
                                 >
                                     <PencilIcon className="w-3.5 h-3.5 mr-1.5" />
                                     Cập nhật
@@ -242,48 +253,51 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onDelete, permiss
             <div className="p-4 sm:p-6 grid grid-cols-1 md:grid-cols-12 gap-6 relative z-10">
                  {/* Left: Input Areas */}
                  <div className="md:col-span-8 grid grid-cols-1 gap-4">
-                      {/* Cause & Solution Inputs */}
+                      {/* Cause Input */}
                       <div 
-                        className={`bg-amber-50/50 rounded-xl p-4 border border-amber-100 group ${!isEditingQuickAction && permissions.canEdit ? 'cursor-pointer hover:border-amber-300 hover:shadow-sm transition-all' : ''}`}
-                        onClick={enableEditMode}
+                        className={`bg-amber-50/50 rounded-xl p-4 border border-amber-100 group ${!editingSections.nguyenNhan && permissions.canEdit ? 'cursor-pointer hover:border-amber-300 hover:shadow-sm transition-all' : ''}`}
+                        onClick={() => !editingSections.nguyenNhan && startEditing('nguyenNhan')}
                       >
                           <div className="flex items-center gap-2 mb-2 text-amber-700">
                                 <QuestionMarkCircleIcon className="w-4 h-4" />
                                 <label className="text-xs font-bold uppercase tracking-wide cursor-pointer">Nguyên nhân</label>
                           </div>
-                          {isEditingQuickAction ? (
+                          {editingSections.nguyenNhan ? (
                               <textarea 
-                                className="w-full bg-white border border-amber-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-amber-500/20 outline-none resize-none shadow-sm touch-manipulation"
+                                className="w-full bg-white border border-amber-200 rounded-lg p-3 text-base font-normal focus:ring-2 focus:ring-amber-500/20 outline-none resize-none shadow-sm touch-manipulation"
                                 rows={3}
                                 placeholder="Nhập nguyên nhân..."
                                 value={quickUpdateData.nguyenNhan}
                                 onChange={(e) => setQuickUpdateData({...quickUpdateData, nguyenNhan: e.target.value})}
+                                autoFocus
                               />
                           ) : (
-                              <p className={`text-sm leading-relaxed ${quickUpdateData.nguyenNhan ? 'text-slate-800' : 'text-slate-400 italic'}`}>
+                              <p className={`text-base font-normal leading-relaxed ${quickUpdateData.nguyenNhan ? 'text-slate-800' : 'text-slate-400 italic'}`}>
                                   {quickUpdateData.nguyenNhan || 'Click để nhập nguyên nhân...'}
                               </p>
                           )}
                       </div>
 
+                      {/* Solution Input */}
                       <div 
-                        className={`bg-blue-50/50 rounded-xl p-4 border border-blue-100 group ${!isEditingQuickAction && permissions.canEdit ? 'cursor-pointer hover:border-blue-300 hover:shadow-sm transition-all' : ''}`}
-                        onClick={enableEditMode}
+                        className={`bg-blue-50/50 rounded-xl p-4 border border-blue-100 group ${!editingSections.huongKhacPhuc && permissions.canEdit ? 'cursor-pointer hover:border-blue-300 hover:shadow-sm transition-all' : ''}`}
+                        onClick={() => !editingSections.huongKhacPhuc && startEditing('huongKhacPhuc')}
                       >
                           <div className="flex items-center gap-2 mb-2 text-blue-700">
                                 <WrenchIcon className="w-4 h-4" />
                                 <label className="text-xs font-bold uppercase tracking-wide cursor-pointer">Hướng khắc phục</label>
                           </div>
-                          {isEditingQuickAction ? (
+                          {editingSections.huongKhacPhuc ? (
                                <textarea 
-                                className="w-full bg-white border border-blue-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500/20 outline-none resize-none shadow-sm touch-manipulation"
+                                className="w-full bg-white border border-blue-200 rounded-lg p-3 text-base font-normal focus:ring-2 focus:ring-blue-500/20 outline-none resize-none shadow-sm touch-manipulation"
                                 rows={3}
                                 placeholder="Nhập hướng xử lý..."
                                 value={quickUpdateData.huongKhacPhuc}
                                 onChange={(e) => setQuickUpdateData({...quickUpdateData, huongKhacPhuc: e.target.value})}
+                                autoFocus
                               />
                           ) : (
-                               <p className={`text-sm leading-relaxed ${quickUpdateData.huongKhacPhuc ? 'text-slate-800' : 'text-slate-400 italic'}`}>
+                               <p className={`text-base font-normal leading-relaxed ${quickUpdateData.huongKhacPhuc ? 'text-slate-800' : 'text-slate-400 italic'}`}>
                                   {quickUpdateData.huongKhacPhuc || 'Click để nhập hướng khắc phục...'}
                                </p>
                           )}
@@ -294,25 +308,24 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onDelete, permiss
                  <div className="md:col-span-4 flex flex-col gap-4">
                       {/* Exchange Qty Input */}
                       <div 
-                          className={`bg-emerald-50/50 rounded-xl p-5 border border-emerald-100 flex flex-col gap-4 ${!isEditingQuickAction && permissions.canEdit ? 'cursor-pointer hover:border-emerald-300 hover:shadow-sm transition-all' : ''}`}
-                          onClick={enableEditMode}
+                          className={`bg-emerald-50/50 rounded-xl p-5 border border-emerald-100 flex flex-col gap-4 ${!editingSections.soLuong && permissions.canEdit ? 'cursor-pointer hover:border-emerald-300 hover:shadow-sm transition-all' : ''}`}
+                          onClick={() => !editingSections.soLuong && startEditing('soLuong')}
                       >
                            <div className="flex flex-col items-center justify-center text-center">
                                <label className="text-xs font-bold text-emerald-600 uppercase mb-2 cursor-pointer tracking-wider">Số lượng đổi</label>
-                               {isEditingQuickAction ? (
+                               {editingSections.soLuong ? (
                                    <div className="flex items-center justify-center w-full">
                                        <input 
                                             type="number" 
                                             min="0"
-                                            // Fixed: Changed from font-black to font-bold
                                             className="w-24 text-center text-3xl font-bold text-emerald-700 bg-white border border-emerald-200 rounded-lg py-1 focus:ring-2 focus:ring-emerald-500/20 outline-none shadow-sm touch-manipulation"
                                             value={quickUpdateData.soLuongDoi}
                                             onChange={(e) => setQuickUpdateData({...quickUpdateData, soLuongDoi: Number(e.target.value)})}
                                             onClick={(e) => e.stopPropagation()} 
+                                            autoFocus
                                        />
                                    </div>
                                ) : (
-                                   // Fixed: Changed from font-black to font-bold
                                    <p className="text-4xl font-bold text-emerald-600">{report.soLuongDoi}</p>
                                )}
                            </div>
@@ -323,7 +336,7 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onDelete, permiss
                                    <CalendarIcon className="w-3.5 h-3.5" />
                                    <label className="text-xs font-bold uppercase cursor-pointer tracking-wide">Ngày đổi hàng</label>
                                </div>
-                               {isEditingQuickAction ? (
+                               {editingSections.soLuong ? (
                                    <input 
                                         type="date"
                                         className="w-full text-center text-sm font-bold text-emerald-800 bg-white border border-emerald-200 rounded-lg py-1.5 focus:ring-2 focus:ring-emerald-500/20 outline-none shadow-sm touch-manipulation"

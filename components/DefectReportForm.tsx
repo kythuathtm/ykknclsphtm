@@ -1,3 +1,5 @@
+
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { DefectReport, UserRole, PermissionField, Product } from '../types';
 import { XIcon, CheckCircleIcon, TagIcon, WrenchIcon, LockClosedIcon, ShieldCheckIcon, ClipboardDocumentListIcon, CalendarIcon, BuildingStoreIcon } from './Icons';
@@ -34,7 +36,7 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
   const [isProductInfoLocked, setIsProductInfoLocked] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
   const productCodeInputRef = useRef<HTMLInputElement>(null);
-  const formRef = useRef<HTMLDivElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
 
   const handleCloseAttempt = () => {
       if (isDirty) {
@@ -301,7 +303,7 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
   };
   
   const getInputClasses = (fieldName: keyof Omit<DefectReport, 'id'>, isReadOnly: boolean = false) => {
-    const base = "transition-all duration-200 mt-1 block w-full rounded-xl text-base py-2.5 px-3 border outline-none font-sans";
+    const base = "transition-all duration-200 mt-1 block w-full rounded-xl text-base py-2.5 px-3 border outline-none";
     const normal = "bg-white text-slate-800 border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 placeholder-slate-400 shadow-sm hover:border-blue-300";
     const errorClass = errors[fieldName] ? "border-red-500 ring-2 ring-red-500/10 bg-red-50 animate-shake" : "";
     
@@ -331,7 +333,7 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
   );
 
   return (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center sm:p-4 transition-opacity font-sans">
+    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center sm:p-4 transition-opacity">
       <div className="bg-white w-full max-w-6xl h-[100dvh] sm:h-auto sm:max-h-[90vh] rounded-none sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-slide-up ring-1 ring-white/20">
         
         <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 bg-white">
@@ -637,96 +639,89 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
 
                  <section className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
                     <div className="absolute top-0 left-0 w-1 h-full bg-blue-500"></div>
-                    <SectionHeader title="Xử lý & Khắc phục" icon={<WrenchIcon className="h-4 w-4" />} />
-                    
-                    <div className="space-y-5">
-                         <div>
-                            <label className="block text-sm font-bold text-slate-700">Nguyên nhân</label>
-                            <textarea 
-                                name="nguyenNhan" 
-                                value={formData.nguyenNhan} 
-                                onChange={handleChange}
-                                onBlur={handleBlur} 
-                                disabled={isFieldDisabled('nguyenNhan')}
-                                className={getInputClasses('nguyenNhan')}
-                                rows={3}
-                                placeholder="Nhập nguyên nhân..."
-                            />
-                            <ErrorMessage field="nguyenNhan" />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-bold text-slate-700">Hướng khắc phục</label>
-                            <textarea 
-                                name="huongKhacPhuc" 
-                                value={formData.huongKhacPhuc} 
-                                onChange={handleChange} 
-                                onBlur={handleBlur}
-                                disabled={isFieldDisabled('huongKhacPhuc')}
-                                className={getInputClasses('huongKhacPhuc')}
-                                rows={3}
-                                placeholder="Nhập hướng xử lý..."
-                            />
-                             <ErrorMessage field="huongKhacPhuc" />
-                        </div>
-                        
-                        <div className="grid grid-cols-2 gap-4">
+                    <div className="relative pl-2">
+                        <SectionHeader title="Xử lý & Khắc phục" icon={<WrenchIcon className="h-4 w-4" />} />
+                        <div className="space-y-5">
                             <div>
-                                <label className="block text-sm font-bold text-slate-700">Trạng thái</label>
-                                <select 
-                                    name="trangThai" 
-                                    value={formData.trangThai} 
+                                <label className="block text-sm font-bold text-slate-700">Nguyên nhân</label>
+                                <textarea 
+                                    name="nguyenNhan" 
+                                    value={formData.nguyenNhan} 
                                     onChange={handleChange} 
-                                    disabled={isFieldDisabled('trangThai')}
-                                    className={getInputClasses('trangThai')}
-                                >
-                                    <option value="Mới">Mới</option>
-                                    <option value="Đang xử lý">Đang xử lý</option>
-                                    <option value="Chưa tìm ra nguyên nhân">Chưa tìm ra nguyên nhân</option>
-                                    <option value="Hoàn thành">Hoàn thành</option>
-                                </select>
+                                    onBlur={handleBlur}
+                                    disabled={isFieldDisabled('nguyenNhan')}
+                                    className={getInputClasses('nguyenNhan')}
+                                    rows={3}
+                                />
+                                <ErrorMessage field="nguyenNhan" />
                             </div>
                             <div>
-                                <label className="block text-sm font-bold text-slate-700">Ngày hoàn thành</label>
-                                <input 
-                                    type="date" 
-                                    name="ngayHoanThanh" 
-                                    value={formData.ngayHoanThanh || ''} 
-                                    onChange={handleChange}
-                                    onBlur={handleBlur} 
-                                    disabled={isFieldDisabled('ngayHoanThanh')}
-                                    className={getInputClasses('ngayHoanThanh')}
+                                <label className="block text-sm font-bold text-slate-700">Hướng khắc phục</label>
+                                <textarea 
+                                    name="huongKhacPhuc" 
+                                    value={formData.huongKhacPhuc} 
+                                    onChange={handleChange} 
+                                    onBlur={handleBlur}
+                                    disabled={isFieldDisabled('huongKhacPhuc')}
+                                    className={getInputClasses('huongKhacPhuc')}
+                                    rows={3}
                                 />
-                                <ErrorMessage field="ngayHoanThanh" />
+                                <ErrorMessage field="huongKhacPhuc" />
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700">Trạng thái <span className="text-red-500">*</span></label>
+                                    <select 
+                                        name="trangThai" 
+                                        value={formData.trangThai} 
+                                        onChange={handleChange} 
+                                        onBlur={handleBlur}
+                                        disabled={isFieldDisabled('trangThai')}
+                                        className={getInputClasses('trangThai')}
+                                    >
+                                        <option value="Mới">Mới</option>
+                                        <option value="Đang xử lý">Đang xử lý</option>
+                                        <option value="Chưa tìm ra nguyên nhân">Chưa tìm ra nguyên nhân</option>
+                                        <option value="Hoàn thành">Hoàn thành</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700">Ngày hoàn thành</label>
+                                    <input 
+                                        type="date" 
+                                        name="ngayHoanThanh" 
+                                        value={formData.ngayHoanThanh || ''} 
+                                        onChange={handleChange} 
+                                        onBlur={handleBlur}
+                                        disabled={isFieldDisabled('ngayHoanThanh')}
+                                        className={getInputClasses('ngayHoanThanh')}
+                                    />
+                                    <ErrorMessage field="ngayHoanThanh" />
+                                </div>
                             </div>
                         </div>
                     </div>
                  </section>
             </div>
           </div>
-        </form>
-
-        <div className="flex justify-between items-center px-6 py-5 bg-white border-t border-slate-200">
-           <div className="text-xs text-slate-400 font-medium hidden sm:block">
-                Ctrl + Enter để Lưu • Esc để Đóng
-           </div>
-           <div className="flex gap-3 w-full sm:w-auto">
-              <button 
+          
+          <div className="flex justify-end pt-5 border-t border-slate-200">
+             <button 
                 type="button" 
                 onClick={handleCloseAttempt} 
-                className="flex-1 sm:flex-none px-6 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 transition-all active:scale-95 shadow-sm"
-              >
-                Hủy
-              </button>
-              <button 
-                form="report-form"
+                className="px-6 py-2.5 bg-white border border-slate-300 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 transition-all active:scale-95 mr-3"
+             >
+                Hủy bỏ
+             </button>
+             <button 
                 type="submit" 
-                className="flex-1 sm:flex-none px-8 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-500/30 transition-all hover:-translate-y-0.5 active:translate-y-0 active:scale-95 flex items-center justify-center"
-              >
+                className="px-8 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-500/30 transition-all hover:-translate-y-0.5 active:scale-95 active:translate-y-0 flex items-center"
+             >
                 <CheckCircleIcon className="h-5 w-5 mr-2" />
-                Lưu
-              </button>
-           </div>
-        </div>
+                Lưu phản ánh
+             </button>
+          </div>
+        </form>
       </div>
     </div>
   );

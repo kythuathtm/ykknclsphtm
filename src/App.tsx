@@ -1,6 +1,6 @@
-import React, { useState, useMemo, useEffect, useTransition, Suspense } from 'react';
+import React, { useState, useMemo, useEffect, useTransition, Suspense, useRef } from 'react';
 import { DefectReport, UserRole, ToastType, User, RoleSettings, PermissionField, SystemSettings, Product } from './types';
-import { PlusIcon, BarChartIcon, ArrowDownTrayIcon, ListBulletIcon, ArrowRightOnRectangleIcon, UserGroupIcon, ChartPieIcon, TableCellsIcon, ShieldCheckIcon, ArrowUpTrayIcon, CalendarIcon, Cog8ToothIcon } from './components/Icons';
+import { PlusIcon, BarChartIcon, ArrowDownTrayIcon, ListBulletIcon, ArrowRightOnRectangleIcon, UserGroupIcon, ChartPieIcon, TableCellsIcon, ShieldCheckIcon, CalendarIcon, Cog8ToothIcon, EllipsisHorizontalIcon } from './components/Icons';
 import * as XLSX from 'xlsx';
 import Loading from './components/Loading';
 
@@ -17,7 +17,8 @@ import {
   orderBy,
   setDoc,
   writeBatch,
-  getDocs
+  getDocs,
+  where
 } from 'firebase/firestore';
 
 // Lazy load components
@@ -76,16 +77,13 @@ const INITIAL_USERS: User[] = [
   { username: 'tgd', fullName: 'Nguyễn Tổng', role: UserRole.TongGiamDoc, password: '123' },
 ];
 
-// Empty Initial Products List as requested
-const INITIAL_PRODUCTS: Product[] = [];
-
 const DEFAULT_ROLE_SETTINGS: RoleSettings = {
-    [UserRole.Admin]: { canCreate: true, canViewDashboard: true, viewableDefectTypes: ['All'], editableFields: ['general', 'soLuongDoi', 'loaiLoi', 'nguyenNhan', 'huongKhacPhuc', 'trangThai', 'ngayHoanThanh'] },
-    [UserRole.KyThuat]: { canCreate: true, canViewDashboard: true, viewableDefectTypes: ['All'], editableFields: ['general', 'soLuongDoi', 'loaiLoi', 'nguyenNhan', 'huongKhacPhuc', 'trangThai', 'ngayHoanThanh'] },
-    [UserRole.CungUng]: { canCreate: false, canViewDashboard: true, viewableDefectTypes: ['All'], editableFields: ['general', 'loaiLoi', 'trangThai'] },
-    [UserRole.TongGiamDoc]: { canCreate: false, canViewDashboard: true, viewableDefectTypes: ['All'], editableFields: [] },
-    [UserRole.SanXuat]: { canCreate: false, canViewDashboard: false, viewableDefectTypes: ['Lỗi Sản xuất', 'Lỗi Hỗn hợp'], editableFields: ['nguyenNhan', 'huongKhacPhuc'] },
-    [UserRole.Kho]: { canCreate: false, canViewDashboard: false, viewableDefectTypes: ['All'], editableFields: [] },
+    [UserRole.Admin]: { canCreate: true, canViewDashboard: true, canDelete: true, viewableDefectTypes: ['All'], editableFields: ['general', 'soLuongDoi', 'loaiLoi', 'nguyenNhan', 'huongKhacPhuc', 'trangThai', 'ngayHoanThanh'] },
+    [UserRole.KyThuat]: { canCreate: true, canViewDashboard: true, canDelete: true, viewableDefectTypes: ['All'], editableFields: ['general', 'soLuongDoi', 'loaiLoi', 'nguyenNhan', 'huongKhacPhuc', 'trangThai', 'ngayHoanThanh'] },
+    [UserRole.CungUng]: { canCreate: false, canViewDashboard: true, canDelete: false, viewableDefectTypes: ['All'], editableFields: ['general', 'loaiLoi', 'trangThai'] },
+    [UserRole.TongGiamDoc]: { canCreate: false, canViewDashboard: true, canDelete: false, viewableDefectTypes: ['All'], editableFields: [] },
+    [UserRole.SanXuat]: { canCreate: false, canViewDashboard: false, canDelete: false, viewableDefectTypes: ['Lỗi Sản xuất', 'Lỗi Hỗn hợp'], editableFields: ['nguyenNhan', 'huongKhacPhuc'] },
+    [UserRole.Kho]: { canCreate: false, canViewDashboard: false, canDelete: false, viewableDefectTypes: ['All'], editableFields: [] },
 };
 
 const DEFAULT_SYSTEM_SETTINGS: SystemSettings = {
@@ -93,7 +91,9 @@ const DEFAULT_SYSTEM_SETTINGS: SystemSettings = {
   companyName: 'Công ty Cổ phần Vật tư Y tế Hồng Thiện Mỹ',
   logoUrl: '',
   backgroundType: 'default',
-  backgroundValue: ''
+  backgroundValue: '',
+  fontFamily: 'Arial, sans-serif',
+  baseFontSize: '15px'
 };
 
 // --- Main App Component ---
@@ -119,6 +119,8 @@ export const App: React.FC = () => {
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
   const [currentView, setCurrentView] = useState<'list' | 'dashboard'>('list');
   const [isLoadingDB, setIsLoadingDB] = useState(true);
+  const [isAdminMenuOpen, setIsAdminMenuOpen] = useState(false);
+  const adminMenuRef = useRef<HTMLDivElement>(null);
 
   // Filters & Pagination State
   const [currentPage, setCurrentPage] = useState(1);
@@ -157,11 +159,6 @@ export const App: React.FC = () => {
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, "users"), async (snapshot) => {
       const usersData = snapshot.docs.map(doc => doc.data()) as User[];
-      
-      // AUTO-SEED: If database is completely empty, create default users and data
-      if (usersData.length === 0 && !isLoadingDB) {
-         console.log("Database empty. Seeding initial data...");
-      } 
       setUsers(usersData);
     });
     return () => unsubscribe();
@@ -186,12 +183,26 @@ export const App: React.FC = () => {
         }
         const systemDoc = snapshot.docs.find(d => d.id === 'systemSettings');
         if (systemDoc) {
-            setSystemSettings(systemDoc.data() as SystemSettings);
+            setSystemSettings({
+                ...DEFAULT_SYSTEM_SETTINGS, // Merge with defaults to ensure new fields like fontFamily exist
+                ...systemDoc.data() as SystemSettings
+            });
         }
       }
     });
     return () => unsubscribe();
   }, []);
+
+  // 5. Apply System Settings to DOM
+  useEffect(() => {
+    const root = document.documentElement;
+    if (systemSettings.fontFamily) {
+        root.style.setProperty('font-family', systemSettings.fontFamily);
+    }
+    if (systemSettings.baseFontSize) {
+        root.style.fontSize = systemSettings.baseFontSize;
+    }
+  }, [systemSettings.fontFamily, systemSettings.baseFontSize]);
 
   // Safety timeout for loading
   useEffect(() => {
@@ -202,6 +213,21 @@ export const App: React.FC = () => {
       }, 3000);
       return () => clearTimeout(timer);
   }, [isLoadingDB]);
+  
+  // Close admin menu on outside click
+  useEffect(() => {
+      const handleClickOutside = (event: MouseEvent) => {
+          if (adminMenuRef.current && !adminMenuRef.current.contains(event.target as Node)) {
+              setIsAdminMenuOpen(false);
+          }
+      };
+      if (isAdminMenuOpen) {
+          document.addEventListener('mousedown', handleClickOutside);
+      }
+      return () => {
+          document.removeEventListener('mousedown', handleClickOutside);
+      };
+  }, [isAdminMenuOpen]);
 
 
   // Derived State for Permission Checking
@@ -287,7 +313,6 @@ export const App: React.FC = () => {
     return result;
   }, [reports, searchTerm, statusFilter, defectTypeFilter, yearFilter, dateFilter, currentUser, roleSettings]);
 
-  const totalPages = Math.ceil(filteredReports.length / itemsPerPage);
   const paginatedReports = useMemo(() => {
       const start = (currentPage - 1) * itemsPerPage;
       return filteredReports.slice(start, start + itemsPerPage);
@@ -543,6 +568,26 @@ export const App: React.FC = () => {
       }
   };
 
+  const handleRenameRole = async (oldName: string, newName: string) => {
+      try {
+          // 1. Update Users with the old role
+          const q = query(collection(db, "users"), where("role", "==", oldName));
+          const snapshot = await getDocs(q);
+          
+          if (!snapshot.empty) {
+              const batch = writeBatch(db);
+              snapshot.docs.forEach(doc => {
+                  batch.update(doc.ref, { role: newName });
+              });
+              await batch.commit();
+              showToast(`Đã đồng bộ vai trò mới cho ${snapshot.size} tài khoản.`, 'success');
+          }
+      } catch (error) {
+          console.error("Error renaming role for users:", error);
+          showToast("Lỗi khi cập nhật vai trò người dùng", "error");
+      }
+  };
+
   const handleSaveSystemSettings = async (newSettings: SystemSettings) => {
       try {
           await setDoc(doc(db, "settings", "systemSettings"), newSettings);
@@ -600,7 +645,7 @@ export const App: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col h-dvh bg-slate-100 font-sans text-slate-900">
+    <div className="flex flex-col h-dvh bg-slate-100 text-slate-900">
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-30 transition-all">
         <div className="max-w-[1920px] mx-auto px-2 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2 sm:gap-4">
@@ -635,6 +680,7 @@ export const App: React.FC = () => {
                     </select>
                  </div>
 
+                 {/* Desktop View Switcher */}
                  <div className="bg-slate-100/80 p-1 rounded-xl flex items-center gap-1 border border-slate-200/50 hidden md:flex">
                     <button
                         onClick={() => setCurrentView('list')}
@@ -691,36 +737,80 @@ export const App: React.FC = () => {
                 )}
 
                 {currentUser.role === UserRole.Admin && (
-                    <div className="flex items-center gap-1">
+                    <div className="relative" ref={adminMenuRef}>
+                        {/* Mobile Dropdown Trigger */}
                          <button
-                            onClick={() => setIsPermissionModalOpen(true)}
-                            className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors active:scale-95"
-                            title="Cấu hình phân quyền"
+                            onClick={() => setIsAdminMenuOpen(!isAdminMenuOpen)}
+                            className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors active:scale-95 sm:hidden"
                         >
-                            <ShieldCheckIcon className="h-5 w-5 sm:h-6 sm:w-6" />
+                            <EllipsisHorizontalIcon className="h-6 w-6" />
                         </button>
-                        <button
-                            onClick={() => setIsProductModalOpen(true)}
-                            className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors active:scale-95"
-                            title="Danh sách Sản phẩm"
-                        >
-                            <TableCellsIcon className="h-5 w-5 sm:h-6 sm:w-6" />
-                        </button>
-                        <button
-                            onClick={() => setIsUserModalOpen(true)}
-                            className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors active:scale-95"
-                            title="Quản lý Người dùng"
-                        >
-                            <UserGroupIcon className="h-5 w-5 sm:h-6 sm:w-6" />
-                        </button>
-                         {/* System Settings Trigger */}
-                         <button 
-                            className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors active:scale-95"
-                            onClick={() => setIsSystemSettingsModalOpen(true)}
-                            title="Cấu hình / Cài đặt web"
-                        >
-                             <Cog8ToothIcon className="h-5 w-5 sm:h-6 sm:w-6" />
-                        </button>
+                        
+                        {/* Dropdown Menu (Mobile Only) */}
+                        {isAdminMenuOpen && (
+                            <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-xl border border-slate-100 py-1 z-50 sm:hidden animate-fade-in-up">
+                                <button
+                                    onClick={() => { setIsPermissionModalOpen(true); setIsAdminMenuOpen(false); }}
+                                    className="flex w-full items-center px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 hover:text-blue-600"
+                                >
+                                    <ShieldCheckIcon className="h-5 w-5 mr-3 text-slate-400" />
+                                    Phân quyền
+                                </button>
+                                <button
+                                    onClick={() => { setIsProductModalOpen(true); setIsAdminMenuOpen(false); }}
+                                    className="flex w-full items-center px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 hover:text-blue-600"
+                                >
+                                    <TableCellsIcon className="h-5 w-5 mr-3 text-slate-400" />
+                                    Sản phẩm
+                                </button>
+                                <button
+                                    onClick={() => { setIsUserModalOpen(true); setIsAdminMenuOpen(false); }}
+                                    className="flex w-full items-center px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 hover:text-blue-600"
+                                >
+                                    <UserGroupIcon className="h-5 w-5 mr-3 text-slate-400" />
+                                    Người dùng
+                                </button>
+                                <button
+                                    onClick={() => { setIsSystemSettingsModalOpen(true); setIsAdminMenuOpen(false); }}
+                                    className="flex w-full items-center px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 hover:text-blue-600"
+                                >
+                                    <Cog8ToothIcon className="h-5 w-5 mr-3 text-slate-400" />
+                                    Hệ thống
+                                </button>
+                            </div>
+                        )}
+
+                        {/* Desktop Icons Row */}
+                        <div className="hidden sm:flex items-center gap-1">
+                            <button
+                                onClick={() => setIsPermissionModalOpen(true)}
+                                className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors active:scale-95"
+                                title="Cấu hình phân quyền"
+                            >
+                                <ShieldCheckIcon className="h-5 w-5 sm:h-6 sm:w-6" />
+                            </button>
+                            <button
+                                onClick={() => setIsProductModalOpen(true)}
+                                className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors active:scale-95"
+                                title="Danh sách Sản phẩm"
+                            >
+                                <TableCellsIcon className="h-5 w-5 sm:h-6 sm:w-6" />
+                            </button>
+                            <button
+                                onClick={() => setIsUserModalOpen(true)}
+                                className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors active:scale-95"
+                                title="Quản lý Người dùng"
+                            >
+                                <UserGroupIcon className="h-5 w-5 sm:h-6 sm:w-6" />
+                            </button>
+                            <button 
+                                className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors active:scale-95"
+                                onClick={() => setIsSystemSettingsModalOpen(true)}
+                                title="Cấu hình / Cài đặt web"
+                            >
+                                <Cog8ToothIcon className="h-5 w-5 sm:h-6 sm:w-6" />
+                            </button>
+                        </div>
                     </div>
                 )}
             </div>
@@ -774,6 +864,7 @@ export const App: React.FC = () => {
                     summaryStats={summaryStats}
                     isLoading={isPending}
                     onExport={handleExportData}
+                    baseFontSize={systemSettings.baseFontSize}
                 />
             ) : (
                 <DashboardReport 
@@ -788,9 +879,9 @@ export const App: React.FC = () => {
       {/* Modals */}
       <Suspense fallback={null}>
           {selectedReport && (
-            <div className="fixed inset-0 z-50 flex justify-center items-center p-4 sm:p-6">
+            <div className="fixed inset-0 z-50 flex justify-center items-end sm:items-center sm:p-6">
                <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onClick={() => setSelectedReport(null)}></div>
-               <div className="relative w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col animate-fade-in-up ring-1 ring-slate-900/5">
+               <div className="relative w-full max-w-4xl bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl overflow-hidden h-[95dvh] sm:h-auto sm:max-h-[90vh] flex flex-col animate-slide-up ring-1 ring-slate-900/5 z-50">
                   <DefectReportDetail
                     report={selectedReport}
                     onEdit={handleEditClick}
@@ -843,6 +934,7 @@ export const App: React.FC = () => {
               <PermissionManagementModal
                 roleSettings={roleSettings}
                 onSave={handleSavePermissions}
+                onRenameRole={handleRenameRole}
                 onClose={() => setIsPermissionModalOpen(false)}
               />
           )}

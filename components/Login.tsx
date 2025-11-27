@@ -64,7 +64,7 @@ const Login: React.FC<Props> = ({ onLogin, users, settings }) => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center relative overflow-hidden font-sans text-slate-900">
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden text-slate-900">
        {renderBackground()}
        <style>{`
          .glass-card { 
