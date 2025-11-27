@@ -156,8 +156,8 @@ const Login: React.FC<Props> = ({ onLogin, users, settings }) => {
       </div>
       
       <div className="absolute bottom-6 w-full text-center z-10 p-4">
-           <p className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.2em] hover:text-slate-600 transition-colors cursor-default">
-               Copyright © 2025 Công ty Cổ phần Vật tư Hồng Thiện Mỹ
+           <p className="text-[11px] font-bold text-slate-400 tracking-[0.2em] hover:text-slate-600 transition-colors cursor-default">
+               Copyright © 2025 Công ty Cổ phần Vật tư tế Hồng Thiện Mỹ
            </p>
       </div>
     </div>

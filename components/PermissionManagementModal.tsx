@@ -1,5 +1,4 @@
 
-
 import React, { useState } from 'react';
 import { UserRole, RoleConfig, RoleSettings, PermissionField } from '../types';
 import { XIcon, CheckCircleIcon, PlusIcon, TrashIcon, PencilIcon } from './Icons';
@@ -163,17 +162,20 @@ const PermissionManagementModal: React.FC<Props> = ({ roleSettings, onSave, onRe
           return;
       }
 
-      // Tạo entry mới với config cũ và xóa entry cũ
-      setSettings(prev => {
-          const config = prev[editingRole];
-          const newSettings = { ...prev };
-          delete newSettings[editingRole]; // Xóa key cũ
-          newSettings[newName] = config; // Thêm key mới
-          return newSettings;
-      });
+      // 1. Calculate new settings state (remove old key, add new key with same config)
+      const newSettings = { ...settings };
+      const config = newSettings[editingRole];
+      delete newSettings[editingRole];
+      newSettings[newName] = config;
 
-      // Call parent handler to sync users immediately
+      setSettings(newSettings);
+
+      // 2. Call parent handler to sync users immediately (update User documents)
       await onRenameRole(editingRole, newName);
+      
+      // 3. IMPORTANT: Save the new settings structure to DB immediately
+      // This ensures that if the user refreshes, the new role key exists in settings to match the users' new role
+      onSave(newSettings);
 
       handleCancelRename();
   };

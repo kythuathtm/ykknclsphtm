@@ -78,4 +78,6 @@ export interface SystemSettings {
   backgroundValue: string;
   fontFamily?: string; // New: Configurable Font
   baseFontSize?: string; // New: Configurable Base Font Size
+  headerBackgroundColor?: string; // New: Header Background Color
+  headerTextColor?: string; // New: Header Text Color
 }

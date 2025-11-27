@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { DefectReport, UserRole } from '../types';
 import Pagination from './Pagination';
@@ -80,7 +81,9 @@ const DEFAULT_COLUMNS: ColumnConfig[] = [
 
 const HighlightText = React.memo(({ text, highlight }: { text: string, highlight: string }) => {
     if (!highlight.trim() || !text) return <>{text}</>;
-    const regex = new RegExp(`(${highlight})`, 'gi');
+    // Escape special characters for regex to prevent crash
+    const escapedHighlight = highlight.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`(${escapedHighlight})`, 'gi');
     const parts = text.split(regex);
     return (
         <span>
@@ -581,6 +584,8 @@ const DefectReportList: React.FC<Props> = ({
   );
   
   const canDeleteRole = ([UserRole.Admin, UserRole.KyThuat] as string[]).includes(currentUserRole);
+  // Only show Defect Type filter if NOT 'SanXuat' or 'Kho'
+  const showDefectTypeFilter = !([UserRole.SanXuat, UserRole.Kho] as string[]).includes(currentUserRole);
 
   return (
     <div className="flex flex-col h-full w-full relative px-0 sm:px-4 lg:px-8 py-0 sm:py-4">
@@ -628,23 +633,25 @@ const DefectReportList: React.FC<Props> = ({
                 ${isMobileFiltersOpen ? 'max-h-[300px] opacity-100 pt-2 lg:pt-0 border-t border-slate-100 lg:border-none' : 'max-h-0 opacity-0 lg:overflow-visible'}
             `}>
                 <div className="flex flex-col sm:flex-row gap-2 w-full items-center">
-                    <div className="relative group w-full sm:w-auto sm:min-w-[150px]">
-                        <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-500 transition-colors">
-                            <FunnelIcon className="h-4 w-4" />
+                    {showDefectTypeFilter && (
+                        <div className="relative group w-full sm:w-auto sm:min-w-[150px]">
+                            <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-500 transition-colors">
+                                <FunnelIcon className="h-4 w-4" />
+                            </div>
+                            {/* Filter Select: Regular + Small */}
+                            <select
+                                className="w-full pl-8 pr-8 py-2 text-sm font-normal border border-slate-200 rounded-xl bg-white text-slate-700 focus:outline-none focus:border-blue-500 hover:bg-slate-50 cursor-pointer appearance-none shadow-sm focus:ring-2 focus:ring-blue-500/20"
+                                value={filters.defectTypeFilter}
+                                onChange={(e) => onDefectTypeFilterChange(e.target.value)}
+                            >
+                                <option value="All">Tất cả nguồn</option>
+                                <option value="Lỗi Sản xuất">Lỗi Sản xuất</option>
+                                <option value="Lỗi Nhà cung cấp">Lỗi NCC</option>
+                                <option value="Lỗi Hỗn hợp">Lỗi Hỗn hợp</option>
+                                <option value="Lỗi Khác">Lỗi Khác</option>
+                            </select>
                         </div>
-                        {/* Filter Select: Regular + Small */}
-                        <select
-                            className="w-full pl-8 pr-8 py-2 text-sm font-normal border border-slate-200 rounded-xl bg-white text-slate-700 focus:outline-none focus:border-blue-500 hover:bg-slate-50 cursor-pointer appearance-none shadow-sm focus:ring-2 focus:ring-blue-500/20"
-                            value={filters.defectTypeFilter}
-                            onChange={(e) => onDefectTypeFilterChange(e.target.value)}
-                        >
-                            <option value="All">Tất cả nguồn</option>
-                            <option value="Lỗi Sản xuất">Lỗi Sản xuất</option>
-                            <option value="Lỗi Nhà cung cấp">Lỗi NCC</option>
-                            <option value="Lỗi Hỗn hợp">Lỗi Hỗn hợp</option>
-                            <option value="Lỗi Khác">Lỗi Khác</option>
-                        </select>
-                    </div>
+                    )}
                     
                     {/* DATE FILTER RANGE */}
                     <div className="flex w-full sm:w-auto items-center bg-white rounded-xl border border-slate-200 px-2 sm:px-3 py-1.5 shadow-sm focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-400 transition-all hover:border-slate-300">

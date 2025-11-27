@@ -1,4 +1,6 @@
 
+
+
 import React, { useState, useRef } from 'react';
 import { SystemSettings } from '../types';
 import { XIcon, CheckCircleIcon, ArrowUpTrayIcon, TrashIcon } from './Icons';
@@ -127,6 +129,56 @@ const SystemSettingsModal: React.FC<Props> = ({ currentSettings, onSave, onClose
                      </select>
                 </div>
             </div>
+
+            {/* Header Customization */}
+            <div className="p-4 bg-white border border-slate-200 rounded-xl shadow-sm">
+                <h4 className="text-sm font-bold text-slate-800 uppercase tracking-wide mb-3">Tùy chỉnh Header</h4>
+                <div className="grid grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-xs font-bold text-slate-500 mb-1.5">Màu nền (Background)</label>
+                        <div className="flex items-center gap-2">
+                            <input 
+                                type="color" 
+                                value={settings.headerBackgroundColor?.startsWith('#') ? settings.headerBackgroundColor : '#ffffff'}
+                                onChange={(e) => setSettings({...settings, headerBackgroundColor: e.target.value})}
+                                className="w-10 h-10 rounded cursor-pointer border-none p-0 shadow-sm"
+                            />
+                            <input 
+                                type="text"
+                                value={settings.headerBackgroundColor}
+                                onChange={(e) => setSettings({...settings, headerBackgroundColor: e.target.value})}
+                                className="flex-1 px-2 py-1.5 text-sm border border-slate-300 rounded bg-white focus:outline-none focus:border-blue-500 uppercase"
+                            />
+                        </div>
+                    </div>
+                    <div>
+                        <label className="block text-xs font-bold text-slate-500 mb-1.5">Màu chữ (Text Color)</label>
+                        <div className="flex items-center gap-2">
+                            <input 
+                                type="color" 
+                                value={settings.headerTextColor || '#0f172a'}
+                                onChange={(e) => setSettings({...settings, headerTextColor: e.target.value})}
+                                className="w-10 h-10 rounded cursor-pointer border-none p-0 shadow-sm"
+                            />
+                            <input 
+                                type="text"
+                                value={settings.headerTextColor}
+                                onChange={(e) => setSettings({...settings, headerTextColor: e.target.value})}
+                                className="flex-1 px-2 py-1.5 text-sm border border-slate-300 rounded bg-white focus:outline-none focus:border-blue-500 uppercase"
+                            />
+                        </div>
+                    </div>
+                </div>
+                <div className="mt-3 pt-3 border-t border-slate-100 flex justify-end">
+                    <button 
+                        onClick={() => setSettings({ ...settings, headerBackgroundColor: 'rgba(255, 255, 255, 0.9)', headerTextColor: '#0f172a' })}
+                        className="text-xs text-blue-600 hover:text-blue-700 font-bold underline"
+                    >
+                        Khôi phục mặc định (Trắng)
+                    </button>
+                </div>
+            </div>
+
             <p className="text-xs text-slate-500">Cấu hình hiển thị sẽ được áp dụng thống nhất cho toàn bộ ứng dụng trên thiết bị này.</p>
 
             {/* Logo Upload */}

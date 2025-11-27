@@ -3,6 +3,7 @@
 
 
 
+
 import { useState, useEffect } from 'react';
 import { RoleSettings, SystemSettings, UserRole, ToastType } from '../types';
 import { db } from '../firebaseConfig';
@@ -24,7 +25,9 @@ const DEFAULT_SYSTEM_SETTINGS: SystemSettings = {
   backgroundType: 'default',
   backgroundValue: '',
   fontFamily: 'Arial, sans-serif',
-  baseFontSize: '15px'
+  baseFontSize: '15px',
+  headerBackgroundColor: 'rgba(255, 255, 255, 0.9)',
+  headerTextColor: '#0f172a'
 };
 
 export const useSettings = (showToast: (msg: string, type: ToastType) => void) => {
