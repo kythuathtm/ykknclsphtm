@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { DefectReport, UserRole } from '../types';
 import Pagination from './Pagination';
@@ -751,7 +750,7 @@ const DefectReportList: React.FC<Props> = ({
                                 </div>
                             </div>
                         )}
-                    </tbody>
+                    </div>
                     {areFiltersActive && (
                         <button onClick={resetFilters} className="p-2 ml-1 text-red-600 bg-red-50 hover:bg-red-100 rounded-xl transition-colors border border-transparent hover:border-red-200 shadow-sm active:scale-95 flex-shrink-0" title="Xóa bộ lọc"><XIcon className="h-5 w-5" /></button>
                     )}
