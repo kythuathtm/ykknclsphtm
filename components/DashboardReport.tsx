@@ -1,4 +1,3 @@
-
 import React, { useMemo, useState } from 'react';
 import { DefectReport } from '../types';
 import { 
@@ -663,7 +662,7 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
         {/* MODAL WINDOW FOR DRILL-DOWN LIST */}
         {activeFilter && (
             <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-6 bg-slate-900/60 backdrop-blur-sm transition-opacity">
-                <div className="relative w-full max-w-5xl bg-white sm:rounded-2xl rounded-t-2xl shadow-2xl overflow-hidden h-[95dvh] sm:h-auto sm:max-h-[90vh] flex flex-col animate-fade-in-up ring-1 ring-white/20">
+                <div className="relative w-full h-full sm:h-auto sm:max-h-[90vh] max-w-5xl bg-white rounded-none sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col animate-fade-in-up ring-1 ring-white/20">
                     {/* Modal Header */}
                     <div className="flex justify-between items-center px-6 py-5 bg-white border-b border-slate-100">
                         <div className="flex items-center gap-4">

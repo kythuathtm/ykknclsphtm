@@ -1,4 +1,3 @@
-
 import React, { useRef, useState } from 'react';
 import { XIcon, ArrowUpTrayIcon, TrashIcon, PlusIcon, CheckCircleIcon } from './Icons';
 import * as XLSX from 'xlsx';
@@ -118,7 +117,7 @@ const ProductListModal: React.FC<Props> = ({ products, onClose, onImport, onAdd,
 
   return (
     <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center sm:p-4 transition-opacity">
-      <div className="bg-white sm:rounded-2xl rounded-t-2xl w-full max-w-7xl h-[100dvh] sm:h-auto sm:max-h-[90vh] flex flex-col overflow-hidden ring-1 ring-black/5">
+      <div className="bg-white w-full h-full sm:h-auto sm:max-h-[90vh] max-w-7xl rounded-none sm:rounded-2xl flex flex-col overflow-hidden ring-1 ring-black/5">
         
         {/* Header */}
         <div className="flex justify-between items-center p-5 border-b border-slate-200 bg-white">

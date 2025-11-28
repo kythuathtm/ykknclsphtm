@@ -76,17 +76,19 @@ const DraggableFAB = ({ onClick }: { onClick: () => void }) => {
     const hasMovedRef = useRef(false);
 
     useEffect(() => {
-        // Initialize position to bottom right
+        // Initialize position higher up on mobile to avoid pagination overlap
+        const isMobile = window.innerWidth < 640;
         setPosition({ 
             x: window.innerWidth - 80, 
-            y: window.innerHeight - 100 
+            y: window.innerHeight - (isMobile ? 140 : 100)
         });
         setIsInitialized(true);
 
         const handleResize = () => {
+             const isMobile = window.innerWidth < 640;
              setPosition(prev => ({
                  x: Math.min(prev.x, window.innerWidth - 80),
-                 y: Math.min(prev.y, window.innerHeight - 80)
+                 y: Math.min(prev.y, window.innerHeight - (isMobile ? 140 : 80))
              }));
         };
         window.addEventListener('resize', handleResize);
@@ -962,9 +964,9 @@ export const App: React.FC = () => {
       {/* Modals */}
       <Suspense fallback={null}>
           {selectedReport && (
-            <div className="fixed inset-0 z-50 flex justify-center items-end sm:items-center sm:p-6">
+            <div className="fixed inset-0 z-50 flex justify-center items-end sm:items-center sm:p-4">
                <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onClick={() => setSelectedReport(null)}></div>
-               <div className="relative w-full max-w-4xl bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl overflow-hidden h-[95dvh] sm:h-auto sm:max-h-[90vh] flex flex-col animate-slide-up ring-1 ring-slate-900/5 z-50">
+               <div className="relative w-full h-full sm:h-auto sm:max-h-[90vh] max-w-4xl bg-white rounded-none sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col animate-slide-up ring-1 ring-slate-900/5 z-50">
                   <DefectReportDetail
                     report={selectedReport}
                     onEdit={handleEditClick}

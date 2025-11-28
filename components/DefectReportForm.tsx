@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { DefectReport, UserRole, PermissionField, Product } from '../types';
 import { XIcon, CheckCircleIcon, TagIcon, WrenchIcon, LockClosedIcon, ShieldCheckIcon, ClipboardDocumentListIcon, CalendarIcon, BuildingStoreIcon } from './Icons';
@@ -334,7 +332,7 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
 
   return (
     <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center sm:p-4 transition-opacity">
-      <div className="bg-white w-full max-w-6xl h-[100dvh] sm:h-auto sm:max-h-[90vh] rounded-none sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-slide-up ring-1 ring-white/20">
+      <div className="bg-white w-full h-full sm:h-auto sm:max-h-[90vh] max-w-6xl rounded-none sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-slide-up ring-1 ring-white/20">
         
         <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 bg-white">
           <div>
