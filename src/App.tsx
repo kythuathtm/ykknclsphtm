@@ -364,7 +364,7 @@ export const App: React.FC = () => {
 
   // Memoized Handlers for List to avoid re-renders
   const handleSaveReportWrapper = async (report: DefectReport) => {
-      const isEditing = !!editingReport;
+      const isEditing = !!editingReport && !editingReport.id.startsWith('new_');
       const success = await saveReport(report, isEditing);
       if (success) {
           setIsFormOpen(false);
@@ -390,6 +390,26 @@ export const App: React.FC = () => {
     setEditingReport(null);
     setIsFormOpen(true);
   };
+
+  const handleDuplicateReport = useCallback((report: DefectReport) => {
+      // Create a copy but reset status-related fields
+      const duplicate: DefectReport = {
+          ...report,
+          id: `new_${Date.now()}`, // Temporary ID to indicate new
+          ngayTao: new Date().toISOString(),
+          ngayPhanAnh: new Date().toISOString().split('T')[0],
+          trangThai: 'Mới',
+          soLuongLoi: report.soLuongLoi, // Keep quantities as they might be similar
+          soLuongDaNhap: report.soLuongDaNhap,
+          soLuongDoi: 0,
+          nguyenNhan: '',
+          huongKhacPhuc: '',
+          ngayHoanThanh: '',
+          ngayDoiHang: '',
+      };
+      setEditingReport(duplicate);
+      setIsFormOpen(true);
+  }, []);
 
   const handleItemsPerPageChange = useCallback((newItemsPerPage: number) => {
     setItemsPerPage(newItemsPerPage);
@@ -584,6 +604,7 @@ export const App: React.FC = () => {
                     summaryStats={summaryStats}
                     isLoading={isPending}
                     onExport={handleExportData}
+                    onDuplicate={handleDuplicateReport}
                     baseFontSize={systemSettings.baseFontSize}
                 />
             ) : (

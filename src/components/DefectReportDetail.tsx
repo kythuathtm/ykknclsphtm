@@ -1,7 +1,7 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { DefectReport, UserRole } from '../types';
-import { PencilIcon, TrashIcon, XIcon, WrenchIcon, QuestionMarkCircleIcon, ClipboardDocumentListIcon, TagIcon, UserIcon, CheckCircleIcon, CalendarIcon } from './Icons';
+import { PencilIcon, TrashIcon, XIcon, WrenchIcon, QuestionMarkCircleIcon, ClipboardDocumentListIcon, TagIcon, UserIcon, CheckCircleIcon, CalendarIcon, CompanyLogo, ListBulletIcon } from './Icons';
+import { useReactToPrint } from 'react-to-print';
 
 interface Props {
   report: DefectReport;
@@ -46,12 +46,21 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onUpdate, onDelet
   });
   
   const [isUpdating, setIsUpdating] = useState(false);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
   
   // Granular edit state
   const [editingSections, setEditingSections] = useState({
       nguyenNhan: false,
       huongKhacPhuc: false,
       soLuong: false
+  });
+
+  const printRef = useRef<HTMLDivElement>(null);
+  
+  const handlePrint = useReactToPrint({
+      contentRef: printRef,
+      documentTitle: `Phieu_Phan_Anh_${report.maSanPham}_${report.id.slice(0, 6)}`,
+      bodyClass: 'bg-white',
   });
 
   const isEditing = Object.values(editingSections).some(Boolean);
@@ -144,6 +153,11 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onUpdate, onDelet
             <h3 className="text-lg sm:text-xl font-bold text-slate-900 leading-tight line-clamp-2">{report.tenThuongMai}</h3>
           </div>
           <div className="flex items-center gap-1 sm:gap-2 ml-4">
+            <button onClick={() => handlePrint()} className="hidden sm:flex p-2 text-slate-400 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-all active:scale-95 border border-transparent hover:border-slate-200" title="In phiếu">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z" />
+                </svg>
+            </button>
             {permissions.canEdit && (
               <button onClick={() => onEdit(report)} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all active:scale-95 border border-transparent hover:border-blue-100" title="Chỉnh sửa toàn bộ">
                 <PencilIcon className="h-5 w-5" />
@@ -202,6 +216,18 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onUpdate, onDelet
                             {report.noiDungPhanAnh}
                         </dd>
                     </div>
+                    {report.images && report.images.length > 0 && (
+                        <div className="col-span-full mt-4">
+                             <dt className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Hình ảnh minh chứng</dt>
+                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                 {report.images.map((img, idx) => (
+                                     <div key={idx} className="cursor-pointer group aspect-square rounded-lg overflow-hidden border border-slate-200 bg-slate-100" onClick={() => setPreviewImage(img)}>
+                                         <img src={img} alt="proof" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"/>
+                                     </div>
+                                 ))}
+                             </div>
+                        </div>
+                    )}
                 </dl>
              </Section>
         </div>
@@ -284,8 +310,8 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onUpdate, onDelet
                                 autoFocus
                               />
                           ) : (
-                              <p className={`text-base font-normal leading-relaxed ${report.nguyenNhan ? 'text-slate-800' : 'text-slate-400 italic'}`}>
-                                  {report.nguyenNhan || 'Click để nhập nguyên nhân...'}
+                              <p className={`text-base font-normal leading-relaxed ${quickUpdateData.nguyenNhan ? 'text-slate-800' : 'text-slate-400 italic'}`}>
+                                  {quickUpdateData.nguyenNhan || 'Click để nhập nguyên nhân...'}
                               </p>
                           )}
                       </div>
@@ -309,8 +335,8 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onUpdate, onDelet
                                 autoFocus
                               />
                           ) : (
-                               <p className={`text-base font-normal leading-relaxed ${report.huongKhacPhuc ? 'text-slate-800' : 'text-slate-400 italic'}`}>
-                                  {report.huongKhacPhuc || 'Click để nhập hướng khắc phục...'}
+                               <p className={`text-base font-normal leading-relaxed ${quickUpdateData.huongKhacPhuc ? 'text-slate-800' : 'text-slate-400 italic'}`}>
+                                  {quickUpdateData.huongKhacPhuc || 'Click để nhập hướng khắc phục...'}
                                </p>
                           )}
                       </div>
@@ -358,7 +384,7 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onUpdate, onDelet
                                    />
                                ) : (
                                    <p className="text-center text-sm font-bold text-emerald-800">
-                                       {report.ngayDoiHang ? new Date(report.ngayDoiHang).toLocaleDateString('en-GB') : <span className="text-emerald-400 italic font-normal text-xs">--/--/----</span>}
+                                       {quickUpdateData.ngayDoiHang ? new Date(quickUpdateData.ngayDoiHang).toLocaleDateString('en-GB') : <span className="text-emerald-400 italic font-normal text-xs">--/--/----</span>}
                                    </p>
                                )}
                            </div>
@@ -385,6 +411,112 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onUpdate, onDelet
             </div>
         </div>
 
+      </div>
+
+      {/* Image Preview Modal */}
+      {previewImage && (
+          <div className="fixed inset-0 z-[60] bg-black/90 flex items-center justify-center p-4 animate-fade-in" onClick={() => setPreviewImage(null)}>
+              <img src={previewImage} alt="Preview" className="max-w-full max-h-full object-contain rounded-lg shadow-2xl" />
+              <button className="absolute top-4 right-4 text-white p-2 rounded-full bg-white/20 hover:bg-white/40">
+                  <XIcon className="w-8 h-8" />
+              </button>
+          </div>
+      )}
+
+      {/* Hidden Print Template */}
+      <div style={{ display: 'none' }}>
+            <div ref={printRef} className="print-container p-8 font-sans text-slate-900 bg-white">
+                <style>{`
+                    @media print {
+                        @page { size: A4; margin: 20mm; }
+                        body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+                        .print-container { display: block !important; width: 100%; }
+                    }
+                `}</style>
+                <div className="flex items-center justify-between border-b-2 border-slate-800 pb-4 mb-6">
+                     <div className="flex items-center gap-4">
+                        <div className="w-16 h-16"><CompanyLogo className="w-full h-full"/></div>
+                        <div>
+                             <h1 className="text-2xl font-bold uppercase">PHIẾU PHẢN ÁNH SẢN PHẨM LỖI</h1>
+                             <p className="text-sm font-semibold text-slate-600">Công ty Cổ phần Vật tư Y tế Hồng Thiện Mỹ</p>
+                        </div>
+                     </div>
+                     <div className="text-right">
+                         <p className="text-sm font-bold">Số phiếu: #{report.id.substring(0, 8)}</p>
+                         <p className="text-sm">Ngày in: {new Date().toLocaleDateString('en-GB')}</p>
+                     </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-x-8 gap-y-4 mb-6">
+                    <div>
+                        <span className="block text-xs font-bold uppercase text-slate-500 mb-1">Sản phẩm</span>
+                        <span className="block font-bold text-lg">{report.tenThuongMai}</span>
+                    </div>
+                     <div>
+                        <span className="block text-xs font-bold uppercase text-slate-500 mb-1">Mã SP</span>
+                        <span className="block font-bold text-lg">{report.maSanPham}</span>
+                    </div>
+                     <div>
+                        <span className="block text-xs font-bold uppercase text-slate-500 mb-1">Số lô</span>
+                        <span className="block font-bold">{report.soLo}</span>
+                    </div>
+                     <div>
+                        <span className="block text-xs font-bold uppercase text-slate-500 mb-1">Hạn dùng/NSX</span>
+                        <span className="block font-bold">{report.maNgaySanXuat || '---'}</span>
+                    </div>
+                     <div className="col-span-2">
+                        <span className="block text-xs font-bold uppercase text-slate-500 mb-1">Đơn vị sử dụng</span>
+                        <span className="block font-bold">{report.donViSuDung}</span>
+                    </div>
+                </div>
+
+                <div className="mb-6 border border-slate-300 rounded p-4">
+                     <h3 className="font-bold uppercase mb-2 border-b border-slate-200 pb-1">Nội dung phản ánh</h3>
+                     <p className="text-justify leading-relaxed">{report.noiDungPhanAnh}</p>
+                </div>
+
+                <div className="mb-6 grid grid-cols-3 gap-4 text-center border-b border-slate-200 pb-6">
+                     <div className="bg-slate-50 p-2 border border-slate-200 rounded">
+                         <span className="block text-xs uppercase font-bold text-slate-500">Số lượng nhập</span>
+                         <span className="block text-xl font-bold">{report.soLuongDaNhap}</span>
+                     </div>
+                      <div className="bg-slate-50 p-2 border border-slate-200 rounded">
+                         <span className="block text-xs uppercase font-bold text-slate-500">Số lượng lỗi</span>
+                         <span className="block text-xl font-bold">{report.soLuongLoi}</span>
+                     </div>
+                      <div className="bg-slate-50 p-2 border border-slate-200 rounded">
+                         <span className="block text-xs uppercase font-bold text-slate-500">Số lượng đổi</span>
+                         <span className="block text-xl font-bold">{report.soLuongDoi}</span>
+                     </div>
+                </div>
+
+                <div className="mb-8">
+                     <h3 className="font-bold uppercase mb-2">Kết quả xử lý</h3>
+                     <div className="mb-2">
+                         <span className="font-bold text-sm uppercase text-slate-500 mr-2">Nguyên nhân:</span>
+                         <span>{report.nguyenNhan || 'Đang chờ cập nhật'}</span>
+                     </div>
+                     <div>
+                         <span className="font-bold text-sm uppercase text-slate-500 mr-2">Hướng khắc phục:</span>
+                         <span>{report.huongKhacPhuc || 'Đang chờ cập nhật'}</span>
+                     </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-8 text-center mt-12">
+                     <div>
+                         <p className="font-bold text-sm uppercase mb-12">Người lập phiếu</p>
+                         <p className="text-sm italic">(Ký, họ tên)</p>
+                     </div>
+                      <div>
+                         <p className="font-bold text-sm uppercase mb-12">Bộ phận Kỹ thuật</p>
+                         <p className="text-sm italic">(Ký, họ tên)</p>
+                     </div>
+                      <div>
+                         <p className="font-bold text-sm uppercase mb-12">Ban Giám Đốc</p>
+                         <p className="text-sm italic">(Duyệt)</p>
+                     </div>
+                </div>
+            </div>
       </div>
     </>
   );
