@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { User, SystemSettings, UserRole } from '../types';
 import { 
@@ -75,25 +76,25 @@ export const Header: React.FC<HeaderProps> = ({
         }}
       >
         <div className="max-w-[1920px] mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2 sm:gap-4">
-          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+          <div className="flex items-center gap-2 sm:gap-4 min-w-0">
             <div className="bg-gradient-to-br from-blue-600 to-indigo-600 p-1.5 sm:p-2 rounded-xl shadow-lg shadow-blue-600/20 flex-shrink-0">
                <BarChartIcon className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
             </div>
             
-            {/* Desktop Title: 2 Lines */}
+            {/* Desktop Title: 2 Lines with Hierarchy */}
             <div className="hidden md:flex flex-col justify-center">
-               <span className="text-[10px] sm:text-[11px] font-bold opacity-70 uppercase leading-tight mb-0.5">
+               <span className="text-xs font-bold opacity-60 uppercase tracking-widest mb-0.5">
                  CÔNG TY CỔ PHẦN VẬT TƯ Y TẾ HỒNG THIỆN MỸ
                </span>
-               <span className="text-sm sm:text-base font-extrabold uppercase leading-none">
+               <span className="text-lg lg:text-xl font-extrabold uppercase tracking-tight leading-none">
                  THEO DÕI PHẢN ÁNH CHẤT LƯỢNG SẢN PHẨM
                </span>
             </div>
             
             {/* Mobile Title Fallback */}
             <div className="md:hidden flex flex-col justify-center">
-               <span className="text-[10px] font-bold opacity-70 uppercase leading-tight mb-0.5">HTM JSC</span>
-               <span className="text-sm font-extrabold uppercase leading-none">
+               <span className="text-[10px] font-bold opacity-60 uppercase tracking-wide mb-0.5">HTM JSC</span>
+               <span className="text-sm font-bold uppercase leading-none">
                  THEO DÕI LỖI SP
                </span>
             </div>
