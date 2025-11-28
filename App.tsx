@@ -176,7 +176,7 @@ export const App: React.FC = () => {
   useEffect(() => {
     const root = document.documentElement;
     if (systemSettings.fontFamily) {
-        // Use CSS Variable for font family to ensure compatibility with Tailwind
+        // Update CSS variable to work with Tailwind's configured font-sans
         root.style.setProperty('--app-font', systemSettings.fontFamily);
     }
     if (systemSettings.baseFontSize) {
