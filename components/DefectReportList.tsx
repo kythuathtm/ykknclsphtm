@@ -25,7 +25,7 @@ interface Props {
   selectedReport: DefectReport | null;
   onSelectReport: (report: DefectReport) => void;
   currentUserRole: UserRole;
-  currentUsername: string;
+  currentUsername: string; // New prop for user-specific storage
   filters: {
     searchTerm: string;
     statusFilter: string;
@@ -55,13 +55,6 @@ const statusColorMap: { [key in DefectReport['trangThai']]: string } = {
   'Hoàn thành': 'bg-emerald-50 text-emerald-700 border-emerald-200',
 };
 
-const statusBorderMap: { [key in DefectReport['trangThai']]: string } = {
-    'Mới': 'border-blue-500',
-    'Đang xử lý': 'border-amber-500',
-    'Chưa tìm ra nguyên nhân': 'border-purple-500',
-    'Hoàn thành': 'border-emerald-500',
-};
-
 type ColumnId = 'stt' | 'ngayPhanAnh' | 'maSanPham' | 'tenThuongMai' | 'noiDungPhanAnh' | 'soLo' | 'maNgaySanXuat' | 'trangThai' | 'actions';
 
 interface ColumnConfig {
@@ -73,6 +66,7 @@ interface ColumnConfig {
   fixed?: boolean;
 }
 
+// Default Configuration - Removed 'select' column
 const DEFAULT_COLUMNS: ColumnConfig[] = [
     { id: 'stt', label: 'STT', visible: true, width: 60, align: 'center' },
     { id: 'ngayPhanAnh', label: 'Ngày phản ánh', visible: true, width: 130, align: 'left' },
@@ -87,6 +81,7 @@ const DEFAULT_COLUMNS: ColumnConfig[] = [
 
 const HighlightText = React.memo(({ text, highlight }: { text: string, highlight: string }) => {
     if (!highlight.trim() || !text) return <>{text}</>;
+    // Escape special characters for regex to prevent crash
     const escapedHighlight = highlight.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const regex = new RegExp(`(${escapedHighlight})`, 'gi');
     const parts = text.split(regex);
@@ -115,66 +110,65 @@ const MobileReportCard = React.memo(({
         <div 
             style={style}
             onClick={onSelect}
-            className="absolute left-0 right-0 w-full px-3 py-2 touch-manipulation"
+            className={`absolute left-0 right-0 w-full px-4 py-3 border-b border-slate-100 active:bg-slate-100 transition-colors touch-manipulation flex flex-col justify-between bg-white`}
         >
-            <div className={`bg-white rounded-xl shadow-sm border border-slate-100 border-l-4 ${statusBorderMap[report.trangThai]} active:scale-[0.98] transition-transform duration-200 h-full flex flex-col justify-between overflow-hidden`}>
-                <div className="p-3 pb-0 flex-1">
-                    <div className="flex justify-between items-start mb-2">
-                        <div className="flex flex-col flex-1 mr-2">
-                            <h4 className="font-bold text-slate-900 text-base leading-tight mb-1.5 line-clamp-1">
-                                <HighlightText text={report.tenThuongMai} highlight={highlight} />
-                            </h4>
-                            <div className="flex items-center gap-2">
-                                <span className="text-xs font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-100 uppercase tracking-wide">
-                                    <HighlightText text={report.maSanPham} highlight={highlight} />
-                                </span>
-                                <span className="text-xs text-slate-400 font-medium flex items-center">
-                                    {new Date(report.ngayPhanAnh).toLocaleDateString('en-GB')}
-                                </span>
-                            </div>
-                        </div>
-                        <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-1 rounded-lg border bg-white shadow-sm flex-shrink-0 ${statusColorMap[report.trangThai]}`}>
-                            {report.trangThai}
+            <div>
+                <div className="flex justify-between items-start mb-2">
+                    <div className="flex items-center gap-2">
+                        <span className="text-base text-slate-600 px-2 py-1 rounded border border-slate-200 bg-slate-100">
+                            <HighlightText text={report.maSanPham} highlight={highlight} />
+                        </span>
+                        <span className="text-sm text-slate-400 flex items-center gap-1">
+                            <CalendarIcon className="w-3 h-3" />
+                            {new Date(report.ngayPhanAnh).toLocaleDateString('en-GB')}
                         </span>
                     </div>
-                    
-                    {/* Content Preview */}
-                    <div className="text-sm font-normal text-slate-500 bg-slate-50/80 p-2 rounded-lg italic line-clamp-2 border border-slate-50 leading-relaxed mb-2">
-                        <HighlightText text={report.noiDungPhanAnh || 'Không có nội dung'} highlight={highlight} />
-                    </div>
+                    <span className={`px-2 py-1 rounded text-sm border ${statusColorMap[report.trangThai]}`}>
+                        {report.trangThai}
+                    </span>
                 </div>
                 
-                {/* Footer Action Strip */}
-                <div className="flex items-center justify-between px-3 py-2 border-t border-slate-100 bg-slate-50/30">
-                     <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-slate-500 bg-white px-2 py-0.5 rounded border border-slate-200 shadow-sm">Lô: {report.soLo}</span>
-                     </div>
-                     
-                     <div className="flex items-center gap-2">
-                          {onDuplicate && (
-                              <button 
-                                 onClick={(e) => { e.stopPropagation(); onDuplicate(report); }}
-                                 className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg active:scale-95 transition-colors"
-                                 title="Sao chép"
-                              >
-                                 <DocumentDuplicateIcon className="h-5 w-5" />
-                              </button>
-                          )}
-                          {canDelete && (
-                              <button 
-                                 onClick={(e) => { e.stopPropagation(); onDelete(report.id); }}
-                                 className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg active:scale-95 transition-colors"
-                                 title="Xóa"
-                              >
-                                 <TrashIcon className="h-5 w-5" />
-                              </button>
-                          )}
-                     </div>
+                {/* Title: Bold */}
+                <h4 className="font-bold text-slate-800 text-base mb-1.5 leading-snug line-clamp-2">
+                    <HighlightText text={report.tenThuongMai} highlight={highlight} />
+                </h4>
+                
+                {/* Content: Regular */}
+                <div className="text-base font-normal text-slate-500 mb-2 leading-relaxed bg-slate-50 p-2 rounded-lg border border-slate-100 italic line-clamp-2">
+                    <HighlightText text={report.noiDungPhanAnh || 'Không có nội dung'} highlight={highlight} />
                 </div>
+            </div>
+            
+            <div className="flex justify-between items-center mt-1">
+                 <div className="text-base text-slate-500">
+                    Lô: <span className="text-slate-800"><HighlightText text={report.soLo} highlight={highlight} /></span>
+                 </div>
+                 
+                 <div className="flex items-center gap-3">
+                      {onDuplicate && (
+                          <button 
+                             onClick={(e) => { e.stopPropagation(); onDuplicate(report); }}
+                             className="text-slate-400 hover:text-blue-600 active:scale-95 p-2 -m-2"
+                             title="Sao chép"
+                          >
+                             <DocumentDuplicateIcon className="h-5 w-5" />
+                          </button>
+                      )}
+                      {canDelete && (
+                          <button 
+                             onClick={(e) => { e.stopPropagation(); onDelete(report.id); }}
+                             className="text-slate-400 hover:text-red-600 active:scale-95 p-2 -m-2"
+                             title="Xóa"
+                          >
+                             <TrashIcon className="h-5 w-5" />
+                          </button>
+                      )}
+                 </div>
             </div>
         </div>
     );
 });
+
 
 const DefectReportList: React.FC<Props> = ({ 
   reports, totalReports, currentPage, itemsPerPage, onPageChange, 
@@ -205,8 +199,8 @@ const DefectReportList: React.FC<Props> = ({
   
   // Dynamic Row Height Calculation
   const fontSizePx = parseInt(baseFontSize, 10) || 15;
-  const ROW_HEIGHT = Math.max(54, fontSizePx * 3.6);        // Scale row height with font
-  const MOBILE_ROW_HEIGHT = Math.max(200, fontSizePx * 13.5); // Scale mobile card height
+  const ROW_HEIGHT = Math.max(50, fontSizePx * 3.4);        // Scale row height with font
+  const MOBILE_ROW_HEIGHT = Math.max(190, fontSizePx * 12.5); // Scale mobile card height
 
   // --- RESIZING LOGIC ---
   const resizingRef = useRef<{ startX: number; startWidth: number; colId: ColumnId } | null>(null);
@@ -497,19 +491,19 @@ const DefectReportList: React.FC<Props> = ({
   const renderCell = (report: DefectReport, columnId: ColumnId, index: number) => {
       switch (columnId) {
           case 'stt':
-              return <span className="text-slate-500 font-medium text-base">{(currentPage - 1) * itemsPerPage + index + 1}</span>;
+              return <span className="text-slate-500 font-normal text-base">{(currentPage - 1) * itemsPerPage + index + 1}</span>;
           case 'ngayPhanAnh':
               return <span className="text-slate-700 font-normal text-base whitespace-nowrap">{new Date(report.ngayPhanAnh).toLocaleDateString('en-GB')}</span>;
           case 'maSanPham':
               return (
-                  <span className="text-blue-700 font-bold text-base whitespace-nowrap block truncate" title={report.maSanPham}>
+                  <span className="text-blue-700 font-normal text-base whitespace-nowrap block truncate" title={report.maSanPham}>
                       <HighlightText text={report.maSanPham} highlight={filters.searchTerm} />
                   </span>
               );
           case 'tenThuongMai':
               return (
                 <div className="w-full pr-2" title={report.tenThuongMai}>
-                    <div className="font-semibold text-slate-800 text-base leading-snug line-clamp-2 whitespace-normal break-words">
+                    <div className="font-normal text-slate-800 text-base leading-snug line-clamp-2 whitespace-normal break-words">
                         <HighlightText text={report.tenThuongMai} highlight={filters.searchTerm} />
                     </div>
                 </div>
@@ -554,8 +548,8 @@ const DefectReportList: React.FC<Props> = ({
                                 e.stopPropagation();
                                 onDuplicate(report);
                             }}
-                            className="p-2 bg-white text-slate-400 hover:text-blue-600 hover:bg-blue-50 border border-slate-200 hover:border-blue-200 rounded-lg transition-all shadow-sm active:scale-95"
-                            title="Sao chép"
+                            className="p-1.5 bg-white text-slate-400 hover:text-blue-600 hover:bg-blue-50 border border-slate-200 hover:border-blue-200 rounded-lg transition-all shadow-sm active:scale-95"
+                            title="Sao chép (Duplicate)"
                         >
                             <DocumentDuplicateIcon className="h-4 w-4" />
                         </button>
@@ -566,7 +560,7 @@ const DefectReportList: React.FC<Props> = ({
                                 e.stopPropagation();
                                 setReportToDelete(report);
                             }}
-                            className="p-2 bg-white text-slate-400 hover:text-red-600 hover:bg-red-50 border border-slate-200 hover:border-red-200 rounded-lg transition-all shadow-sm active:scale-95"
+                            className="p-1.5 bg-white text-slate-400 hover:text-red-600 hover:bg-red-50 border border-slate-200 hover:border-red-200 rounded-lg transition-all shadow-sm active:scale-95"
                             title="Xóa"
                         >
                             <TrashIcon className="h-4 w-4" />
@@ -582,9 +576,9 @@ const DefectReportList: React.FC<Props> = ({
   const StatTab = ({ label, count, active, onClick, icon }: any) => (
       <button 
           onClick={onClick}
-          className={`relative flex items-center gap-2 px-4 py-3 text-sm font-bold transition-all border-b-2 whitespace-nowrap z-10 flex-shrink-0 snap-start select-none ${
+          className={`relative flex items-center gap-2 px-4 py-3 text-sm font-bold transition-all border-b-2 whitespace-nowrap z-10 flex-shrink-0 snap-start ${
               active 
-              ? 'text-blue-700 border-blue-600 bg-blue-50/60' 
+              ? 'text-blue-700 border-blue-600 bg-blue-50/40' 
               : 'text-slate-500 border-transparent hover:text-slate-700 hover:bg-slate-50'
           }`}
       >
@@ -599,6 +593,7 @@ const DefectReportList: React.FC<Props> = ({
   );
   
   const canDeleteRole = ([UserRole.Admin, UserRole.KyThuat] as string[]).includes(currentUserRole);
+  // Only show Defect Type filter if NOT 'SanXuat' or 'Kho'
   const showDefectTypeFilter = !([UserRole.SanXuat, UserRole.Kho] as string[]).includes(currentUserRole);
 
   return (
@@ -606,8 +601,8 @@ const DefectReportList: React.FC<Props> = ({
       
       <div className="flex flex-col h-full bg-slate-50 sm:bg-white sm:rounded-2xl sm:shadow-soft sm:border sm:border-slate-200 overflow-hidden sm:ring-1 sm:ring-slate-100 relative">
           
-          {/* TABS */}
-          <div className="flex border-b border-slate-200 overflow-x-auto no-scrollbar bg-white/80 backdrop-blur-sm shadow-sm z-20 sticky top-0 h-12 w-full snap-x">
+          {/* TABS (Scrollable on Mobile) */}
+          <div className="flex border-b border-slate-200 overflow-x-auto no-scrollbar bg-white shadow-sm z-20 sticky top-0 h-12 w-full snap-x">
               <StatTab label="Tất cả" count={summaryStats.total} active={filters.statusFilter === 'All'} onClick={() => onStatusFilterChange('All')} icon={<InboxIcon className="h-4 w-4"/>} />
               <StatTab label="Mới" count={summaryStats.moi} active={filters.statusFilter === 'Mới'} onClick={() => onStatusFilterChange('Mới')} icon={<SparklesIcon className="h-4 w-4"/>} />
               <StatTab label="Đang xử lý" count={summaryStats.dangXuLy} active={filters.statusFilter === 'Đang xử lý'} onClick={() => onStatusFilterChange('Đang xử lý')} icon={<ClockIcon className="h-4 w-4"/>} />
@@ -615,7 +610,7 @@ const DefectReportList: React.FC<Props> = ({
               <StatTab label="Hoàn thành" count={summaryStats.hoanThanh} active={filters.statusFilter === 'Hoàn thành'} onClick={() => onStatusFilterChange('Hoàn thành')} icon={<CheckCircleIcon className="h-4 w-4"/>} />
           </div>
 
-          {/* FILTER BAR */}
+          {/* FILTER BAR (Responsive) */}
           <div className="p-2 sm:p-3 flex flex-col lg:flex-row gap-2 sm:gap-3 items-stretch lg:items-center justify-between bg-white border-b border-slate-100">
              
              {/* Mobile Filter Toggle & Search */}
@@ -624,6 +619,7 @@ const DefectReportList: React.FC<Props> = ({
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-600 transition-colors">
                         <MagnifyingGlassIcon className="h-5 w-5" />
                     </div>
+                    {/* Filter Input: Regular + Small */}
                     <input
                         type="text"
                         className="block w-full pl-10 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-normal placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white transition-all shadow-sm hover:border-slate-300"
@@ -640,7 +636,7 @@ const DefectReportList: React.FC<Props> = ({
                 </button>
              </div>
 
-            {/* Collapsible Filter Area */}
+            {/* Collapsible Filter Area (Hidden on Mobile unless toggled) */}
             <div className={`
                 flex flex-col lg:flex-row gap-2 w-full lg:w-auto overflow-hidden transition-all duration-300 ease-in-out lg:!h-auto lg:!opacity-100
                 ${isMobileFiltersOpen ? 'max-h-[300px] opacity-100 pt-2 lg:pt-0 border-t border-slate-100 lg:border-none' : 'max-h-0 opacity-0 lg:overflow-visible'}
@@ -651,6 +647,7 @@ const DefectReportList: React.FC<Props> = ({
                             <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-500 transition-colors">
                                 <FunnelIcon className="h-4 w-4" />
                             </div>
+                            {/* Filter Select: Regular + Small */}
                             <select
                                 className="w-full pl-8 pr-8 py-2 text-sm font-normal border border-slate-200 rounded-xl bg-white text-slate-700 focus:outline-none focus:border-blue-500 hover:bg-slate-50 cursor-pointer appearance-none shadow-sm focus:ring-2 focus:ring-blue-500/20"
                                 value={filters.defectTypeFilter}
@@ -665,9 +662,11 @@ const DefectReportList: React.FC<Props> = ({
                         </div>
                     )}
                     
+                    {/* DATE FILTER RANGE */}
                     <div className="flex w-full sm:w-auto items-center bg-white rounded-xl border border-slate-200 px-2 sm:px-3 py-1.5 shadow-sm focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-400 transition-all hover:border-slate-300">
                         <CalendarIcon className="h-4 w-4 text-slate-400 mr-2 flex-shrink-0" />
                         <div className="flex items-center gap-1 flex-1">
+                            {/* Filter Date Input: Regular + Small */}
                             <input
                                 type="date"
                                 className="bg-transparent text-sm text-slate-700 focus:outline-none font-normal py-0.5 w-[85px] cursor-pointer"

@@ -11,7 +11,7 @@ import { useReports } from './hooks/useReports';
 import { useProducts } from './hooks/useProducts';
 import { useSettings } from './hooks/useSettings';
 
-// Lazy load components - Standard syntax to avoid React Error #306
+// Lazy load components
 const DefectReportList = React.lazy(() => import('./components/DefectReportList'));
 const DefectReportDetail = React.lazy(() => import('./components/DefectReportDetail'));
 const DefectReportForm = React.lazy(() => import('./components/DefectReportForm'));

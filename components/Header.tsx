@@ -82,18 +82,18 @@ export const Header: React.FC<HeaderProps> = ({
             
             {/* Desktop Title: 2 Lines */}
             <div className="hidden md:flex flex-col justify-center">
-               <span className="text-[10px] sm:text-[11px] font-bold opacity-70 uppercase tracking-widest leading-tight mb-0.5">
+               <span className="text-[10px] sm:text-[11px] font-bold opacity-70 uppercase leading-tight mb-0.5">
                  CÔNG TY CỔ PHẦN VẬT TƯ Y TẾ HỒNG THIỆN MỸ
                </span>
-               <span className="text-sm sm:text-base font-extrabold tracking-tight uppercase leading-none">
+               <span className="text-sm sm:text-base font-extrabold uppercase leading-none">
                  THEO DÕI PHẢN ÁNH CHẤT LƯỢNG SẢN PHẨM
                </span>
             </div>
             
             {/* Mobile Title Fallback */}
             <div className="md:hidden flex flex-col justify-center">
-               <span className="text-[10px] font-bold opacity-70 uppercase tracking-widest leading-tight mb-0.5">HTM JSC</span>
-               <span className="text-sm font-extrabold tracking-tight uppercase leading-none">
+               <span className="text-[10px] font-bold opacity-70 uppercase leading-tight mb-0.5">HTM JSC</span>
+               <span className="text-sm font-extrabold uppercase leading-none">
                  THEO DÕI LỖI SP
                </span>
             </div>
