@@ -14,7 +14,7 @@ interface Props {
 
 // --- COMPONENTS ---
 
-// 1. StatCard (Redesigned: Clean, Big Number, Icon Accent)
+// 1. StatCard (Redesigned: Clean, Big Number, Icon Accent with Glass Texture)
 const StatCard = React.memo(({ title, value, percentage, icon, onClick, gradient, isActive, subLabel, className }: any) => {
     return (
         <div 
@@ -23,7 +23,8 @@ const StatCard = React.memo(({ title, value, percentage, icon, onClick, gradient
         >
             {/* Background Decor - Glassmorphism Texture */}
             <div className="absolute inset-0 bg-white/5 backdrop-blur-[1px] pointer-events-none"></div>
-            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
+            <div className="absolute inset-0 opacity-20 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPgo8cmVjdCB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSIjZmZmIi8+CjxyZWN0IHdpZHRoPSIxIiBoZWlnaHQ9IjEiIGZpbGw9IiNjY2MiLz4KPC9zdmc+')] mix-blend-overlay pointer-events-none"></div>
+            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none transition-transform duration-700 group-hover:scale-150"></div>
             <div className="absolute bottom-0 left-0 w-24 h-24 bg-black/5 rounded-full blur-2xl -ml-10 -mb-10 pointer-events-none"></div>
 
             <div className="relative z-10 flex flex-col h-full justify-between">
@@ -32,7 +33,7 @@ const StatCard = React.memo(({ title, value, percentage, icon, onClick, gradient
                         <p className="text-xs font-bold text-white/90 uppercase tracking-widest mb-1 drop-shadow-sm">{title}</p>
                         {subLabel && <span className="text-[10px] font-bold text-white/80 bg-black/10 px-2 py-0.5 rounded w-fit backdrop-blur-sm">{subLabel}</span>}
                     </div>
-                    <div className="p-2.5 bg-white/20 backdrop-blur-md rounded-xl shadow-inner border border-white/20 text-white">
+                    <div className="p-2.5 bg-white/20 backdrop-blur-md rounded-xl shadow-inner border border-white/20 text-white transform group-hover:rotate-12 transition-transform duration-300">
                         {React.cloneElement(icon, { className: "h-6 w-6" })}
                     </div>
                 </div>

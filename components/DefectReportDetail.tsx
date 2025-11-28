@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect } from 'react';
 import { DefectReport, UserRole } from '../types';
 import { PencilIcon, TrashIcon, XIcon, WrenchIcon, QuestionMarkCircleIcon, ClipboardDocumentListIcon, TagIcon, UserIcon, CheckCircleIcon, CalendarIcon } from './Icons';

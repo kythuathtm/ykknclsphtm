@@ -386,9 +386,9 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
             </div>
         )}
 
-        <form id="report-form" ref={formRef} onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-4 sm:p-6 bg-slate-50/50 space-y-8 custom-scrollbar relative">
+        <form id="report-form" ref={formRef} onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-4 sm:p-6 bg-slate-50/50 space-y-8 custom-scrollbar relative pb-28 sm:pb-6">
           
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pb-20 sm:pb-0">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* COLUMN LEFT: PRODUCT INFO */}
             <div className="space-y-8">
                 <section className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
@@ -770,8 +770,7 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
             </div>
           </div>
           
-          {/* Sticky Footer for Mobile Actions */}
-          <div className="absolute bottom-0 left-0 right-0 p-4 bg-white/95 backdrop-blur border-t border-slate-200 z-30 flex justify-end gap-3 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+          <div className="absolute bottom-0 left-0 right-0 p-4 pb-safe bg-white/95 backdrop-blur border-t border-slate-200 z-30 flex justify-end gap-3 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
              <button 
                 type="button" 
                 onClick={handleCloseAttempt} 

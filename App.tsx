@@ -116,7 +116,7 @@ const DraggableFAB = ({ onClick }: { onClick: () => void }) => {
     return (
         <button
             style={{ left: position.x, top: position.y, touchAction: 'none' }}
-            className={`fixed z-40 p-3.5 bg-blue-600 text-white rounded-full shadow-lg shadow-blue-600/30 hover:bg-blue-700 hover:scale-105 transition-all active:scale-95 flex items-center justify-center cursor-move group ${isDragging ? 'scale-110 cursor-grabbing shadow-xl' : ''}`}
+            className={`fixed z-40 p-3.5 bg-blue-600 text-white rounded-full shadow-lg shadow-blue-600/30 hover:bg-blue-700 hover:scale-105 transition-all active:scale-95 flex items-center justify-center cursor-move group ${isDragging ? 'scale-110 cursor-grabbing shadow-xl' : 'animate-pulse-slow'}`}
             onPointerDown={handlePointerDown}
             onPointerMove={handlePointerMove}
             onPointerUp={handlePointerUp}
@@ -490,7 +490,7 @@ export const App: React.FC = () => {
             <div className="bg-gradient-to-br from-blue-600 to-indigo-600 p-1.5 sm:p-2 rounded-xl shadow-lg shadow-blue-600/20 flex-shrink-0">
                <BarChartIcon className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
             </div>
-            <h1 className="text-base sm:text-lg font-extrabold tracking-tight truncate uppercase text-inherit leading-none hidden xs:block">
+            <h1 className="text-base sm:text-lg font-extrabold tracking-tight truncate uppercase text-inherit leading-none hidden md:block">
               Theo dõi Lỗi SP
             </h1>
             {isLoadingReports && <span className="text-xs text-blue-500 animate-pulse ml-2 font-semibold">● Loading...</span>}

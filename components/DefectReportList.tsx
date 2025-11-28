@@ -120,39 +120,39 @@ const MobileReportCard = React.memo(({
             className="absolute left-0 right-0 w-full px-3 py-2 touch-manipulation"
         >
             <div className={`bg-white rounded-xl shadow-sm border border-slate-100 border-l-4 ${statusBorderMap[report.trangThai]} active:scale-[0.98] transition-transform duration-200 h-full flex flex-col relative overflow-hidden`}>
-                <div className="p-3.5 flex-1">
+                <div className="p-4 flex-1">
                     <div className="flex justify-between items-start mb-2">
-                        <div className="flex flex-col">
-                            <h4 className="font-bold text-slate-900 text-base leading-tight mb-1 line-clamp-1">
+                        <div className="flex flex-col flex-1 mr-2">
+                            <h4 className="font-bold text-slate-900 text-base leading-tight mb-1.5 line-clamp-1">
                                 <HighlightText text={report.tenThuongMai} highlight={highlight} />
                             </h4>
                             <div className="flex items-center gap-2">
-                                <span className="text-xs font-bold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100">
+                                <span className="text-xs font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-100 uppercase tracking-wide">
                                     <HighlightText text={report.maSanPham} highlight={highlight} />
                                 </span>
-                                <span className="text-xs text-slate-400 font-medium">
+                                <span className="text-xs text-slate-400 font-medium flex items-center">
                                     {new Date(report.ngayPhanAnh).toLocaleDateString('en-GB')}
                                 </span>
                             </div>
                         </div>
+                        <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-1 rounded-lg border bg-white shadow-sm flex-shrink-0 ${statusColorMap[report.trangThai]}`}>
+                            {report.trangThai}
+                        </span>
                     </div>
                     
                     {/* Content Preview */}
-                    <div className="text-sm font-normal text-slate-500 bg-slate-50/80 p-2 rounded-lg italic line-clamp-2 border border-slate-50 leading-relaxed">
+                    <div className="text-sm font-normal text-slate-500 bg-slate-50/80 p-2.5 rounded-lg italic line-clamp-2 border border-slate-50 leading-relaxed">
                         <HighlightText text={report.noiDungPhanAnh || 'Không có nội dung'} highlight={highlight} />
                     </div>
                 </div>
                 
                 {/* Footer Action Strip */}
-                <div className="flex items-center justify-between px-3.5 py-2.5 border-t border-slate-100 bg-slate-50/30">
+                <div className="flex items-center justify-between px-4 py-2 border-t border-slate-100 bg-slate-50/30">
                      <div className="flex items-center gap-2">
-                        <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full border bg-white ${statusColorMap[report.trangThai]}`}>
-                            {report.trangThai}
-                        </span>
-                        <span className="text-xs font-semibold text-slate-500">Lô: {report.soLo}</span>
+                        <span className="text-xs font-bold text-slate-500 bg-white px-2 py-0.5 rounded border border-slate-200">Lô: {report.soLo}</span>
                      </div>
                      
-                     <div className="flex items-center gap-1">
+                     <div className="flex items-center gap-3">
                           {onDuplicate && (
                               <button 
                                  onClick={(e) => { e.stopPropagation(); onDuplicate(report); }}
@@ -209,7 +209,7 @@ const DefectReportList: React.FC<Props> = ({
   // Dynamic Row Height Calculation
   const fontSizePx = parseInt(baseFontSize, 10) || 15;
   const ROW_HEIGHT = Math.max(54, fontSizePx * 3.6);        // Scale row height with font
-  const MOBILE_ROW_HEIGHT = 185; // Fixed height for new mobile card design
+  const MOBILE_ROW_HEIGHT = 195; // Fixed height for new mobile card design
 
   // --- RESIZING LOGIC ---
   const resizingRef = useRef<{ startX: number; startWidth: number; colId: ColumnId } | null>(null);

@@ -46,7 +46,7 @@
               },
             },
             boxShadow: {
-              'soft': '0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04)',
+              'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.05), 0 10px 20px -2px rgba(0, 0, 0, 0.04)',
               'glow': '0 0 20px rgba(59, 130, 246, 0.5)',
               'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.07)',
             }
@@ -66,8 +66,8 @@
 
       /* Premium Scrollbar */
       ::-webkit-scrollbar {
-        width: 6px;
-        height: 6px;
+        width: 5px;
+        height: 5px;
       }
       ::-webkit-scrollbar-track {
         background: transparent; 
@@ -81,8 +81,8 @@
       }
       
       .custom-scrollbar::-webkit-scrollbar {
-        width: 5px;
-        height: 5px;
+        width: 4px;
+        height: 4px;
       }
       .no-scrollbar::-webkit-scrollbar {
         display: none;
@@ -107,6 +107,10 @@
       
       .pb-safe {
         padding-bottom: env(safe-area-inset-bottom);
+      }
+      
+      .pt-safe {
+        padding-top: env(safe-area-inset-top);
       }
     </style>
   <script type="importmap">
