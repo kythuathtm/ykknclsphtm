@@ -316,6 +316,7 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
   const [activeFilter, setActiveFilter] = useState<{ type: 'status' | 'defectType' | 'all' | 'brand' | 'productList' | 'supplierList' | 'unitList', value?: string } | null>(null);
 
   const stats = useMemo(() => {
+    // ... (rest of logic remains same)
     const totalReports = reports.length;
     
     // Global Totals
@@ -697,4 +698,5 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
   );
 }
 
-export default React.memo(DashboardReport);
+const MemoizedDashboardReport = React.memo(DashboardReport);
+export default MemoizedDashboardReport;

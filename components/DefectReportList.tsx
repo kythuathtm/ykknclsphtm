@@ -206,7 +206,7 @@ const DefectReportList: React.FC<Props> = ({
   // Dynamic Row Height Calculation
   const fontSizePx = parseInt(baseFontSize, 10) || 15;
   const ROW_HEIGHT = Math.max(54, fontSizePx * 3.6);        // Scale row height with font
-  const MOBILE_ROW_HEIGHT = Math.max(200, fontSizePx * 13.5); // Fixed height for new mobile card design
+  const MOBILE_ROW_HEIGHT = Math.max(200, fontSizePx * 13.5); // Scale mobile card height
 
   // --- RESIZING LOGIC ---
   const resizingRef = useRef<{ startX: number; startWidth: number; colId: ColumnId } | null>(null);
@@ -220,7 +220,7 @@ const DefectReportList: React.FC<Props> = ({
 
   // Load Columns Config with Order Preservation
   useEffect(() => {
-    if (!currentUsername) return; 
+    if (!currentUsername) return; // Wait for username
     
     const savedColumnsStr = localStorage.getItem(storageKey); 
     if (savedColumnsStr) {
@@ -230,18 +230,20 @@ const DefectReportList: React.FC<Props> = ({
             const newColumns: ColumnConfig[] = [];
             const processedIds = new Set<string>();
 
+            // 1. Add saved columns in their saved order, if they still exist in defaults
             parsedColumns.forEach(savedCol => {
                 const defaultCol = defaultColMap.get(savedCol.id);
                 if (defaultCol) {
                     newColumns.push({
-                        ...defaultCol,
-                        width: savedCol.width,
-                        visible: savedCol.visible
+                        ...defaultCol, // Keep code-defined props (label, fixed status)
+                        width: savedCol.width, // Restore width
+                        visible: savedCol.visible // Restore visibility
                     });
                     processedIds.add(savedCol.id);
                 }
             });
 
+            // 2. Add any new default columns that weren't in storage (e.g. after update)
             DEFAULT_COLUMNS.forEach(defCol => {
                 if (!processedIds.has(defCol.id)) {
                     newColumns.push(defCol);
@@ -255,7 +257,7 @@ const DefectReportList: React.FC<Props> = ({
             setColumns(DEFAULT_COLUMNS);
         }
     } else {
-        setColumns(DEFAULT_COLUMNS);
+        setColumns(DEFAULT_COLUMNS); // Reset to default if no saved config for this user
     }
   }, [currentUsername]);
 
@@ -283,7 +285,7 @@ const DefectReportList: React.FC<Props> = ({
       if (!resizingRef.current) return;
       const { startX, startWidth, colId } = resizingRef.current;
       const deltaX = e.clientX - startX;
-      const newWidth = Math.max(50, startWidth + deltaX);
+      const newWidth = Math.max(50, startWidth + deltaX); // Min width 50px
 
       setColumns(prev => prev.map(col => 
           col.id === colId ? { ...col, width: newWidth } : col
@@ -301,6 +303,7 @@ const DefectReportList: React.FC<Props> = ({
 
   // --- VIRTUALIZATION HANDLERS ---
   
+  // 1. Measure Containers
   useEffect(() => {
       const handleResize = () => {
           if (parentRef.current) {
@@ -316,6 +319,7 @@ const DefectReportList: React.FC<Props> = ({
       return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // 2. Scroll Handlers (Throttled with rAF)
   const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
       const target = e.currentTarget;
       requestAnimationFrame(() => {
@@ -330,6 +334,7 @@ const DefectReportList: React.FC<Props> = ({
       });
   }, []);
 
+  // 3. Reset Scroll on Data Change
   useEffect(() => {
       if (parentRef.current) {
           parentRef.current.scrollTop = 0;
@@ -341,7 +346,7 @@ const DefectReportList: React.FC<Props> = ({
       }
   }, [currentPage, filters]);
 
-  // Calculate Visible Items
+  // 4. Calculate Visible Items (Desktop)
   const totalContentHeight = reports.length * ROW_HEIGHT;
   const startIndex = Math.max(0, Math.floor(scrollTop / ROW_HEIGHT) - 2); 
   const endIndex = Math.min(
@@ -351,6 +356,7 @@ const DefectReportList: React.FC<Props> = ({
   const visibleReports = reports.slice(startIndex, endIndex);
   const offsetY = startIndex * ROW_HEIGHT;
 
+  // 5. Calculate Visible Items (Mobile)
   const totalMobileContentHeight = reports.length * MOBILE_ROW_HEIGHT;
   const mobileStartIndex = Math.max(0, Math.floor(mobileScrollTop / MOBILE_ROW_HEIGHT) - 2);
   const mobileEndIndex = Math.min(
@@ -362,6 +368,7 @@ const DefectReportList: React.FC<Props> = ({
 
   // --- DRAG & DROP COLUMN ORDERING ---
   const handleHeaderDragStart = (e: React.DragEvent, colId: ColumnId) => {
+    // Only allow left click drag
     if (e.button !== 0) {
         e.preventDefault();
         return;
@@ -369,14 +376,16 @@ const DefectReportList: React.FC<Props> = ({
     setDraggedColId(colId);
     e.dataTransfer.setData('colId', colId);
     e.dataTransfer.effectAllowed = 'move';
+    // Transparent ghost image if desired, or let browser handle it
   };
 
   const handleHeaderDragEnter = (e: React.DragEvent, targetColId: ColumnId) => {
       e.preventDefault();
+      // Optional: Add visual indicator for drop target here
   };
   
   const handleHeaderDragOver = (e: React.DragEvent) => {
-      e.preventDefault();
+      e.preventDefault(); // Necessary to allow dropping
       e.dataTransfer.dropEffect = 'move';
   };
 
@@ -384,7 +393,7 @@ const DefectReportList: React.FC<Props> = ({
     e.preventDefault();
     const sourceColId = e.dataTransfer.getData('colId') as ColumnId;
     
-    setDraggedColId(null); 
+    setDraggedColId(null); // Reset drag state
 
     if (!sourceColId || sourceColId === targetColId) return;
 
@@ -392,6 +401,8 @@ const DefectReportList: React.FC<Props> = ({
     const toIndex = columns.findIndex(c => c.id === targetColId);
 
     if (fromIndex !== -1 && toIndex !== -1) {
+        // Prevent moving fixed columns or dropping onto fixed columns if logic requires
+        // Here we allow moving non-fixed columns amongst themselves
         if (columns[fromIndex].fixed || columns[toIndex].fixed) return;
 
         const newCols = [...columns];
@@ -418,6 +429,7 @@ const DefectReportList: React.FC<Props> = ({
       }
   };
 
+  // Close settings on click outside
   useEffect(() => {
       const handleClickOutside = (event: MouseEvent) => {
           if (settingsRef.current && !settingsRef.current.contains(event.target as Node)) {
@@ -441,13 +453,18 @@ const DefectReportList: React.FC<Props> = ({
       setColumns(DEFAULT_COLUMNS);
   };
 
+  // Function to move column up or down via menu
   const moveColumn = (index: number, direction: -1 | 1) => {
     const newCols = [...columns];
     const targetIndex = index + direction;
     
+    // Bounds check
     if (targetIndex < 0 || targetIndex >= newCols.length) return;
+    
+    // Fixed check
     if (newCols[targetIndex].fixed) return;
 
+    // Swap
     [newCols[index], newCols[targetIndex]] = [newCols[targetIndex], newCols[index]];
     setColumns(newCols);
   };
@@ -465,10 +482,13 @@ const DefectReportList: React.FC<Props> = ({
 
   const getColumnStyle = (col: ColumnConfig) => {
       return {
+          // Use flex-none for fixed columns, flex-grow for others to fill space
           className: `${col.fixed ? 'sticky right-0 z-10 bg-white/95 backdrop-blur shadow-[-4px_0_8px_-4px_rgba(0,0,0,0.1)] flex-none' : ''} ${col.align === 'center' ? 'justify-center' : col.align === 'right' ? 'justify-end' : 'justify-start'} flex items-center min-w-0`,
           style: { 
+              // Flex grow proportional to width, shrink allowed, basis at width
               flex: col.fixed ? 'none' : `${col.width} 1 ${col.width}px`,
               minWidth: `${col.width}px`,
+              // width only needed for fixed columns to enforce size
               width: col.fixed ? `${col.width}px` : undefined
           }
       };
@@ -627,4 +647,342 @@ const DefectReportList: React.FC<Props> = ({
             `}>
                 <div className="flex flex-col sm:flex-row gap-2 w-full items-center">
                     {showDefectTypeFilter && (
-                        <div className="relative group w-full
+                        <div className="relative group w-full sm:w-auto sm:min-w-[150px]">
+                            <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-500 transition-colors">
+                                <FunnelIcon className="h-4 w-4" />
+                            </div>
+                            <select
+                                className="w-full pl-8 pr-8 py-2 text-sm font-normal border border-slate-200 rounded-xl bg-white text-slate-700 focus:outline-none focus:border-blue-500 hover:bg-slate-50 cursor-pointer appearance-none shadow-sm focus:ring-2 focus:ring-blue-500/20"
+                                value={filters.defectTypeFilter}
+                                onChange={(e) => onDefectTypeFilterChange(e.target.value)}
+                            >
+                                <option value="All">Tất cả nguồn</option>
+                                <option value="Lỗi Sản xuất">Lỗi Sản xuất</option>
+                                <option value="Lỗi Nhà cung cấp">Lỗi NCC</option>
+                                <option value="Lỗi Hỗn hợp">Lỗi Hỗn hợp</option>
+                                <option value="Lỗi Khác">Lỗi Khác</option>
+                            </select>
+                        </div>
+                    )}
+                    
+                    <div className="flex w-full sm:w-auto items-center bg-white rounded-xl border border-slate-200 px-2 sm:px-3 py-1.5 shadow-sm focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-400 transition-all hover:border-slate-300">
+                        <CalendarIcon className="h-4 w-4 text-slate-400 mr-2 flex-shrink-0" />
+                        <div className="flex items-center gap-1 flex-1">
+                            <input
+                                type="date"
+                                className="bg-transparent text-sm text-slate-700 focus:outline-none font-normal py-0.5 w-[85px] cursor-pointer"
+                                value={filters.dateFilter.start}
+                                max={filters.dateFilter.end}
+                                onChange={(e) => onDateFilterChange({ ...filters.dateFilter, start: e.target.value })}
+                            />
+                            <span className="text-slate-300 font-medium">-</span>
+                            <input
+                                type="date"
+                                className="bg-transparent text-sm text-slate-700 focus:outline-none font-normal py-0.5 w-[85px] cursor-pointer"
+                                value={filters.dateFilter.end}
+                                min={filters.dateFilter.start}
+                                onChange={(e) => onDateFilterChange({ ...filters.dateFilter, end: e.target.value })}
+                            />
+                        </div>
+                        {(filters.dateFilter.start || filters.dateFilter.end) && (
+                            <button 
+                                onClick={() => onDateFilterChange({ start: '', end: '' })}
+                                className="ml-1 text-slate-400 hover:text-red-500 p-0.5 rounded-full hover:bg-red-50 transition-colors active:scale-90 flex-shrink-0"
+                            >
+                                <XIcon className="h-3.5 w-3.5" />
+                            </button>
+                        )}
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-2 justify-end pt-2 lg:pt-0 lg:ml-auto w-full lg:w-auto">
+                     <div className="h-8 w-px bg-slate-200 mx-1 hidden lg:block"></div>
+                     <button onClick={onExport} className="flex-1 lg:flex-none p-2 bg-white border border-slate-200 rounded-xl text-slate-600 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 transition-all shadow-sm active:scale-95 flex items-center justify-center gap-2 lg:block" title="Xuất Excel">
+                        <ArrowDownTrayIcon className="h-5 w-5" />
+                        <span className="lg:hidden text-sm font-bold">Xuất Excel</span>
+                     </button>
+                     <div className="relative hidden md:block" ref={settingsRef}>
+                        <button onClick={() => setShowSettings(!showSettings)} className={`p-2 bg-white border border-slate-200 rounded-xl hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 transition-all shadow-sm active:scale-95 ${showSettings ? 'text-blue-600 border-blue-200 bg-blue-50' : 'text-slate-600'}`} title="Cấu hình cột"><Cog6ToothIcon className="h-5 w-5" /></button>
+                        {showSettings && (
+                            <div className="absolute right-0 mt-2 w-72 bg-white rounded-xl shadow-xl border border-slate-100 z-30 p-3 animate-fade-in-up">
+                                <div className="flex items-center justify-between mb-3 pb-2 border-b border-slate-100">
+                                    <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Cấu hình cột</h4>
+                                    <button 
+                                        onClick={resetColumnsToDefault} 
+                                        className="text-xs font-bold text-blue-600 hover:text-blue-700 hover:bg-blue-50 px-2 py-1 rounded transition-colors"
+                                    >
+                                        Mặc định
+                                    </button>
+                                </div>
+                                <div className="space-y-1 max-h-[60vh] overflow-y-auto custom-scrollbar pr-1">
+                                    {columns.map((col, index) => {
+                                        if (col.fixed) return null;
+                                        const isTop = columns[index - 1]?.fixed;
+                                        const isBottom = columns[index + 1]?.fixed;
+
+                                        return (
+                                            <div key={col.id} className="flex items-center justify-between p-2 hover:bg-slate-50 rounded-lg group transition-colors">
+                                                <button 
+                                                    onClick={() => toggleColumnVisibility(col.id)} 
+                                                    className="flex items-center flex-1 gap-3 min-w-0"
+                                                >
+                                                    <div className={`flex-shrink-0 w-5 h-5 rounded border flex items-center justify-center transition-all ${col.visible ? 'bg-blue-500 border-blue-500' : 'border-slate-300 bg-white'}`}>
+                                                        {col.visible && <CheckCircleIcon className="w-4 h-4 text-white" />}
+                                                    </div>
+                                                    <span className={`text-sm font-medium truncate ${col.visible ? 'text-slate-700' : 'text-slate-400'}`}>
+                                                        {col.label}
+                                                    </span>
+                                                </button>
+                                                
+                                                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity ml-2">
+                                                     <button
+                                                        onClick={(e) => { e.stopPropagation(); moveColumn(index, -1); }}
+                                                        disabled={isTop}
+                                                        className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-md disabled:opacity-20 disabled:hover:bg-transparent disabled:hover:text-slate-400 transition-colors"
+                                                        title="Di chuyển lên"
+                                                     >
+                                                        <ArrowUpIcon className="w-3.5 h-3.5" />
+                                                     </button>
+                                                     <button
+                                                        onClick={(e) => { e.stopPropagation(); moveColumn(index, 1); }}
+                                                        disabled={isBottom}
+                                                        className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-md disabled:opacity-20 disabled:hover:bg-transparent disabled:hover:text-slate-400 transition-colors"
+                                                        title="Di chuyển xuống"
+                                                     >
+                                                        <ArrowDownIcon className="w-3.5 h-3.5" />
+                                                     </button>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                                <div className="mt-3 pt-2 border-t border-slate-100 text-center">
+                                    <p className="text-[10px] text-slate-400">Kéo thả tiêu đề cột hoặc dùng mũi tên để sắp xếp</p>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                    {areFiltersActive && (
+                        <button onClick={resetFilters} className="p-2 ml-1 text-red-600 bg-red-50 hover:bg-red-100 rounded-xl transition-colors border border-transparent hover:border-red-200 shadow-sm active:scale-95 flex-shrink-0" title="Xóa bộ lọc"><XIcon className="h-5 w-5" /></button>
+                    )}
+                </div>
+            </div>
+          </div>
+
+          {/* LIST CONTENT */}
+          <div className={`flex-1 overflow-hidden relative transition-opacity duration-300 flex flex-col bg-slate-50/50 ${isLoading ? 'opacity-60 pointer-events-none' : 'opacity-100'}`}>
+            
+            {reports.length > 0 ? (
+                <>
+                    {/* MOBILE CARD VIEW (< md) - VIRTUALIZED */}
+                    <div 
+                        ref={mobileListRef}
+                        onScroll={handleMobileScroll}
+                        className="md:hidden flex-1 overflow-y-auto bg-slate-50 pb-24 custom-scrollbar relative"
+                    >
+                        <div style={{ height: totalMobileContentHeight }} className="relative w-full">
+                            {visibleMobileReports.map((report, index) => (
+                                <MobileReportCard
+                                    key={report.id}
+                                    style={{
+                                        top: 0,
+                                        transform: `translateY(${mobileOffsetY + (index * MOBILE_ROW_HEIGHT)}px)`,
+                                        height: MOBILE_ROW_HEIGHT,
+                                        willChange: 'transform'
+                                    }}
+                                    report={report}
+                                    onSelect={() => onSelectReport(report)}
+                                    onDuplicate={onDuplicate}
+                                    onDelete={(id) => setReportToDelete(reports.find(r => r.id === id) || null)}
+                                    canDelete={canDeleteRole}
+                                    highlight={filters.searchTerm}
+                                />
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* DESKTOP TABLE VIEW (>= md) - VIRTUALIZED & RESIZABLE */}
+                    <div 
+                        ref={parentRef} 
+                        onScroll={handleScroll}
+                        className="hidden md:block flex-1 overflow-auto custom-scrollbar relative"
+                    >
+                        <div className="min-w-full inline-block align-middle">
+                            {/* Sticky Header */}
+                            <div className="flex bg-white/95 backdrop-blur-md border-b border-slate-200 text-left text-sm font-bold text-slate-600 tracking-wide sticky top-0 z-20 shadow-sm min-w-full w-full" style={{ height: ROW_HEIGHT }}>
+                                {visibleColumns.map((col) => {
+                                    const { className, style } = getColumnStyle(col);
+                                    return (
+                                        <div 
+                                            key={col.id}
+                                            draggable={!col.fixed}
+                                            onDragStart={(e) => handleHeaderDragStart(e, col.id)}
+                                            onDragEnter={(e) => handleHeaderDragEnter(e, col.id)}
+                                            onDragOver={handleHeaderDragOver}
+                                            onDrop={(e) => handleHeaderDrop(e, col.id)}
+                                            className={`relative flex items-center px-3 h-full border-r border-transparent hover:border-slate-100 ${className} whitespace-nowrap ${!col.fixed ? 'cursor-move active:cursor-grabbing hover:bg-slate-50' : ''} ${draggedColId === col.id ? 'opacity-50 bg-blue-50' : ''}`} 
+                                            style={style}
+                                            title={!col.fixed ? "Kéo để sắp xếp lại cột" : undefined}
+                                        >
+                                            {col.label}
+                                            
+                                            {/* Resize handle */}
+                                            {!col.fixed && (
+                                                <div 
+                                                    className="absolute right-0 top-0 bottom-0 w-1.5 cursor-col-resize hover:bg-blue-400 z-30 opacity-0 hover:opacity-100 transition-opacity"
+                                                    onMouseDown={(e) => startResize(e, col.id, col.width)}
+                                                    onClick={(e) => e.stopPropagation()}
+                                                />
+                                            )}
+                                        </div>
+                                    )
+                                })}
+                            </div>
+                            
+                            {/* Rows Container */}
+                            <div 
+                                className="relative min-w-full w-full" 
+                                style={{ height: totalContentHeight }}
+                            >
+                                {visibleReports.map((report, index) => {
+                                    const actualIndex = startIndex + index;
+                                    return (
+                                        <div 
+                                            key={report.id}
+                                            style={{ 
+                                                transform: `translateY(${offsetY + (index * ROW_HEIGHT)}px)`,
+                                                height: ROW_HEIGHT,
+                                                position: 'absolute',
+                                                top: 0, left: 0, right: 0,
+                                                willChange: 'transform'
+                                            }}
+                                            onClick={() => onSelectReport(report)}
+                                            onMouseEnter={() => handleRowMouseEnter(report)}
+                                            onMouseLeave={handleRowMouseLeave}
+                                            onMouseMove={handleRowMouseMove}
+                                            className={`group flex items-center transition-colors cursor-pointer border-b hover:z-10 min-w-full w-full bg-white border-slate-100 hover:border-blue-500 hover:bg-blue-50/60`}
+                                        >
+                                            {visibleColumns.map((col) => {
+                                                const { className, style } = getColumnStyle(col);
+                                                return (
+                                                    <div 
+                                                        key={col.id} 
+                                                        className={`px-3 h-full flex items-center overflow-hidden ${className}`} 
+                                                        style={style}
+                                                    >
+                                                        {renderCell(report, col.id, actualIndex)}
+                                                    </div>
+                                                )
+                                            })}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </div>
+                </>
+            ) : (
+                <div className="flex-1 flex flex-col items-center justify-center p-16 text-center animate-fade-in-up">
+                    <div className="w-64 h-48 bg-slate-100 rounded-full mb-6 relative overflow-hidden flex items-center justify-center">
+                        <div className="absolute inset-0 bg-gradient-to-tr from-blue-50 to-slate-50 opacity-50"></div>
+                        <InboxIcon className="h-24 w-24 text-slate-300/50" />
+                    </div>
+                    <h3 className="text-xl font-bold text-slate-800 tracking-tight">Trống trơn!</h3>
+                    <p className="text-slate-500 mt-2 max-w-sm font-medium leading-relaxed">
+                        {areFiltersActive 
+                            ? "Không tìm thấy kết quả nào phù hợp với bộ lọc hiện tại. Hãy thử điều chỉnh lại." 
+                            : "Hệ thống chưa có dữ liệu phản ánh nào. Hãy bắt đầu bằng cách tạo mới."}
+                    </p>
+                    {areFiltersActive && (
+                        <button 
+                            onClick={resetFilters}
+                            className="mt-6 px-8 py-3 bg-white border border-slate-200 text-slate-700 rounded-xl text-sm font-bold shadow-sm transition-all hover:border-blue-300 hover:text-blue-600 active:scale-95"
+                        >
+                            Xóa bộ lọc tìm kiếm
+                        </button>
+                    )}
+                </div>
+            )}
+
+            <div className="hidden md:block p-3 border-t border-slate-200 bg-white shadow-[0_-5px_15px_rgba(0,0,0,0.01)] relative z-20">
+                <Pagination
+                    currentPage={currentPage}
+                    totalItems={totalReports}
+                    itemsPerPage={itemsPerPage}
+                    onPageChange={onPageChange}
+                    onItemsPerPageChange={onItemsPerPageChange}
+                />
+            </div>
+            
+            {/* Mobile Pagination (Simplified) */}
+             <div className="md:hidden p-3 pb-safe bg-white border-t border-slate-200 relative z-20">
+                 <Pagination
+                    currentPage={currentPage}
+                    totalItems={totalReports}
+                    itemsPerPage={itemsPerPage}
+                    onPageChange={onPageChange}
+                    onItemsPerPageChange={onItemsPerPageChange}
+                />
+             </div>
+          </div>
+      </div>
+      
+      {reportToDelete && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 animate-fade-in-up border border-white/20">
+                <div className="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center mb-5 mx-auto shadow-sm ring-1 ring-red-100">
+                    <TrashIcon className="h-7 w-7 text-red-500" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 text-center mb-2 uppercase tracking-tight">XÓA PHẢN ÁNH?</h3>
+                <p className="text-sm text-slate-500 text-center mb-8 font-medium">
+                    Bạn sắp xóa phản ánh <span className="font-bold text-slate-900 bg-slate-100 px-1 rounded">{reportToDelete.maSanPham}</span>. Hành động này không thể hoàn tác.
+                </p>
+                <div className="flex gap-3">
+                    <button onClick={() => setReportToDelete(null)} className="flex-1 py-3 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 transition-colors active:scale-95">Hủy</button>
+                    <button onClick={() => { onDelete(reportToDelete.id); setReportToDelete(null); }} className="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-red-500/30 transition-all active:scale-95">Xóa ngay</button>
+                </div>
+            </div>
+        </div>
+      )}
+
+      {/* Floating Tooltip (Desktop Only) */}
+      <div 
+        ref={tooltipRef}
+        className={`hidden md:block fixed z-[999] bg-white/95 backdrop-blur-xl border border-white/50 p-4 rounded-2xl shadow-2xl pointer-events-none transition-opacity duration-200 max-w-[340px] w-full ring-1 ring-black/5 ${hoveredReport ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}`}
+        style={{ left: 0, top: 0, transitionProperty: 'opacity, transform' }}
+      >
+        {hoveredReport && (
+            <div className="space-y-3">
+                <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                    <span className="font-bold text-sm text-blue-700 uppercase bg-blue-50 px-2 py-0.5 rounded-lg ring-1 ring-blue-100">{hoveredReport.maSanPham}</span>
+                    <span className={`text-xs px-2 py-1 rounded-full font-bold uppercase shadow-sm ${
+                        hoveredReport.trangThai === 'Mới' ? 'bg-blue-100 text-blue-700' : 
+                        hoveredReport.trangThai === 'Hoàn thành' ? 'bg-emerald-100 text-emerald-700' : 
+                        'bg-amber-100 text-amber-700'
+                    }`}>
+                        {hoveredReport.trangThai}
+                    </span>
+                </div>
+                <div>
+                    <p className="text-base font-bold text-slate-800 mb-1 leading-tight">{hoveredReport.tenThuongMai}</p>
+                    {hoveredReport.tenThietBi && ( <p className="text-sm text-slate-500 truncate mb-2">{hoveredReport.tenThietBi}</p> )}
+                    <div className="flex items-center gap-2 text-xs text-slate-500 font-bold mb-3">
+                         <span className="bg-slate-100 px-1.5 py-0.5 rounded text-slate-600 border border-slate-200">Lô: {hoveredReport.soLo}</span>
+                         {hoveredReport.loaiLoi && <span className="bg-slate-100 px-1.5 py-0.5 rounded text-slate-600 border border-slate-200">{hoveredReport.loaiLoi}</span>}
+                    </div>
+                    <div className="relative bg-slate-50 p-2 rounded-lg border border-slate-100">
+                        <p className="text-sm text-slate-600 leading-relaxed line-clamp-3 italic">
+                            "{hoveredReport.noiDungPhanAnh}"
+                        </p>
+                    </div>
+                </div>
+            </div>
+        )}
+      </div>
+
+    </div>
+  );
+};
+
+const MemoizedDefectReportList = React.memo(DefectReportList);
+export default MemoizedDefectReportList;

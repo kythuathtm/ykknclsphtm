@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { ChevronLeftIcon, ChevronRightIcon } from './Icons';
 
@@ -179,4 +178,5 @@ const Pagination: React.FC<PaginationProps> = ({ currentPage, totalItems, itemsP
   );
 };
 
-export default React.memo(Pagination);
+const MemoizedPagination = React.memo(Pagination);
+export default MemoizedPagination;
