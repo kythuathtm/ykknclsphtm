@@ -57,6 +57,7 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onUpdate, onDelet
 
   const printRef = useRef<HTMLDivElement>(null);
   
+  // Use contentRef as required by newer react-to-print types where content is deprecated/removed
   const handlePrint = useReactToPrint({
       contentRef: printRef,
       documentTitle: `Phieu_Phan_Anh_${report.maSanPham}_${report.id.slice(0, 6)}`,
@@ -428,9 +429,10 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onUpdate, onDelet
             <div ref={printRef} className="print-container p-8 font-sans text-slate-900 bg-white">
                 <style>{`
                     @media print {
-                        @page { size: A4; margin: 20mm; }
-                        body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
-                        .print-container { display: block !important; width: 100%; }
+                        @page { size: A4; margin: 15mm; }
+                        body { -webkit-print-color-adjust: exact; }
+                        .print-container { width: 100%; font-size: 14px; line-height: 1.5; }
+                        .no-print { display: none !important; }
                     }
                 `}</style>
                 <div className="flex items-center justify-between border-b-2 border-slate-800 pb-4 mb-6">

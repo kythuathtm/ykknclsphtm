@@ -406,6 +406,7 @@ export const App: React.FC = () => {
           huongKhacPhuc: '',
           ngayHoanThanh: '',
           ngayDoiHang: '',
+          images: [], // Reset images for new report
       };
       setEditingReport(duplicate);
       setIsFormOpen(true);
@@ -516,6 +517,7 @@ export const App: React.FC = () => {
                         {availableYears.map(y => <option key={y} value={y}>{y}</option>)}
                     </select>
                  </div>
+                 {/* FIX: Removed 'hidden md:flex' to show on mobile */}
                  <div className="bg-slate-100/80 p-1 rounded-xl flex items-center gap-1 border border-slate-200/50">
                     <button
                         onClick={() => setCurrentView('list')}
