@@ -770,7 +770,7 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
             </div>
           </div>
           
-          <div className="absolute bottom-0 left-0 right-0 p-4 pb-safe bg-white/95 backdrop-blur border-t border-slate-200 z-30 flex justify-end gap-3 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+          <div className="sticky bottom-0 left-0 right-0 p-4 pb-safe bg-white/95 backdrop-blur border-t border-slate-200 z-30 flex justify-end gap-3 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
              <button 
                 type="button" 
                 onClick={handleCloseAttempt} 
