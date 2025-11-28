@@ -81,7 +81,7 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
             
             <div className="hidden md:flex flex-col justify-center">
-               <span className="text-[10px] font-bold opacity-60 uppercase tracking-widest leading-tight mb-0.5">
+               <span className="text-[13px] font-bold opacity-60 uppercase tracking-widest leading-tight mb-0.5">
                  CÔNG TY CỔ PHẦN VẬT TƯ Y TẾ HỒNG THIỆN MỸ
                </span>
                <span className="text-sm sm:text-base font-extrabold tracking-tight uppercase leading-none">
