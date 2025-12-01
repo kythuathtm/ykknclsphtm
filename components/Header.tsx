@@ -77,7 +77,8 @@ export const Header: React.FC<HeaderProps> = ({
       >
         <div className="max-w-[1920px] mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2 sm:gap-4">
           <div className="flex items-center gap-2 sm:gap-4 min-w-0">
-            <div className="bg-gradient-to-br from-blue-600 to-indigo-600 p-1.5 sm:p-2 rounded-xl shadow-lg shadow-blue-600/20 flex-shrink-0">
+            {/* Logo Gradient using Brand Blue range */}
+            <div className="bg-gradient-to-br from-[#003DA5] to-[#002a70] p-1.5 sm:p-2 rounded-xl shadow-lg shadow-blue-600/20 flex-shrink-0">
                <BarChartIcon className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
             </div>
             
@@ -121,14 +122,14 @@ export const Header: React.FC<HeaderProps> = ({
                  <div className="bg-slate-100/80 p-1 rounded-xl flex items-center gap-1 border border-slate-200/50">
                     <button
                         onClick={() => setCurrentView('list')}
-                        className={`flex items-center justify-center p-2 sm:px-3 sm:py-1.5 rounded-lg text-sm font-bold transition-all duration-200 active:scale-95 ${currentView === 'list' ? 'bg-white text-blue-700 shadow-sm ring-1 ring-slate-200' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
+                        className={`flex items-center justify-center p-2 sm:px-3 sm:py-1.5 rounded-lg text-sm font-bold transition-all duration-200 active:scale-95 ${currentView === 'list' ? 'bg-white text-[#003DA5] shadow-sm ring-1 ring-slate-200' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
                         title="Danh sách"
                     >
                         <ListBulletIcon className="h-4 w-4 sm:mr-2" /> <span className="hidden sm:inline">Danh sách</span>
                     </button>
                     <button
                         onClick={() => setCurrentView('dashboard')}
-                        className={`flex items-center justify-center p-2 sm:px-3 sm:py-1.5 rounded-lg text-sm font-bold transition-all duration-200 active:scale-95 ${currentView === 'dashboard' ? 'bg-white text-blue-700 shadow-sm ring-1 ring-slate-200' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
+                        className={`flex items-center justify-center p-2 sm:px-3 sm:py-1.5 rounded-lg text-sm font-bold transition-all duration-200 active:scale-95 ${currentView === 'dashboard' ? 'bg-white text-[#003DA5] shadow-sm ring-1 ring-slate-200' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'}`}
                         title="Báo cáo"
                     >
                         <ChartPieIcon className="h-4 w-4 sm:mr-2" /> <span className="hidden sm:inline">Báo cáo</span>
@@ -146,7 +147,7 @@ export const Header: React.FC<HeaderProps> = ({
                 )}
                 {currentUser.role === UserRole.Admin && (
                     <div className="relative" ref={adminMenuRef}>
-                        <button onClick={() => setIsAdminMenuOpen(!isAdminMenuOpen)} className={`flex items-center gap-2 px-3 py-2 rounded-xl transition-all border active:scale-95 ${isAdminMenuOpen ? 'bg-blue-50 border-blue-200 text-blue-600' : 'bg-white border-transparent hover:bg-slate-50 text-slate-600 hover:text-blue-600 opacity-80 hover:opacity-100'}`}>
+                        <button onClick={() => setIsAdminMenuOpen(!isAdminMenuOpen)} className={`flex items-center gap-2 px-3 py-2 rounded-xl transition-all border active:scale-95 ${isAdminMenuOpen ? 'bg-blue-50 border-blue-200 text-[#003DA5]' : 'bg-white border-transparent hover:bg-slate-50 text-slate-600 hover:text-[#003DA5] opacity-80 hover:opacity-100'}`}>
                             <Cog8ToothIcon className={`h-5 w-5 ${isAdminMenuOpen ? 'animate-spin-slow' : ''}`} /><span className="hidden sm:inline text-sm font-bold">Cài đặt</span>
                         </button>
                         {isAdminMenuOpen && (
@@ -155,19 +156,19 @@ export const Header: React.FC<HeaderProps> = ({
                                     <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Quản trị hệ thống</p>
                                 </div>
                                 <div className="flex flex-col">
-                                    <button onClick={() => { onOpenPermissionModal(); setIsAdminMenuOpen(false); }} className="flex w-full items-center justify-start px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-blue-600 transition-colors text-left group">
+                                    <button onClick={() => { onOpenPermissionModal(); setIsAdminMenuOpen(false); }} className="flex w-full items-center justify-start px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-[#003DA5] transition-colors text-left group">
                                         <ShieldCheckIcon className="h-5 w-5 mr-3 text-slate-400 group-hover:text-blue-500 flex-shrink-0 transition-colors" />
                                         <span>Phân quyền</span>
                                     </button>
-                                    <button onClick={() => { onOpenProductModal(); setIsAdminMenuOpen(false); }} className="flex w-full items-center justify-start px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-blue-600 transition-colors text-left group">
+                                    <button onClick={() => { onOpenProductModal(); setIsAdminMenuOpen(false); }} className="flex w-full items-center justify-start px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-[#003DA5] transition-colors text-left group">
                                         <TableCellsIcon className="h-5 w-5 mr-3 text-slate-400 group-hover:text-blue-500 flex-shrink-0 transition-colors" />
                                         <span>Danh sách sản phẩm</span>
                                     </button>
-                                    <button onClick={() => { onOpenUserModal(); setIsAdminMenuOpen(false); }} className="flex w-full items-center justify-start px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-blue-600 transition-colors text-left group">
+                                    <button onClick={() => { onOpenUserModal(); setIsAdminMenuOpen(false); }} className="flex w-full items-center justify-start px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-[#003DA5] transition-colors text-left group">
                                         <UserGroupIcon className="h-5 w-5 mr-3 text-slate-400 group-hover:text-blue-500 flex-shrink-0 transition-colors" />
                                         <span>Quản lý người dùng</span>
                                     </button>
-                                    <button onClick={() => { onOpenSystemSettingsModal(); setIsAdminMenuOpen(false); }} className="flex w-full items-center justify-start px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-blue-600 transition-colors text-left group">
+                                    <button onClick={() => { onOpenSystemSettingsModal(); setIsAdminMenuOpen(false); }} className="flex w-full items-center justify-start px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-[#003DA5] transition-colors text-left group">
                                         <Cog8ToothIcon className="h-5 w-5 mr-3 text-slate-400 group-hover:text-blue-500 flex-shrink-0 transition-colors" />
                                         <span>Cấu hình / Cài đặt web</span>
                                     </button>
@@ -180,7 +181,7 @@ export const Header: React.FC<HeaderProps> = ({
             <div className="h-8 w-px bg-slate-200 mx-1 hidden sm:block"></div>
             <div className="relative ml-1" ref={profileMenuRef}>
                 <button onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)} className="focus:outline-none transition-transform active:scale-95" title="Thông tin tài khoản">
-                    <div className="h-9 w-9 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center font-bold shadow-md border-2 border-white ring-2 ring-transparent hover:ring-blue-200 transition-all text-sm">{getUserInitials(currentUser.fullName || currentUser.username)}</div>
+                    <div className="h-9 w-9 rounded-full bg-gradient-to-br from-[#003DA5] to-indigo-600 text-white flex items-center justify-center font-bold shadow-md border-2 border-white ring-2 ring-transparent hover:ring-blue-200 transition-all text-sm">{getUserInitials(currentUser.fullName || currentUser.username)}</div>
                 </button>
                 {isProfileMenuOpen && (
                     <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl shadow-xl border border-slate-100 py-2 z-50 animate-fade-in-up origin-top-right text-slate-900 ring-1 ring-black/5">

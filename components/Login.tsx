@@ -54,10 +54,9 @@ const Login: React.FC<Props> = ({ onLogin, users, settings }) => {
       }
       return (
        <div className="absolute inset-0 overflow-hidden pointer-events-none bg-slate-50">
-          {/* Animated Gradient Blobs */}
-          <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-2xl opacity-70 animate-blob"></div>
-          <div className="absolute top-0 -right-4 w-72 h-72 bg-yellow-300 rounded-full mix-blend-multiply filter blur-2xl opacity-70 animate-blob animation-delay-2000"></div>
-          <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-2xl opacity-70 animate-blob animation-delay-4000"></div>
+          <div className="absolute top-0 -left-4 w-72 h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-2xl opacity-70 animate-blob"></div>
+          <div className="absolute top-0 -right-4 w-72 h-72 bg-indigo-300 rounded-full mix-blend-multiply filter blur-2xl opacity-70 animate-blob animation-delay-2000"></div>
+          <div className="absolute -bottom-8 left-20 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-2xl opacity-70 animate-blob animation-delay-4000"></div>
           <div className="absolute inset-0 bg-white/40 backdrop-blur-3xl"></div>
        </div>
       );
@@ -68,7 +67,7 @@ const Login: React.FC<Props> = ({ onLogin, users, settings }) => {
        {renderBackground()}
        <style>{`
          .glass-card { 
-            background: rgba(255, 255, 255, 0.7); 
+            background: rgba(255, 255, 255, 0.75); 
             backdrop-filter: blur(25px); 
             -webkit-backdrop-filter: blur(25px); 
             border: 1px solid rgba(255, 255, 255, 0.8); 
@@ -85,43 +84,50 @@ const Login: React.FC<Props> = ({ onLogin, users, settings }) => {
                        <img src={settings.logoUrl} alt="Logo" className="relative h-28 object-contain drop-shadow-xl transform transition-transform duration-500 group-hover:scale-110 group-hover:rotate-2" />
                    </div>
                )}
-               {/* Fixed: Changed font-black to font-extrabold */}
-               <h2 className="text-4xl font-extrabold text-slate-800 mb-3 tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-600">Xin chào!</h2>
+               <h2 className="text-4xl font-extrabold text-slate-800 mb-3 tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-[#003DA5] to-slate-600">Xin chào!</h2>
                <p className="text-slate-500 text-sm font-semibold tracking-wide uppercase">Hệ thống Theo dõi Phản ánh Chất lượng</p>
             </div>
             
             <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-5">
                     <div className="relative group">
-                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-600 transition-colors duration-300">
-                            <UserIcon className="h-6 w-6 transition-transform group-focus-within:scale-110" />
-                        </div>
                         <input 
                             type="text" 
-                            placeholder="Tên đăng nhập" 
+                            id="username"
                             value={username} 
                             onChange={(e) => setUsername(e.target.value)} 
-                            className="block w-full pl-12 pr-4 py-4 bg-white/60 border border-slate-200/60 rounded-2xl text-base font-bold text-slate-800 placeholder-slate-400/80 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white transition-all duration-300 shadow-sm" 
+                            className="peer block w-full pl-12 pr-4 pt-5 pb-2 bg-white/60 border border-slate-200/60 rounded-2xl text-base font-bold text-slate-800 placeholder-transparent focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-[#003DA5] focus:bg-white transition-all duration-300 shadow-sm" 
+                            placeholder="Username"
                             required 
                         />
+                        <label htmlFor="username" className="absolute left-12 top-3.5 text-slate-400 text-sm transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-slate-400 peer-placeholder-shown:top-3.5 peer-focus:-top-0.5 peer-focus:text-xs peer-focus:text-[#003DA5] peer-focus:font-bold font-medium pointer-events-none">
+                            Tên đăng nhập
+                        </label>
+                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 peer-focus:text-[#003DA5] transition-colors duration-300">
+                            <UserIcon className="h-6 w-6" />
+                        </div>
                     </div>
 
                     <div className="relative group">
-                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-600 transition-colors duration-300">
-                            <LockClosedIcon className="h-6 w-6 transition-transform group-focus-within:scale-110" />
-                        </div>
                         <input 
                             type={showPassword ? "text" : "password"} 
-                            placeholder="Mật khẩu" 
+                            id="password"
                             value={password} 
                             onChange={(e) => setPassword(e.target.value)} 
-                            className="block w-full pl-12 pr-12 py-4 bg-white/60 border border-slate-200/60 rounded-2xl text-base font-bold text-slate-800 placeholder-slate-400/80 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white transition-all duration-300 shadow-sm" 
+                            className="peer block w-full pl-12 pr-12 pt-5 pb-2 bg-white/60 border border-slate-200/60 rounded-2xl text-base font-bold text-slate-800 placeholder-transparent focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-[#003DA5] focus:bg-white transition-all duration-300 shadow-sm" 
+                            placeholder="Password"
                             required 
                         />
+                        <label htmlFor="password" className="absolute left-12 top-3.5 text-slate-400 text-sm transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-slate-400 peer-placeholder-shown:top-3.5 peer-focus:-top-0.5 peer-focus:text-xs peer-focus:text-[#003DA5] peer-focus:font-bold font-medium pointer-events-none">
+                            Mật khẩu
+                        </label>
+                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 peer-focus:text-[#003DA5] transition-colors duration-300">
+                            <LockClosedIcon className="h-6 w-6" />
+                        </div>
                         <button 
                             type="button" 
                             onClick={() => setShowPassword(!showPassword)} 
-                            className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-blue-600 transition-colors cursor-pointer outline-none active:scale-95 transform" 
+                            className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-[#003DA5] transition-colors cursor-pointer outline-none active:scale-95 transform" 
                             tabIndex={-1}
                         >
                             {showPassword ? <EyeSlashIcon className="h-6 w-6" /> : <EyeIcon className="h-6 w-6" />}
@@ -135,7 +141,7 @@ const Login: React.FC<Props> = ({ onLogin, users, settings }) => {
                     </div>
                 )}
 
-                <button type="submit" disabled={loading} className="w-full py-4 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-base font-bold shadow-xl shadow-blue-500/30 hover:shadow-blue-600/40 hover:-translate-y-1 active:translate-y-0 active:scale-[0.98] transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center relative overflow-hidden group">
+                <button type="submit" disabled={loading} className="w-full py-4 rounded-2xl bg-[#003DA5] hover:bg-[#002a70] text-white text-base font-bold shadow-xl shadow-blue-500/30 hover:shadow-blue-600/40 hover:-translate-y-1 active:translate-y-0 active:scale-[0.98] transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center relative overflow-hidden group">
                      <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></span>
                      {loading ? (
                          <>
@@ -157,7 +163,7 @@ const Login: React.FC<Props> = ({ onLogin, users, settings }) => {
       
       <div className="absolute bottom-6 w-full text-center z-10 p-4">
            <p className="text-[11px] font-bold text-slate-400 tracking-[0.2em] hover:text-slate-600 transition-colors cursor-default">
-               Copyright © 2025 Công ty Cổ phần Vật tư tế Hồng Thiện Mỹ
+               Copyright © 2025 Công ty Cổ phần Vật tư Y tế Hồng Thiện Mỹ
            </p>
       </div>
     </div>

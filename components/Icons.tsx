@@ -110,6 +110,13 @@ export const CheckCircleIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) 
   </svg>
 );
 
+export const CheckSquareIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+    <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h18v18H3V3z" />
+  </svg>
+);
+
 export const ClockIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
@@ -124,7 +131,7 @@ export const DocumentDuplicateIcon: React.FC<React.SVGProps<SVGSVGElement>> = (p
 
 export const SparklesIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z" />
+    <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0-1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z" />
   </svg>
 );
 
@@ -255,34 +262,34 @@ export const EllipsisHorizontalIcon: React.FC<React.SVGProps<SVGSVGElement>> = (
 export const CompanyLogo: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" fill="none" {...props}>
      {/* Circle Background */}
-    <circle cx="250" cy="250" r="240" fill="#F0F9FF" stroke="#2563EB" strokeWidth="10" />
+    <circle cx="250" cy="250" r="240" fill="#F0F9FF" stroke="#003DA5" strokeWidth="10" />
     
     {/* Medical Cross Accent (Watermark style) */}
-    <path d="M180 120 H320 V190 H390 V310 H320 V380 H180 V310 H110 V190 H180 V120 Z" fill="#3B82F6" opacity="0.07"/>
+    <path d="M180 120 H320 V190 H390 V310 H320 V380 H180 V310 H110 V190 H180 V120 Z" fill="#003DA5" opacity="0.07"/>
 
     {/* Stylized Text Group */}
     <g transform="translate(0, -20)">
         {/* H */}
-        <path d="M110 140 V360" stroke="#1E40AF" strokeWidth="36" strokeLinecap="round" />
-        <path d="M210 140 V360" stroke="#1E40AF" strokeWidth="36" strokeLinecap="round" />
-        <path d="M110 250 H210" stroke="#1E40AF" strokeWidth="32" strokeLinecap="round" />
+        <path d="M110 140 V360" stroke="#003DA5" strokeWidth="36" strokeLinecap="round" />
+        <path d="M210 140 V360" stroke="#003DA5" strokeWidth="36" strokeLinecap="round" />
+        <path d="M110 250 H210" stroke="#003DA5" strokeWidth="32" strokeLinecap="round" />
         
         {/* T */}
-        <path d="M260 140 H380" stroke="#1E40AF" strokeWidth="36" strokeLinecap="round" />
-        <path d="M320 140 V360" stroke="#1E40AF" strokeWidth="36" strokeLinecap="round" />
+        <path d="M260 140 H380" stroke="#003DA5" strokeWidth="36" strokeLinecap="round" />
+        <path d="M320 140 V360" stroke="#003DA5" strokeWidth="36" strokeLinecap="round" />
         
         {/* M (Partial / Suggestive) */}
-        <path d="M420 360 V140 L455 200" stroke="#1E40AF" strokeWidth="36" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M420 360 V140 L455 200" stroke="#003DA5" strokeWidth="36" strokeLinecap="round" strokeLinejoin="round" />
     </g>
 
-    {/* Medical Cross Icon Small */}
-    <rect x="220" y="380" width="60" height="60" rx="10" fill="#EF4444" />
+    {/* Medical Cross Icon Small - Using Brand RED #C5003E */}
+    <rect x="220" y="380" width="60" height="60" rx="10" fill="#C5003E" />
     <path d="M250 390 V430 M230 410 H270" stroke="white" strokeWidth="6" strokeLinecap="round" />
 
     {/* Company Name Curved */}
     <path id="curve" d="M 100 420 Q 250 480 400 420" fill="transparent" />
     <text width="500">
-        <textPath href="#curve" startOffset="50%" textAnchor="middle" className="font-bold uppercase" fontSize="28" fill="#1E3A8A" letterSpacing="1">
+        <textPath href="#curve" startOffset="50%" textAnchor="middle" className="font-bold uppercase" fontSize="28" fill="#003DA5" letterSpacing="1">
             Hồng Thiện Mỹ
         </textPath>
     </text>

@@ -1,9 +1,10 @@
+
 import React, { useState, useMemo, useEffect, useTransition, Suspense, useRef, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { DefectReport, UserRole, ToastType, User, RoleSettings, PermissionField, SystemSettings, Product } from './types';
-import { PlusIcon } from './components/Icons';
+import { PlusIcon, BarChartIcon, ArrowDownTrayIcon, ListBulletIcon, ArrowRightOnRectangleIcon, UserGroupIcon, ChartPieIcon, TableCellsIcon, ShieldCheckIcon, CalendarIcon, Cog8ToothIcon, EllipsisHorizontalIcon } from './components/Icons';
 import * as XLSX from 'xlsx';
 import Loading from './components/Loading';
-import { Header } from './components/Header';
 
 // Hooks Imports
 import { useAuth } from './hooks/useAuth';
@@ -12,15 +13,17 @@ import { useProducts } from './hooks/useProducts';
 import { useSettings } from './hooks/useSettings';
 
 // Lazy load components
-const DefectReportList = React.lazy(() => import('./components/DefectReportList'));
-const DefectReportDetail = React.lazy(() => import('./components/DefectReportDetail'));
-const DefectReportForm = React.lazy(() => import('./components/DefectReportForm'));
-const ProductListModal = React.lazy(() => import('./components/ProductListModal'));
-const UserManagementModal = React.lazy(() => import('./components/UserManagementModal'));
-const PermissionManagementModal = React.lazy(() => import('./components/PermissionManagementModal'));
-const Login = React.lazy(() => import('./components/Login'));
-const DashboardReport = React.lazy(() => import('./components/DashboardReport'));
-const SystemSettingsModal = React.lazy(() => import('./components/SystemSettingsModal'));
+const Header = React.lazy(() => import('./components/Header').then(module => ({ default: module.Header })));
+const DefectReportList = React.lazy(() => import('./components/DefectReportList') as Promise<{ default: React.ComponentType<any> }>);
+const DefectReportDetail = React.lazy(() => import('./components/DefectReportDetail') as Promise<{ default: React.ComponentType<any> }>);
+const DefectReportForm = React.lazy(() => import('./components/DefectReportForm') as Promise<{ default: React.ComponentType<any> }>);
+const ProductListModal = React.lazy(() => import('./components/ProductListModal') as Promise<{ default: React.ComponentType<any> }>);
+const UserManagementModal = React.lazy(() => import('./components/UserManagementModal') as Promise<{ default: React.ComponentType<any> }>);
+const PermissionManagementModal = React.lazy(() => import('./components/PermissionManagementModal') as Promise<{ default: React.ComponentType<any> }>);
+const Login = React.lazy(() => import('./components/Login') as Promise<{ default: React.ComponentType<any> }>);
+const DashboardReport = React.lazy(() => import('./components/DashboardReport') as Promise<{ default: React.ComponentType<any> }>);
+const SystemSettingsModal = React.lazy(() => import('./components/SystemSettingsModal') as Promise<{ default: React.ComponentType<any> }>);
+const DraggableFAB = React.lazy(() => import('./components/DraggableFAB') as Promise<{ default: React.ComponentType<any> }>);
 
 interface ToastProps {
   message: string;
@@ -35,97 +38,28 @@ const Toast: React.FC<ToastProps> = ({ message, type, onClose }) => {
   }, [onClose]);
 
   const config = {
-    success: { bg: 'bg-emerald-500', icon: '✅' },
-    error: { bg: 'bg-rose-500', icon: '❌' },
+    success: { bg: 'bg-green-500', icon: '✅' },
+    error: { bg: 'bg-red-500', icon: '❌' },
     info: { bg: 'bg-blue-500', icon: 'ℹ️' },
   };
 
   const { bg, icon } = config[type];
 
-  return (
-    <div className={`fixed bottom-6 right-6 ${bg} text-white py-3 px-5 rounded-2xl shadow-xl shadow-black/10 flex items-center z-[70] animate-fade-in-up backdrop-blur-md bg-opacity-95`}>
-      <span className="mr-3 text-lg">{icon}</span>
-      <span className="font-semibold text-sm">{message}</span>
-    </div>
+  // Render Toast using React Portal for safety
+  return createPortal(
+    <div className={`fixed bottom-5 right-5 ${bg} text-white py-3 px-5 rounded-xl shadow-2xl flex items-center z-[9999] animate-fade-in-up`}>
+      <style>{`
+        @keyframes fade-in-up {
+          0% { opacity: 0; transform: translateY(20px); }
+          100% { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in-up { animation: fade-in-up 0.3s ease-out forwards; }
+      `}</style>
+      <span className="mr-3 text-xl">{icon}</span>
+      <span className="font-medium">{message}</span>
+    </div>,
+    document.body
   );
-};
-
-// --- Draggable FAB Component ---
-const DraggableFAB = ({ onClick }: { onClick: () => void }) => {
-    const [position, setPosition] = useState({ x: 0, y: 0 });
-    const [isDragging, setIsDragging] = useState(false);
-    const [isInitialized, setIsInitialized] = useState(false);
-    const dragStartRef = useRef({ x: 0, y: 0 });
-    const hasMovedRef = useRef(false);
-
-    useEffect(() => {
-        // Initialize position higher up on mobile to avoid pagination overlap
-        const isMobile = window.innerWidth < 640;
-        setPosition({ 
-            x: window.innerWidth - 72, 
-            y: window.innerHeight - (isMobile ? 120 : 100)
-        });
-        setIsInitialized(true);
-
-        const handleResize = () => {
-             const isMobile = window.innerWidth < 640;
-             setPosition(prev => ({
-                 x: Math.min(prev.x, window.innerWidth - 72),
-                 y: Math.min(prev.y, window.innerHeight - (isMobile ? 120 : 100))
-             }));
-        };
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-    }, []);
-
-    const handlePointerDown = (e: React.PointerEvent) => {
-        e.currentTarget.setPointerCapture(e.pointerId);
-        setIsDragging(true);
-        dragStartRef.current = { x: e.clientX - position.x, y: e.clientY - position.y };
-        hasMovedRef.current = false;
-    };
-
-    const handlePointerMove = (e: React.PointerEvent) => {
-        if (!isDragging) return;
-        e.preventDefault();
-        
-        const newX = e.clientX - dragStartRef.current.x;
-        const newY = e.clientY - dragStartRef.current.y;
-        
-        // Clamp within window
-        const clampedX = Math.max(10, Math.min(window.innerWidth - 70, newX));
-        const clampedY = Math.max(10, Math.min(window.innerHeight - 70, newY));
-
-        // Check if moved significantly (threshold 5px)
-        if (Math.abs(clampedX - position.x) > 2 || Math.abs(clampedY - position.y) > 2) {
-            hasMovedRef.current = true;
-        }
-
-        setPosition({ x: clampedX, y: clampedY });
-    };
-
-    const handlePointerUp = (e: React.PointerEvent) => {
-        setIsDragging(false);
-        e.currentTarget.releasePointerCapture(e.pointerId);
-        if (!hasMovedRef.current) {
-            onClick();
-        }
-    };
-
-    if (!isInitialized) return null;
-
-    return (
-        <button
-            style={{ left: position.x, top: position.y, touchAction: 'none' }}
-            className={`fixed z-40 p-3.5 bg-blue-600 text-white rounded-full shadow-lg shadow-blue-600/30 hover:bg-blue-700 hover:scale-105 transition-all active:scale-95 flex items-center justify-center cursor-move group ${isDragging ? 'scale-110 cursor-grabbing shadow-xl' : 'animate-pulse-slow'}`}
-            onPointerDown={handlePointerDown}
-            onPointerMove={handlePointerMove}
-            onPointerUp={handlePointerUp}
-            title="Tạo mới (Kéo để di chuyển)"
-        >
-            <PlusIcon className="h-7 w-7 transition-transform group-hover:rotate-90" />
-        </button>
-    );
 };
 
 // --- Main App Component ---
@@ -141,7 +75,7 @@ export const App: React.FC = () => {
 
   // Use Custom Hooks
   const { currentUser, users, login, logout, saveUser, deleteUser } = useAuth(showToast);
-  const { reports, isLoadingReports, saveReport, deleteReport, updateReport } = useReports(showToast);
+  const { reports, isLoadingReports, saveReport, deleteReport, updateReport, addComment, deleteMultipleReports, updateMultipleReports } = useReports(showToast);
   const { products, addProduct, deleteProduct, deleteAllProducts, importProducts } = useProducts(showToast);
   const { roleSettings, systemSettings, saveRoleSettings, saveSystemSettings, renameRole } = useSettings(showToast);
 
@@ -176,7 +110,7 @@ export const App: React.FC = () => {
   useEffect(() => {
     const root = document.documentElement;
     if (systemSettings.fontFamily) {
-        // Update CSS variable to work with Tailwind's configured font-sans
+        // Update CSS variable so Tailwind's font-sans (which uses this var) updates correctly
         root.style.setProperty('--app-font', systemSettings.fontFamily);
     }
     if (systemSettings.baseFontSize) {
@@ -258,8 +192,9 @@ export const App: React.FC = () => {
     if (yearFilter !== 'All') {
         result = result.filter((r) => {
             if (!r.ngayPhanAnh) return false;
-            const year = new Date(r.ngayPhanAnh).getFullYear().toString();
-            return year === yearFilter;
+            // Parse date manually to avoid timezone issues
+            const [y] = r.ngayPhanAnh.split('-');
+            return y === yearFilter;
         });
     }
 
@@ -296,8 +231,8 @@ export const App: React.FC = () => {
 
       reports.forEach(r => {
           if(r.ngayPhanAnh) {
-             const y = new Date(r.ngayPhanAnh).getFullYear().toString();
-             years.add(y);
+             const [y] = r.ngayPhanAnh.split('-');
+             if (y) years.add(y);
           }
       });
 
@@ -351,6 +286,12 @@ export const App: React.FC = () => {
           setSelectedReport(prev => prev?.id === id ? null : prev);
       }
   }, [deleteReport]);
+
+  const handleUpdateMultipleWrapper = useCallback(async (ids: string[], updates: Partial<DefectReport>) => {
+      if (!updateMultipleReports) return;
+      const user = currentUser ? { username: currentUser.username, role: currentUser.role } : undefined;
+      await updateMultipleReports(ids, updates, user);
+  }, [updateMultipleReports, currentUser]);
 
   const handleEditClick = (report: DefectReport) => {
     setEditingReport(report);
@@ -455,23 +396,25 @@ export const App: React.FC = () => {
 
   return (
     <div className="flex flex-col h-dvh bg-slate-100 text-slate-900 relative">
-      <Header 
-        currentUser={currentUser}
-        systemSettings={systemSettings}
-        isLoadingReports={isLoadingReports}
-        canViewDashboard={canViewDashboard}
-        currentView={currentView}
-        setCurrentView={setCurrentView}
-        yearFilter={yearFilter}
-        setYearFilter={handleYearFilterChange}
-        availableYears={availableYears}
-        onExport={handleExportData}
-        onLogout={handleLogout}
-        onOpenPermissionModal={() => setIsPermissionModalOpen(true)}
-        onOpenProductModal={() => setIsProductModalOpen(true)}
-        onOpenUserModal={() => setIsUserModalOpen(true)}
-        onOpenSystemSettingsModal={() => setIsSystemSettingsModalOpen(true)}
-      />
+      <Suspense fallback={<div className="h-16 w-full bg-white/80 animate-pulse" />}>
+          <Header 
+            currentUser={currentUser}
+            systemSettings={systemSettings}
+            isLoadingReports={isLoadingReports}
+            canViewDashboard={canViewDashboard}
+            currentView={currentView}
+            setCurrentView={setCurrentView}
+            yearFilter={yearFilter}
+            setYearFilter={setYearFilter}
+            availableYears={availableYears}
+            onExport={handleExportData}
+            onLogout={handleLogout}
+            onOpenPermissionModal={() => setIsPermissionModalOpen(true)}
+            onOpenProductModal={() => setIsProductModalOpen(true)}
+            onOpenUserModal={() => setIsUserModalOpen(true)}
+            onOpenSystemSettingsModal={() => setIsSystemSettingsModalOpen(true)}
+          />
+      </Suspense>
 
       <main className="flex-1 overflow-hidden relative">
         <Suspense fallback={<Loading />}>
@@ -486,6 +429,8 @@ export const App: React.FC = () => {
                     selectedReport={selectedReport}
                     onSelectReport={setSelectedReport}
                     onDelete={handleDeleteReportWrapper}
+                    onDeleteMultiple={deleteMultipleReports} // Pass bulk delete
+                    onUpdateMultiple={handleUpdateMultipleWrapper} // Pass bulk update
                     currentUserRole={currentUser.role}
                     currentUsername={currentUser.username} // Pass username for storage key
                     filters={{ searchTerm, statusFilter, defectTypeFilter, yearFilter, dateFilter }}
@@ -505,13 +450,17 @@ export const App: React.FC = () => {
                     reports={filteredReports} 
                     onFilterSelect={handleDashboardFilterSelect}
                     onSelectReport={setSelectedReport} 
+                    isLoading={isLoadingReports}
                 />
             )}
         </Suspense>
       </main>
 
-      {/* Conditional FAB rendering */}
-      {userPermissions.canCreate && !isFormOpen && !selectedReport && <DraggableFAB onClick={handleCreateClick} />}
+      {userPermissions.canCreate && (
+          <Suspense fallback={null}>
+              <DraggableFAB onClick={handleCreateClick} />
+          </Suspense>
+      )}
 
       <Suspense fallback={null}>
           {selectedReport && (
@@ -526,6 +475,8 @@ export const App: React.FC = () => {
                     permissions={userPermissions}
                     onClose={() => setSelectedReport(null)}
                     currentUserRole={currentUser.role}
+                    currentUsername={currentUser.username}
+                    onAddComment={addComment}
                   />
                </div>
             </div>

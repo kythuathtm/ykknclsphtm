@@ -29,6 +29,15 @@ export interface Product {
   GPLH: string;
 }
 
+export interface ActivityLog {
+  id: string;
+  type: 'log' | 'comment';
+  content: string;
+  timestamp: string;
+  user: string;
+  role?: string;
+}
+
 export interface DefectReport {
   id: string;
   ngayTao: string;
@@ -53,6 +62,9 @@ export interface DefectReport {
   ngayHoanThanh?: string;
   loaiLoi: 'Lỗi Sản xuất' | 'Lỗi Nhà cung cấp' | 'Lỗi Hỗn hợp' | 'Lỗi Khác';
   nhanHang: 'HTM' | 'VMA' | 'Khác';
+  
+  // New Fields for History & Comments
+  activityLog?: ActivityLog[];
 }
 
 export type ToastType = 'success' | 'error' | 'info';

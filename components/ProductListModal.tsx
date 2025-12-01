@@ -1,5 +1,5 @@
-import React, { useRef, useState } from 'react';
-import { XIcon, ArrowUpTrayIcon, TrashIcon, PlusIcon, CheckCircleIcon } from './Icons';
+import React, { useRef, useState, useMemo } from 'react';
+import { XIcon, ArrowUpTrayIcon, TrashIcon, PlusIcon, CheckCircleIcon, ArrowDownTrayIcon, MagnifyingGlassIcon, FunnelIcon, CubeIcon, TagIcon } from './Icons';
 import * as XLSX from 'xlsx';
 import { Product } from '../types';
 
@@ -18,6 +18,7 @@ const ProductListModal: React.FC<Props> = ({ products, onClose, onImport, onAdd,
   
   // State for search and manual add
   const [searchTerm, setSearchTerm] = useState('');
+  const [brandFilter, setBrandFilter] = useState('All');
   const [isAdding, setIsAdding] = useState(false);
   const [newProduct, setNewProduct] = useState<Product>({
       maSanPham: '',
@@ -27,6 +28,32 @@ const ProductListModal: React.FC<Props> = ({ products, onClose, onImport, onAdd,
       nhanHang: 'HTM',
       GPLH: ''
   });
+
+  const handleDownloadTemplate = () => {
+      const templateData = [
+          {
+              "Mã SP (Bắt buộc)": "SP001",
+              "Tên thương mại (Bắt buộc)": "Kim lấy máu chân không",
+              "Tên thiết bị": "Kim lấy máu",
+              "Dòng sản phẩm": "Vật tư tiêu hao",
+              "Nhãn hàng": "HTM",
+              "GPLH": "12345/BYT-TB-CT"
+          },
+          {
+              "Mã SP (Bắt buộc)": "SP002",
+              "Tên thương mại (Bắt buộc)": "Ống nghiệm serum",
+              "Tên thiết bị": "Ống nghiệm",
+              "Dòng sản phẩm": "Ống nghiệm",
+              "Nhãn hàng": "VMA",
+              "GPLH": ""
+          }
+      ];
+      
+      const worksheet = XLSX.utils.json_to_sheet(templateData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "MauNhapLieu");
+      XLSX.writeFile(workbook, "Mau_Danh_Sach_San_Pham.xlsx");
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -107,125 +134,185 @@ const ProductListModal: React.FC<Props> = ({ products, onClose, onImport, onAdd,
   };
 
   // Filter products
-  const filteredProducts = products.filter(p => 
-      p.maSanPham.toLowerCase().includes(searchTerm.toLowerCase()) || 
-      p.tenThuongMai.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.dongSanPham.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.tenThietBi.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.GPLH.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredProducts = useMemo(() => {
+      return products.filter(p => {
+          const matchesSearch = 
+            p.maSanPham.toLowerCase().includes(searchTerm.toLowerCase()) || 
+            p.tenThuongMai.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            p.dongSanPham.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            p.tenThietBi.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            p.GPLH.toLowerCase().includes(searchTerm.toLowerCase());
+          
+          const matchesBrand = brandFilter === 'All' || 
+                               (brandFilter === 'Khác' ? !['HTM', 'VMA'].includes(p.nhanHang || '') : p.nhanHang === brandFilter);
+
+          return matchesSearch && matchesBrand;
+      });
+  }, [products, searchTerm, brandFilter]);
 
   return (
     <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center sm:p-4 transition-opacity">
-      <div className="bg-white w-full h-full sm:h-auto sm:max-h-[90vh] max-w-7xl rounded-none sm:rounded-2xl flex flex-col overflow-hidden ring-1 ring-black/5">
+      <div className="bg-white w-full h-full sm:h-auto sm:max-h-[90vh] max-w-7xl rounded-none sm:rounded-2xl flex flex-col overflow-hidden ring-1 ring-black/5 shadow-2xl animate-slide-up">
         
         {/* Header */}
-        <div className="flex justify-between items-center p-5 border-b border-slate-200 bg-white">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 sm:p-5 border-b border-slate-200 bg-white gap-4 sm:gap-0">
           <div>
-            <h2 className="text-xl font-bold text-slate-800">Danh sách Sản phẩm</h2>
+            <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                <CubeIcon className="w-6 h-6 text-[#003DA5]"/>
+                Danh sách Sản phẩm
+            </h2>
             <p className="text-sm text-slate-500 mt-1">Quản lý cơ sở dữ liệu ({products.length} mã)</p>
           </div>
-          <div className="flex items-center space-x-2">
-             <input 
-                type="text" 
-                placeholder="Tìm kiếm..." 
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="px-3 py-2 border border-slate-300 rounded-xl text-sm font-normal focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 w-32 sm:w-64 shadow-sm"
-             />
-
-             {/* Hidden File Input */}
-             <input 
-                type="file" 
-                ref={fileInputRef} 
-                onChange={handleFileChange} 
-                className="hidden" 
-                accept=".xlsx, .xls"
-             />
-             
-             {products.length > 0 && (
-                 <button 
-                    onClick={onDeleteAll}
-                    className="flex items-center px-3 py-2 bg-red-50 hover:bg-red-100 text-red-600 border border-red-100 rounded-xl text-sm font-bold transition-all shadow-sm active:scale-95"
-                    title="Xóa TOÀN BỘ dữ liệu sản phẩm"
-                 >
-                    <TrashIcon className="h-5 w-5 sm:mr-2" />
-                    <span className="hidden sm:inline">Xóa tất cả</span>
-                 </button>
-             )}
-             
-             <button 
-                onClick={() => setIsAdding(!isAdding)}
-                className={`flex items-center px-4 py-2 rounded-xl text-sm font-bold transition-all shadow-sm active:scale-95 ${isAdding ? 'bg-slate-100 text-slate-700 hover:bg-slate-200' : 'bg-blue-600 hover:bg-blue-700 text-white hover:shadow-md'}`}
-             >
-                <PlusIcon className="h-5 w-5 sm:mr-2" />
-                <span className="hidden sm:inline">{isAdding ? 'Đóng' : 'Thêm'}</span>
-             </button>
-
-            <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-800 rounded-full hover:bg-slate-100 transition-all ml-2 active:scale-95">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+             <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-800 rounded-full hover:bg-slate-100 transition-all active:scale-95 sm:order-last">
                 <XIcon className="h-6 w-6" />
             </button>
+             
+             {/* Mobile Add Button */}
+             <button 
+                onClick={() => setIsAdding(!isAdding)}
+                className={`sm:hidden ml-auto flex items-center px-4 py-2 rounded-xl text-sm font-bold transition-all shadow-sm active:scale-95 ${isAdding ? 'bg-slate-100 text-slate-700' : 'bg-[#003DA5] text-white'}`}
+             >
+                {isAdding ? 'Đóng' : <PlusIcon className="h-5 w-5" />}
+             </button>
           </div>
+        </div>
+
+        {/* Toolbar */}
+        <div className="p-4 bg-slate-50 border-b border-slate-200 flex flex-col lg:flex-row gap-3 items-center">
+            {/* Search & Filter Group */}
+            <div className="flex gap-2 w-full lg:w-auto flex-1">
+                <div className="relative flex-1 max-w-md">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                        <MagnifyingGlassIcon className="h-5 w-5" />
+                    </div>
+                    <input 
+                        type="text" 
+                        placeholder="Tìm kiếm mã, tên..." 
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-10 pr-3 py-2 w-full border border-slate-300 rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500/20 focus:border-[#003DA5] shadow-sm outline-none"
+                    />
+                </div>
+                <div className="relative w-32 sm:w-40">
+                    <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-slate-400">
+                        <FunnelIcon className="h-4 w-4" />
+                    </div>
+                    <select 
+                        value={brandFilter}
+                        onChange={(e) => setBrandFilter(e.target.value)}
+                        className="pl-8 pr-8 py-2 w-full border border-slate-300 rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500/20 focus:border-[#003DA5] shadow-sm outline-none appearance-none bg-white cursor-pointer"
+                    >
+                        <option value="All">Tất cả hãng</option>
+                        <option value="HTM">HTM</option>
+                        <option value="VMA">VMA</option>
+                        <option value="Khác">Khác</option>
+                    </select>
+                </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-2 w-full lg:w-auto justify-end overflow-x-auto pb-1 sm:pb-0 no-scrollbar">
+                 <button 
+                    onClick={() => setIsAdding(!isAdding)}
+                    className={`hidden sm:flex items-center px-4 py-2 rounded-xl text-sm font-bold transition-all shadow-sm active:scale-95 whitespace-nowrap ${isAdding ? 'bg-white border border-slate-300 text-slate-700' : 'bg-[#003DA5] text-white hover:bg-[#002a70]'}`}
+                 >
+                    <PlusIcon className="h-5 w-5 mr-2" />
+                    {isAdding ? 'Đóng thêm mới' : 'Thêm sản phẩm'}
+                 </button>
+
+                 <div className="h-8 w-px bg-slate-300 mx-1"></div>
+
+                 {/* Hidden File Input */}
+                 <input 
+                    type="file" 
+                    ref={fileInputRef} 
+                    onChange={handleFileChange} 
+                    className="hidden" 
+                    accept=".xlsx, .xls"
+                 />
+
+                 <button 
+                    onClick={handleDownloadTemplate}
+                    className="flex items-center px-3 py-2 bg-white border border-slate-300 text-slate-600 hover:text-[#003DA5] hover:border-blue-300 rounded-xl text-sm font-bold transition-all shadow-sm active:scale-95 whitespace-nowrap"
+                    title="Tải file mẫu Excel"
+                >
+                    <ArrowDownTrayIcon className="h-5 w-5 sm:mr-2" />
+                    <span className="hidden sm:inline">Mẫu</span>
+                </button>
+
+                 <button 
+                    onClick={() => fileInputRef.current?.click()}
+                    className="flex items-center px-3 py-2 bg-white border border-slate-300 text-slate-600 hover:text-emerald-600 hover:border-emerald-300 rounded-xl text-sm font-bold transition-all shadow-sm active:scale-95 whitespace-nowrap"
+                    title="Import từ file Excel"
+                >
+                    <ArrowUpTrayIcon className="h-5 w-5 sm:mr-2" />
+                    <span className="hidden sm:inline">Import</span>
+                </button>
+
+                 {products.length > 0 && (
+                     <button 
+                        onClick={onDeleteAll}
+                        className="flex items-center px-3 py-2 bg-white border border-red-200 text-red-500 hover:bg-red-50 rounded-xl text-sm font-bold transition-all shadow-sm active:scale-95 whitespace-nowrap"
+                        title="Xóa TOÀN BỘ dữ liệu sản phẩm"
+                     >
+                        <TrashIcon className="h-5 w-5 sm:mr-2" />
+                        <span className="hidden sm:inline">Xóa hết</span>
+                     </button>
+                 )}
+            </div>
         </div>
 
         {/* Add New Product Form Area */}
         {isAdding && (
-            <div className="p-5 bg-blue-50 border-b border-blue-100 animate-fade-in-up overflow-y-auto max-h-[300px] sm:max-h-none">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3">
-                    <h4 className="text-sm font-bold text-blue-800 uppercase tracking-wide">Thêm sản phẩm mới</h4>
-                    
-                    <button 
-                        onClick={() => fileInputRef.current?.click()}
-                        className="flex items-center px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow-sm active:scale-95 transition-all self-start sm:self-auto"
-                        title="Import từ file Excel"
-                    >
-                        <ArrowUpTrayIcon className="h-4 w-4 mr-1.5" />
-                        Hoặc Import Excel
-                    </button>
-                </div>
+            <div className="p-5 bg-blue-50/80 border-b border-blue-100 animate-fade-in-up overflow-y-auto max-h-[40vh] sm:max-h-none shadow-inner">
+                <h4 className="text-sm font-bold text-[#003DA5] uppercase tracking-wide mb-4 flex items-center">
+                    <PlusIcon className="w-4 h-4 mr-2"/>
+                    Nhập thông tin sản phẩm
+                </h4>
                 
-                <form onSubmit={handleManualAdd} className="grid grid-cols-1 sm:grid-cols-6 gap-3 items-end">
+                <form onSubmit={handleManualAdd} className="grid grid-cols-1 sm:grid-cols-6 gap-4 items-end">
                     <div className="sm:col-span-1">
-                        <label className="block text-xs font-semibold text-blue-700 mb-1">Mã sản phẩm *</label>
+                        <label className="block text-xs font-bold text-[#003DA5] mb-1.5 uppercase">Mã SP <span className="text-red-500">*</span></label>
                         <input 
                             type="text" required placeholder="VD: SP001"
                             value={newProduct.maSanPham}
                             onChange={(e) => setNewProduct({...newProduct, maSanPham: e.target.value})}
-                            className="w-full px-3 py-2 border border-blue-200 rounded-lg text-base font-normal focus:border-blue-500 bg-white shadow-sm"
+                            className="w-full px-3 py-2.5 border border-blue-200 rounded-xl text-sm font-medium focus:border-[#003DA5] focus:ring-2 focus:ring-blue-200 bg-white shadow-sm outline-none"
                         />
                     </div>
                     <div className="sm:col-span-2">
-                        <label className="block text-xs font-semibold text-blue-700 mb-1">Tên thương mại *</label>
+                        <label className="block text-xs font-bold text-[#003DA5] mb-1.5 uppercase">Tên thương mại <span className="text-red-500">*</span></label>
                         <input 
-                            type="text" required placeholder="Tên sản phẩm"
+                            type="text" required placeholder="Tên sản phẩm..."
                             value={newProduct.tenThuongMai}
                             onChange={(e) => setNewProduct({...newProduct, tenThuongMai: e.target.value})}
-                            className="w-full px-3 py-2 border border-blue-200 rounded-lg text-base font-normal focus:border-blue-500 bg-white shadow-sm"
+                            className="w-full px-3 py-2.5 border border-blue-200 rounded-xl text-sm font-medium focus:border-[#003DA5] focus:ring-2 focus:ring-blue-200 bg-white shadow-sm outline-none"
                         />
                     </div>
                      <div className="sm:col-span-1">
-                        <label className="block text-xs font-semibold text-blue-700 mb-1">Tên thiết bị YT</label>
+                        <label className="block text-xs font-bold text-[#003DA5] mb-1.5 uppercase">Tên thiết bị YT</label>
                         <input 
-                            type="text" placeholder="Tên thiết bị"
+                            type="text" placeholder="Tên thiết bị..."
                             value={newProduct.tenThietBi}
                             onChange={(e) => setNewProduct({...newProduct, tenThietBi: e.target.value})}
-                            className="w-full px-3 py-2 border border-blue-200 rounded-lg text-base font-normal focus:border-blue-500 bg-white shadow-sm"
+                            className="w-full px-3 py-2.5 border border-blue-200 rounded-xl text-sm font-medium focus:border-[#003DA5] focus:ring-2 focus:ring-blue-200 bg-white shadow-sm outline-none"
                         />
                     </div>
                     <div className="sm:col-span-1">
-                        <label className="block text-xs font-semibold text-blue-700 mb-1">Dòng sản phẩm</label>
+                        <label className="block text-xs font-bold text-[#003DA5] mb-1.5 uppercase">Dòng sản phẩm</label>
                         <input 
-                            type="text" placeholder="Loại"
+                            type="text" placeholder="Loại..."
                             value={newProduct.dongSanPham}
                             onChange={(e) => setNewProduct({...newProduct, dongSanPham: e.target.value})}
-                            className="w-full px-3 py-2 border border-blue-200 rounded-lg text-base font-normal focus:border-blue-500 bg-white shadow-sm"
+                            className="w-full px-3 py-2.5 border border-blue-200 rounded-xl text-sm font-medium focus:border-[#003DA5] focus:ring-2 focus:ring-blue-200 bg-white shadow-sm outline-none"
                         />
                     </div>
                      <div className="sm:col-span-1">
-                        <label className="block text-xs font-semibold text-blue-700 mb-1">Nhãn hàng</label>
+                        <label className="block text-xs font-bold text-[#003DA5] mb-1.5 uppercase">Nhãn hàng</label>
                          <select 
                             value={newProduct.nhanHang} onChange={(e) => setNewProduct({...newProduct, nhanHang: e.target.value})}
-                            className="w-full px-3 py-2 border border-blue-200 rounded-lg text-base font-normal focus:border-blue-500 bg-white shadow-sm"
+                            className="w-full px-3 py-2.5 border border-blue-200 rounded-xl text-sm font-medium focus:border-[#003DA5] focus:ring-2 focus:ring-blue-200 bg-white shadow-sm outline-none cursor-pointer"
                         >
                             <option value="HTM">HTM</option>
                             <option value="VMA">VMA</option>
@@ -233,86 +320,149 @@ const ProductListModal: React.FC<Props> = ({ products, onClose, onImport, onAdd,
                         </select>
                     </div>
                     <div className="sm:col-span-1">
-                        <label className="block text-xs font-semibold text-blue-700 mb-1">GPLH</label>
+                        <label className="block text-xs font-bold text-[#003DA5] mb-1.5 uppercase">GPLH</label>
                         <input 
-                            type="text" placeholder="Số đăng ký"
+                            type="text" placeholder="Số đăng ký..."
                             value={newProduct.GPLH}
                             onChange={(e) => setNewProduct({...newProduct, GPLH: e.target.value})}
-                            className="w-full px-3 py-2 border border-blue-200 rounded-lg text-base font-normal focus:border-blue-500 bg-white shadow-sm"
+                            className="w-full px-3 py-2.5 border border-blue-200 rounded-xl text-sm font-medium focus:border-[#003DA5] focus:ring-2 focus:ring-blue-200 bg-white shadow-sm outline-none"
                         />
                     </div>
-                    <div className="sm:col-span-1 sm:col-start-6">
+                    <div className="sm:col-span-5 hidden sm:block"></div>
+                    <div className="sm:col-span-1 sm:col-start-6 mt-2 sm:mt-0">
                         <button 
                             type="submit"
-                            className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-sm transition-all flex items-center justify-center font-bold"
+                            className="w-full py-2.5 bg-[#003DA5] hover:bg-[#002a70] text-white rounded-xl shadow-lg shadow-blue-500/30 transition-all flex items-center justify-center font-bold active:scale-95"
                         >
-                            <CheckCircleIcon className="h-5 w-5" />
+                            <CheckCircleIcon className="h-5 w-5 mr-2" /> Lưu
                         </button>
                     </div>
                 </form>
             </div>
         )}
 
-        {/* Product Table */}
-        <div className="flex-1 overflow-y-auto bg-slate-50/50 p-4 sm:p-6 custom-scrollbar">
-          <div className="overflow-x-auto shadow-sm ring-1 ring-black ring-opacity-5 rounded-xl bg-white border border-slate-200 min-w-full">
-            <table className="min-w-full divide-y divide-slate-200 table-fixed">
-              <thead className="bg-slate-50">
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase w-24 sticky top-0 bg-slate-50 z-10">Mã SP</th>
-                  <th className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase w-48 sticky top-0 bg-slate-50 z-10">Tên thương mại</th>
-                  <th className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase w-40 sticky top-0 bg-slate-50 z-10">Tên thiết bị YT</th>
-                  <th className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase w-32 sticky top-0 bg-slate-50 z-10">Dòng SP</th>
-                  <th className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase w-24 sticky top-0 bg-slate-50 z-10">Nhãn hàng</th>
-                  <th className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase w-32 sticky top-0 bg-slate-50 z-10">GPLH</th>
-                  <th className="px-4 py-3 text-right text-xs font-bold text-slate-500 uppercase w-16 sticky top-0 bg-slate-50 z-10">Xóa</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-slate-200">
-                {filteredProducts.map((product, index) => (
-                  <tr key={`${product.maSanPham}-${index}`} className="hover:bg-blue-50/50 transition-colors group">
-                    <td className="px-4 py-3 text-base font-normal text-slate-600 align-top whitespace-nowrap">{product.maSanPham}</td>
-                    <td className="px-4 py-3 text-base font-normal text-slate-800 whitespace-normal break-words align-top">{product.tenThuongMai}</td>
-                    <td className="px-4 py-3 text-base font-normal text-slate-600 whitespace-normal break-words align-top">{product.tenThietBi}</td>
-                    <td className="px-4 py-3 text-base font-normal text-slate-600 whitespace-normal break-words align-top">{product.dongSanPham}</td>
-                    <td className="px-4 py-3 text-base font-normal align-top">
-                        <span className={`px-2 py-1 rounded-md text-sm border ${
-                            product.nhanHang === 'HTM' ? 'bg-blue-50 text-blue-700 border-blue-100' :
-                            product.nhanHang === 'VMA' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
-                            'bg-slate-100 text-slate-600 border-slate-200'
-                        }`}>
-                            {product.nhanHang || 'Khác'}
-                        </span>
-                    </td>
-                    <td className="px-4 py-3 text-base font-normal text-slate-600 align-top whitespace-nowrap">{product.GPLH}</td>
-                    <td className="px-4 py-3 text-right text-base font-normal align-top">
-                        <button 
-                            onClick={() => onDelete(product.maSanPham)}
-                            className="p-1.5 text-slate-300 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all opacity-0 group-hover:opacity-100"
-                            title="Xóa"
-                        >
-                            <TrashIcon className="h-4 w-4" />
-                        </button>
-                    </td>
-                  </tr>
-                ))}
-                {filteredProducts.length === 0 && (
-                    <tr>
-                        <td colSpan={7} className="px-6 py-12 text-center text-sm text-slate-400 italic">
-                            {searchTerm ? 'Không tìm thấy sản phẩm nào.' : 'Danh sách trống.'}
-                        </td>
-                    </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+        {/* Product List Content */}
+        <div className="flex-1 overflow-y-auto bg-slate-50/50 p-0 sm:p-6 custom-scrollbar relative">
+          
+          {filteredProducts.length > 0 ? (
+            <>
+                {/* TABLE VIEW (Desktop) */}
+                <div className="hidden md:block overflow-hidden shadow-sm ring-1 ring-black ring-opacity-5 rounded-xl bg-white border border-slate-200">
+                    <table className="min-w-full divide-y divide-slate-200 table-fixed">
+                    <thead className="bg-slate-50/80 backdrop-blur">
+                        <tr>
+                        <th className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase w-28 sticky top-0 bg-slate-50 z-10">Mã SP</th>
+                        <th className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase sticky top-0 bg-slate-50 z-10">Tên thương mại</th>
+                        <th className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase w-48 sticky top-0 bg-slate-50 z-10">Tên thiết bị YT</th>
+                        <th className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase w-32 sticky top-0 bg-slate-50 z-10">Dòng SP</th>
+                        <th className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase w-24 sticky top-0 bg-slate-50 z-10">Nhãn hàng</th>
+                        <th className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase w-32 sticky top-0 bg-slate-50 z-10">GPLH</th>
+                        <th className="px-4 py-3 text-right text-xs font-bold text-slate-500 uppercase w-16 sticky top-0 bg-slate-50 z-10"></th>
+                        </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-slate-100">
+                        {filteredProducts.map((product, index) => (
+                        <tr key={`${product.maSanPham}-${index}`} className="hover:bg-blue-50/50 transition-colors group">
+                            <td className="px-4 py-3 align-top">
+                                <span className="font-bold text-sm text-[#003DA5] bg-blue-50 px-2 py-0.5 rounded border border-blue-100">{product.maSanPham}</span>
+                            </td>
+                            <td className="px-4 py-3 align-top">
+                                <div className="text-sm font-medium text-slate-800 line-clamp-2" title={product.tenThuongMai}>{product.tenThuongMai}</div>
+                            </td>
+                            <td className="px-4 py-3 align-top">
+                                <div className="text-sm text-slate-500 line-clamp-1" title={product.tenThietBi}>{product.tenThietBi}</div>
+                            </td>
+                            <td className="px-4 py-3 align-top">
+                                <div className="text-sm text-slate-500 line-clamp-1" title={product.dongSanPham}>{product.dongSanPham}</div>
+                            </td>
+                            <td className="px-4 py-3 align-top">
+                                <span className={`px-2 py-1 rounded text-xs font-bold border ${
+                                    product.nhanHang === 'HTM' ? 'bg-[#003DA5]/10 text-[#003DA5] border-[#003DA5]/20' :
+                                    product.nhanHang === 'VMA' ? 'bg-[#009183]/10 text-[#009183] border-[#009183]/20' :
+                                    'bg-slate-100 text-slate-600 border-slate-200'
+                                }`}>
+                                    {product.nhanHang || 'Khác'}
+                                </span>
+                            </td>
+                            <td className="px-4 py-3 align-top">
+                                <div className="text-xs text-slate-400">{product.GPLH}</div>
+                            </td>
+                            <td className="px-4 py-3 align-top text-right">
+                                <button 
+                                    onClick={() => onDelete(product.maSanPham)}
+                                    className="p-1.5 text-slate-300 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all opacity-0 group-hover:opacity-100 active:scale-95"
+                                    title="Xóa"
+                                >
+                                    <TrashIcon className="h-4 w-4" />
+                                </button>
+                            </td>
+                        </tr>
+                        ))}
+                    </tbody>
+                    </table>
+                </div>
+
+                {/* CARD GRID VIEW (Mobile) */}
+                <div className="md:hidden grid grid-cols-1 gap-3 p-4">
+                    {filteredProducts.map((product, index) => (
+                        <div key={`${product.maSanPham}-${index}`} className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col gap-2 relative">
+                            <div className="flex justify-between items-start">
+                                <span className="font-bold text-sm text-[#003DA5] bg-blue-50 px-2 py-0.5 rounded border border-blue-100">{product.maSanPham}</span>
+                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold border uppercase tracking-wide ${
+                                    product.nhanHang === 'HTM' ? 'bg-[#003DA5]/10 text-[#003DA5] border-[#003DA5]/20' :
+                                    product.nhanHang === 'VMA' ? 'bg-[#009183]/10 text-[#009183] border-[#009183]/20' :
+                                    'bg-slate-100 text-slate-600 border-slate-200'
+                                }`}>
+                                    {product.nhanHang || 'Khác'}
+                                </span>
+                            </div>
+                            
+                            <h3 className="text-sm font-bold text-slate-800 leading-snug">{product.tenThuongMai}</h3>
+                            
+                            <div className="flex items-center gap-2 text-xs text-slate-500 mt-1">
+                                {product.tenThietBi && <span className="bg-slate-50 px-2 py-1 rounded border border-slate-100 truncate max-w-[150px]">{product.tenThietBi}</span>}
+                                {product.dongSanPham && <span className="bg-slate-50 px-2 py-1 rounded border border-slate-100 truncate">{product.dongSanPham}</span>}
+                            </div>
+
+                            {product.GPLH && <div className="text-[10px] text-slate-400 mt-1">GPLH: {product.GPLH}</div>}
+
+                            <button 
+                                onClick={() => onDelete(product.maSanPham)}
+                                className="absolute bottom-3 right-3 p-2 text-slate-300 hover:text-red-600 hover:bg-red-50 rounded-full transition-all active:scale-95"
+                            >
+                                <TrashIcon className="h-5 w-5" />
+                            </button>
+                        </div>
+                    ))}
+                </div>
+            </>
+          ) : (
+            <div className="flex flex-col items-center justify-center h-full p-8 text-center animate-fade-in-up">
+                <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-4">
+                    <MagnifyingGlassIcon className="h-8 w-8 text-slate-300" />
+                </div>
+                <h3 className="text-lg font-bold text-slate-700">Không tìm thấy sản phẩm</h3>
+                <p className="text-sm text-slate-500 mt-1 max-w-xs">
+                    Thử thay đổi từ khóa tìm kiếm hoặc bộ lọc nhãn hàng.
+                </p>
+                {searchTerm || brandFilter !== 'All' ? (
+                    <button 
+                        onClick={() => { setSearchTerm(''); setBrandFilter('All'); }}
+                        className="mt-4 px-4 py-2 bg-white border border-slate-300 text-slate-600 text-xs font-bold rounded-lg hover:bg-slate-50 transition-all"
+                    >
+                        Xóa bộ lọc
+                    </button>
+                ) : null}
+            </div>
+          )}
         </div>
         
         <div className="flex justify-between items-center p-4 bg-white border-t border-slate-200 text-xs text-slate-500">
-            <div className="hidden sm:block">
-                 * File Excel cần có các cột: Mã SP, Tên thương mại, Tên thiết bị, Dòng SP, Nhãn hàng, GPLH.
+            <div className="hidden sm:flex items-center gap-2">
+                 <TagIcon className="w-3 h-3"/>
+                 <span>File Excel cần có các cột: Mã SP, Tên thương mại, Tên thiết bị, Dòng SP, Nhãn hàng, GPLH.</span>
             </div>
-            <button onClick={onClose} className="bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-bold py-2 px-6 rounded-xl shadow-sm transition-all active:scale-95">
+            <button onClick={onClose} className="w-full sm:w-auto bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-bold py-2.5 px-6 rounded-xl shadow-sm transition-all active:scale-95">
                 Đóng
             </button>
         </div>
@@ -320,5 +470,3 @@ const ProductListModal: React.FC<Props> = ({ products, onClose, onImport, onAdd,
     </div>
   );
 };
-
-export default ProductListModal;

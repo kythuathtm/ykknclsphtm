@@ -189,7 +189,7 @@ const SystemSettingsModal: React.FC<Props> = ({ currentSettings, onSave, onClose
                                     type="text"
                                     value={settings.headerBackgroundColor}
                                     onChange={(e) => setSettings({...settings, headerBackgroundColor: e.target.value})}
-                                    className="flex-1 bg-transparent border-none text-sm font-mono text-slate-700 focus:ring-0 uppercase placeholder-slate-400"
+                                    className="flex-1 bg-transparent border-none text-sm font-medium text-slate-700 focus:ring-0 uppercase placeholder-slate-400"
                                     placeholder="#FFFFFF hoặc rgba(...)"
                                 />
                             </div>
@@ -211,7 +211,7 @@ const SystemSettingsModal: React.FC<Props> = ({ currentSettings, onSave, onClose
                                     type="text"
                                     value={settings.headerTextColor}
                                     onChange={(e) => setSettings({...settings, headerTextColor: e.target.value})}
-                                    className="flex-1 bg-transparent border-none text-sm font-mono text-slate-700 focus:ring-0 uppercase placeholder-slate-400"
+                                    className="flex-1 bg-transparent border-none text-sm font-medium text-slate-700 focus:ring-0 uppercase placeholder-slate-400"
                                     placeholder="#000000"
                                 />
                             </div>
@@ -325,5 +325,3 @@ const SystemSettingsModal: React.FC<Props> = ({ currentSettings, onSave, onClose
     </div>
   );
 };
-
-export default SystemSettingsModal;
