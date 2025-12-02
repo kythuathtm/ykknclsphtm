@@ -1,3 +1,4 @@
+
 import React, { useMemo, useState, useEffect } from 'react';
 import { DefectReport } from '../types';
 import { 
@@ -600,8 +601,10 @@ const RecentActivityList = ({ reports, onSelect }: { reports: DefectReport[], on
     );
 };
 
-// --- MODAL COMPONENT FOR LISTS ---
-const DrillDownModal = ({ title, data, type, onClose }: { title: string, data: any[], type: 'distributor' | 'product', onClose: () => void }) => {
+// --- MODAL COMPONENTS ---
+
+// Updated DrillDownModal with Row Click support
+const DrillDownModal = ({ title, data, type, onClose, onRowClick }: { title: string, data: any[], type: 'distributor' | 'product', onClose: () => void, onRowClick?: (item: any) => void }) => {
     return (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[80vh] flex flex-col overflow-hidden animate-slide-up ring-1 ring-white/20">
@@ -629,10 +632,14 @@ const DrillDownModal = ({ title, data, type, onClose }: { title: string, data: a
                         </thead>
                         <tbody className="divide-y divide-slate-100">
                             {data.length > 0 ? data.map((item, idx) => (
-                                <tr key={idx} className="hover:bg-slate-50/80 transition-colors group">
+                                <tr 
+                                    key={idx} 
+                                    className={`hover:bg-slate-50/80 transition-colors group ${onRowClick ? 'cursor-pointer hover:bg-blue-50/50' : ''}`}
+                                    onClick={() => onRowClick && onRowClick(item)}
+                                >
                                     <td className="p-4 text-sm text-slate-400 text-center">{idx + 1}</td>
                                     <td className="p-4">
-                                        <div className="font-bold text-slate-800 text-sm group-hover:text-blue-700 transition-colors">
+                                        <div className={`font-bold text-sm transition-colors ${onRowClick ? 'text-slate-800 group-hover:text-blue-700' : 'text-slate-800'}`}>
                                             {type === 'distributor' ? item.name : item.name}
                                         </div>
                                         {type === 'product' && <div className="text-xs text-slate-400 font-bold mt-0.5">{item.code}</div>}
@@ -676,6 +683,66 @@ const DrillDownModal = ({ title, data, type, onClose }: { title: string, data: a
     );
 };
 
+// Detailed Report List Modal (Drill Down Level 2)
+const DetailedReportListModal = ({ title, reports, onClose, onSelectReport }: { title: string, reports: DefectReport[], onClose: () => void, onSelectReport: (r: DefectReport) => void }) => {
+    return (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[85vh] flex flex-col overflow-hidden animate-slide-up ring-1 ring-white/20">
+                <div className="flex justify-between items-center p-5 border-b border-slate-100 bg-white">
+                    <div>
+                        <h3 className="text-lg font-bold text-slate-800 uppercase tracking-wide">{title}</h3>
+                        <p className="text-sm text-slate-500 mt-1">Tổng cộng: <span className="font-bold text-slate-800">{reports.length}</span> phiếu</p>
+                    </div>
+                    <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-all active:scale-95">
+                        <XIcon className="h-6 w-6" />
+                    </button>
+                </div>
+                <div className="flex-1 overflow-y-auto p-0 custom-scrollbar bg-slate-50">
+                    <table className="w-full text-left border-collapse">
+                        <thead className="bg-white sticky top-0 z-10 shadow-sm text-xs font-bold text-slate-500 uppercase tracking-wider">
+                            <tr>
+                                <th className="p-4 w-12 text-center bg-slate-50/50">#</th>
+                                <th className="p-4 w-32 bg-slate-50/50">Ngày</th>
+                                <th className="p-4 w-32 bg-slate-50/50">Mã SP</th>
+                                <th className="p-4 bg-slate-50/50">Tên sản phẩm & Lỗi</th>
+                                <th className="p-4 w-36 bg-slate-50/50 text-right">Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 bg-white">
+                            {reports.map((r, idx) => (
+                                <tr key={r.id} onClick={() => onSelectReport(r)} className="hover:bg-blue-50 cursor-pointer transition-colors group">
+                                    <td className="p-4 text-center text-slate-400 text-xs font-bold">{idx + 1}</td>
+                                    <td className="p-4 text-sm text-slate-600 font-medium">
+                                        {new Date(r.ngayPhanAnh).toLocaleDateString('en-GB')}
+                                    </td>
+                                    <td className="p-4">
+                                        <span className="font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded border border-blue-100 text-xs">
+                                            {r.maSanPham}
+                                        </span>
+                                    </td>
+                                    <td className="p-4">
+                                        <div className="font-bold text-slate-800 text-sm mb-1 leading-snug line-clamp-1">{r.tenThuongMai}</div>
+                                        <div className="text-xs text-slate-500 line-clamp-1 italic">{r.noiDungPhanAnh}</div>
+                                    </td>
+                                    <td className="p-4 text-right">
+                                        <span className={`px-2 py-1 rounded text-[10px] font-bold border uppercase whitespace-nowrap ${
+                                            r.trangThai === 'Mới' ? 'bg-blue-50 text-blue-600 border-blue-100' :
+                                            r.trangThai === 'Hoàn thành' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+                                            'bg-amber-50 text-amber-600 border-amber-100'
+                                        }`}>
+                                            {r.trangThai}
+                                        </span>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 // --- MAIN DASHBOARD COMPONENT ---
 
 const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectReport, isLoading }) => {
@@ -684,6 +751,7 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
   
   // State for Modal
   const [activeModal, setActiveModal] = useState<'none' | 'distributor' | 'product'>('none');
+  const [selectedDistributorForDetail, setSelectedDistributorForDetail] = useState<string | null>(null);
 
   // Calculate Data (Memoized)
   const stats = useMemo(() => {
@@ -1155,12 +1223,22 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
         </div>
 
         {/* --- MODAL OVERLAYS --- */}
-        {activeModal === 'distributor' && (
+        {activeModal === 'distributor' && !selectedDistributorForDetail && (
             <DrillDownModal 
                 title="Thống kê Nhà phân phối" 
                 data={stats.distributorStats} 
                 type="distributor" 
                 onClose={() => setActiveModal('none')} 
+                onRowClick={(item) => setSelectedDistributorForDetail(item.name)}
+            />
+        )}
+
+        {selectedDistributorForDetail && (
+            <DetailedReportListModal 
+                title={`Chi tiết: ${selectedDistributorForDetail}`} 
+                reports={reports.filter(r => r.nhaPhanPhoi === selectedDistributorForDetail)}
+                onClose={() => setSelectedDistributorForDetail(null)}
+                onSelectReport={onSelectReport}
             />
         )}
         

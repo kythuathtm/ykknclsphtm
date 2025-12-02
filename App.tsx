@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect, useTransition, Suspense, useRef, useCallback } from 'react';
 import { DefectReport, UserRole, ToastType, User, RoleSettings, PermissionField, SystemSettings, Product } from './types';
 import { PlusIcon, BarChartIcon, ArrowDownTrayIcon, ListBulletIcon, ArrowRightOnRectangleIcon, UserGroupIcon, ChartPieIcon, TableCellsIcon, ShieldCheckIcon, CalendarIcon, Cog8ToothIcon, EllipsisHorizontalIcon } from './components/Icons';
@@ -108,13 +107,48 @@ export const App: React.FC = () => {
   // Apply System Settings to DOM
   useEffect(() => {
     const root = document.documentElement;
+    
+    // Global Settings
     if (systemSettings.fontFamily) {
         root.style.setProperty('font-family', systemSettings.fontFamily);
     }
     if (systemSettings.baseFontSize) {
         root.style.fontSize = systemSettings.baseFontSize;
     }
-  }, [systemSettings.fontFamily, systemSettings.baseFontSize]);
+
+    // Extended Settings (Header & List)
+    if (systemSettings.headerFontFamily) {
+        root.style.setProperty('--header-font', systemSettings.headerFontFamily);
+    } else {
+        root.style.removeProperty('--header-font');
+    }
+
+    if (systemSettings.headerFontSize) {
+        root.style.setProperty('--header-size', systemSettings.headerFontSize);
+    } else {
+        root.style.removeProperty('--header-size');
+    }
+
+    if (systemSettings.listFontFamily) {
+        root.style.setProperty('--list-font', systemSettings.listFontFamily);
+    } else {
+        root.style.removeProperty('--list-font');
+    }
+
+    if (systemSettings.listFontSize) {
+        root.style.setProperty('--list-size', systemSettings.listFontSize);
+    } else {
+        root.style.removeProperty('--list-size');
+    }
+
+  }, [
+      systemSettings.fontFamily, 
+      systemSettings.baseFontSize,
+      systemSettings.headerFontFamily,
+      systemSettings.headerFontSize,
+      systemSettings.listFontFamily,
+      systemSettings.listFontSize
+  ]);
 
   // Sync selectedReport with reports to ensure realtime updates in modal
   useEffect(() => {
