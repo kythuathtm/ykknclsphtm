@@ -3,7 +3,7 @@ import { User, SystemSettings, UserRole } from '../types';
 import { 
   BarChartIcon, CalendarIcon, ListBulletIcon, ChartPieIcon, 
   ArrowDownTrayIcon, Cog8ToothIcon, ShieldCheckIcon, 
-  TableCellsIcon, UserGroupIcon, ArrowRightOnRectangleIcon, CompanyLogo 
+  TableCellsIcon, UserGroupIcon, ArrowRightOnRectangleIcon, CompanyLogo, BellIcon
 } from './Icons';
 
 interface HeaderProps {
@@ -86,7 +86,7 @@ export const Header: React.FC<HeaderProps> = ({
                 />
             ) : (
                 <div className="p-1 sm:p-1.5 rounded-xl shadow-lg shadow-blue-600/10 flex-shrink-0 bg-white border border-blue-50 overflow-hidden">
-                   <CompanyLogo className="h-8 w-8 sm:h-9 sm:w-9" />
+                   <CompanyLogo className="h-8 w-8 sm:h-9 sm:w-9 text-[#003DA5]" />
                 </div>
             )}
             
@@ -159,6 +159,11 @@ export const Header: React.FC<HeaderProps> = ({
                         <ArrowDownTrayIcon className="h-5 w-5 sm:mr-2 text-slate-500" /><span className="hidden sm:inline">Xuất</span>
                     </button>
                 )}
+                <button className="p-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 hover:text-blue-600 rounded-xl transition-all shadow-sm active:scale-95 relative" title="Thông báo">
+                    <BellIcon className="h-5 w-5" />
+                    <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full ring-1 ring-white"></span>
+                </button>
+                
                 {currentUser.role === UserRole.Admin && (
                     <div className="relative" ref={adminMenuRef}>
                         <button onClick={() => setIsAdminMenuOpen(!isAdminMenuOpen)} className={`flex items-center gap-2 px-3 py-2 rounded-xl transition-all border active:scale-95 ${isAdminMenuOpen ? 'bg-blue-50 border-blue-200 text-[#003DA5]' : 'bg-white border-transparent hover:bg-slate-50 text-slate-600 hover:text-[#003DA5] opacity-80 hover:opacity-100'}`}>

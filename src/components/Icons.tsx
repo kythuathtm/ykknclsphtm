@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 export const PlusIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
@@ -258,38 +257,50 @@ export const EllipsisHorizontalIcon: React.FC<React.SVGProps<SVGSVGElement>> = (
   </svg>
 );
 
+export const ChatBubbleLeftIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 0 1 .865-.501 48.172 48.172 0 0 0 3.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
+  </svg>
+);
+
+export const BellIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
+  </svg>
+);
+
 // CUSTOM COMPANY LOGO for Hồng Thiện Mỹ (HTM)
 export const CompanyLogo: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" fill="none" {...props}>
      {/* Circle Background */}
-    <circle cx="250" cy="250" r="240" fill="#F0F9FF" stroke="#003DA5" strokeWidth="10" />
+    <circle cx="250" cy="250" r="240" fill="#F0F9FF" stroke="currentColor" strokeWidth="10" />
     
     {/* Medical Cross Accent (Watermark style) */}
-    <path d="M180 120 H320 V190 H390 V310 H320 V380 H180 V310 H110 V190 H180 V120 Z" fill="#003DA5" opacity="0.07"/>
+    <path d="M180 120 H320 V190 H390 V310 H320 V380 H180 V310 H110 V190 H180 V120 Z" fill="currentColor" opacity="0.07"/>
 
     {/* Stylized Text Group */}
     <g transform="translate(0, -20)">
         {/* H */}
-        <path d="M110 140 V360" stroke="#003DA5" strokeWidth="36" strokeLinecap="round" />
-        <path d="M210 140 V360" stroke="#003DA5" strokeWidth="36" strokeLinecap="round" />
-        <path d="M110 250 H210" stroke="#003DA5" strokeWidth="32" strokeLinecap="round" />
+        <path d="M110 140 V360" stroke="currentColor" strokeWidth="36" strokeLinecap="round" />
+        <path d="M210 140 V360" stroke="currentColor" strokeWidth="36" strokeLinecap="round" />
+        <path d="M110 250 H210" stroke="currentColor" strokeWidth="32" strokeLinecap="round" />
         
         {/* T */}
-        <path d="M260 140 H380" stroke="#003DA5" strokeWidth="36" strokeLinecap="round" />
-        <path d="M320 140 V360" stroke="#003DA5" strokeWidth="36" strokeLinecap="round" />
+        <path d="M260 140 H380" stroke="currentColor" strokeWidth="36" strokeLinecap="round" />
+        <path d="M320 140 V360" stroke="currentColor" strokeWidth="36" strokeLinecap="round" />
         
         {/* M (Partial / Suggestive) */}
-        <path d="M420 360 V140 L455 200" stroke="#003DA5" strokeWidth="36" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M420 360 V140 L455 200" stroke="currentColor" strokeWidth="36" strokeLinecap="round" strokeLinejoin="round" />
     </g>
 
-    {/* Medical Cross Icon Small - Using Brand RED #C5003E */}
+    {/* Medical Cross Icon Small - Using Brand RED #C5003E - keep as red accent */}
     <rect x="220" y="380" width="60" height="60" rx="10" fill="#C5003E" />
     <path d="M250 390 V430 M230 410 H270" stroke="white" strokeWidth="6" strokeLinecap="round" />
 
     {/* Company Name Curved - Added font-sans class for correct inheritance */}
     <path id="curve" d="M 100 420 Q 250 480 400 420" fill="transparent" />
     <text width="500">
-        <textPath href="#curve" startOffset="50%" textAnchor="middle" className="font-bold font-sans uppercase" fontSize="28" fill="#003DA5" letterSpacing="1">
+        <textPath href="#curve" startOffset="50%" textAnchor="middle" className="font-bold font-sans uppercase" fontSize="28" fill="currentColor" letterSpacing="1">
             Hồng Thiện Mỹ
         </textPath>
     </text>

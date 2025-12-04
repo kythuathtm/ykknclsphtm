@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect, useRef } from 'react';
-import { DefectReport, UserRole } from '../types';
-import { PencilIcon, TrashIcon, XIcon, WrenchIcon, QuestionMarkCircleIcon, ClipboardDocumentListIcon, TagIcon, UserIcon, CheckCircleIcon, CalendarIcon, CompanyLogo, ListBulletIcon } from './Icons';
+import { DefectReport, UserRole, ActivityLog } from '../types';
+import { PencilIcon, TrashIcon, XIcon, WrenchIcon, QuestionMarkCircleIcon, ClipboardDocumentListIcon, TagIcon, UserIcon, CheckCircleIcon, CalendarIcon, CompanyLogo, ListBulletIcon, ChatBubbleLeftIcon, ClockIcon } from './Icons';
 import ReactToPrint from 'react-to-print';
 
 interface Props {
@@ -39,6 +38,27 @@ const Section = ({ title, icon, children, delay = 0 }: any) => (
             {children}
         </div>
     </div>
+);
+
+const TimelineItem = ({ log }: { log: ActivityLog }) => (
+  <div className="flex gap-4 pb-6 last:pb-0 relative animate-fade-in">
+    {/* Line connector */}
+    <div className="absolute top-0 left-[19px] bottom-0 w-px bg-slate-200 last:hidden"></div>
+    
+    <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 z-10 ring-4 ring-white shadow-sm border border-slate-100 ${
+      log.type === 'comment' ? 'bg-blue-50 text-blue-600' : 'bg-slate-50 text-slate-500'
+    }`}>
+      {log.type === 'comment' ? <ChatBubbleLeftIcon className="w-5 h-5"/> : <ClockIcon className="w-5 h-5"/>}
+    </div>
+    
+    <div className="flex-1 bg-slate-50 rounded-xl p-3 border border-slate-100 shadow-sm">
+      <div className="flex justify-between items-start mb-1">
+        <span className="text-xs font-bold text-slate-700">{log.user} <span className="font-normal text-slate-400">({log.role})</span></span>
+        <span className="text-[10px] text-slate-400 font-medium">{new Date(log.timestamp).toLocaleString('vi-VN')}</span>
+      </div>
+      <p className="text-sm text-slate-600 leading-relaxed">{log.content}</p>
+    </div>
+  </div>
 );
 
 const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onUpdate, onDelete, permissions, onClose, currentUserRole, currentUsername, onAddComment }) => {
@@ -461,6 +481,22 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onUpdate, onDelet
                  </div>
             </div>
         </div>
+
+        {/* Timeline Log Section */}
+        <Section title="Nhật ký hoạt động" icon={<ClockIcon className="h-4 w-4"/>} delay={400}>
+            <div className="mt-2 pl-1 relative">
+                {report.activityLog && report.activityLog.length > 0 ? (
+                    <div className="relative pt-2">
+                        {[...report.activityLog].reverse().map(log => <TimelineItem key={log.id} log={log} />)}
+                    </div>
+                ) : (
+                    <div className="flex flex-col items-center justify-center py-8 text-center bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                        <ClockIcon className="w-8 h-8 text-slate-300 mb-2"/>
+                        <p className="text-sm text-slate-400 font-medium">Chưa có hoạt động nào được ghi lại.</p>
+                    </div>
+                )}
+            </div>
+        </Section>
 
       </div>
 

@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { DefectReport, UserRole, PermissionField, Product } from '../types';
-import { XIcon, CheckCircleIcon, TagIcon, WrenchIcon, LockClosedIcon, ShieldCheckIcon, ClipboardDocumentListIcon, CalendarIcon, BuildingStoreIcon, PlusIcon, TrashIcon } from './Icons';
+import { XIcon, CheckCircleIcon, TagIcon, WrenchIcon, LockClosedIcon, ShieldCheckIcon, ClipboardDocumentListIcon, CalendarIcon, BuildingStoreIcon, PlusIcon, TrashIcon, ArrowUpTrayIcon } from './Icons';
 
 interface Props {
   initialData: DefectReport | null;
@@ -36,6 +35,7 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
   const [isProductInfoLocked, setIsProductInfoLocked] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
   const [newImageUrl, setNewImageUrl] = useState(''); // State for new image input
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const productCodeInputRef = useRef<HTMLInputElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
@@ -50,6 +50,7 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
       }
   };
 
+  // ... (keep handleKeyDown, useEffect status logic, useMemos for availableLines/DeviceNames/TradeNames) ...
   useEffect(() => {
       const handleKeyDown = (e: KeyboardEvent) => {
           if (e.key === 'Escape') {
@@ -294,6 +295,30 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
           setNewImageUrl('');
           setIsDirty(true);
       }
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      if (file.size > 2 * 1024 * 1024) { // Limit to 2MB to respect Firestore limits
+          alert("Kích thước ảnh quá lớn (>2MB). Vui lòng chọn ảnh nhỏ hơn.");
+          return;
+      }
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+          const base64 = reader.result as string;
+          setFormData(prev => ({
+              ...prev,
+              images: [...(prev.images || []), base64]
+          }));
+          setIsDirty(true);
+      };
+      reader.readAsDataURL(file);
+      
+      // Reset input
+      if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const handleRemoveImage = (index: number) => {
@@ -607,25 +632,45 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
                             <ErrorMessage field="noiDungPhanAnh" />
                         </div>
                         
-                        {/* IMAGE PROOF SECTION */}
+                        {/* IMAGE PROOF SECTION - UPDATED WITH UPLOAD */}
                         <div className="mt-4">
                              <label className="block text-sm font-bold text-slate-700 mb-2">Hình ảnh minh chứng</label>
-                             <div className="flex gap-2 mb-2">
-                                <input 
-                                    type="text" 
-                                    name="imageUrlInput"
-                                    value={newImageUrl}
-                                    onChange={(e) => setNewImageUrl(e.target.value)}
-                                    placeholder="Dán đường dẫn ảnh (URL) vào đây..."
-                                    className="flex-1 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/20 outline-none"
-                                />
-                                <button 
-                                    type="button" 
-                                    onClick={handleAddImage}
-                                    className="px-3 py-2 bg-blue-50 text-blue-600 border border-blue-200 rounded-lg font-bold hover:bg-blue-100 transition-colors"
-                                >
-                                    <PlusIcon className="w-5 h-5" />
-                                </button>
+                             <div className="flex gap-2 mb-2 flex-col sm:flex-row">
+                                <div className="flex-1 flex gap-2">
+                                    <input 
+                                        type="text" 
+                                        name="imageUrlInput"
+                                        value={newImageUrl}
+                                        onChange={(e) => setNewImageUrl(e.target.value)}
+                                        placeholder="Dán URL ảnh hoặc..."
+                                        className="flex-1 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/20 outline-none"
+                                    />
+                                    <button 
+                                        type="button" 
+                                        onClick={handleAddImage}
+                                        className="px-3 py-2 bg-blue-50 text-blue-600 border border-blue-200 rounded-lg font-bold hover:bg-blue-100 transition-colors whitespace-nowrap"
+                                    >
+                                        <PlusIcon className="w-5 h-5" />
+                                    </button>
+                                </div>
+                                <div className="flex items-center">
+                                    <span className="text-slate-400 text-xs px-2">Hoặc</span>
+                                    <input 
+                                        type="file" 
+                                        ref={fileInputRef}
+                                        accept="image/*"
+                                        onChange={handleFileUpload}
+                                        className="hidden"
+                                    />
+                                    <button 
+                                        type="button"
+                                        onClick={() => fileInputRef.current?.click()}
+                                        className="px-4 py-2 bg-slate-100 text-slate-600 border border-slate-200 rounded-lg text-sm font-bold hover:bg-slate-200 transition-colors flex items-center"
+                                    >
+                                        <ArrowUpTrayIcon className="w-4 h-4 mr-2" />
+                                        Tải ảnh lên
+                                    </button>
+                                </div>
                              </div>
                              
                              {formData.images && formData.images.length > 0 && (
