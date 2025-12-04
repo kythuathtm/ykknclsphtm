@@ -1,3 +1,4 @@
+
 import React, { useMemo, useState, useEffect } from 'react';
 import { DefectReport } from '../types';
 import { 
@@ -579,7 +580,7 @@ const RecentActivityList = ({ reports, onSelect }: { reports: DefectReport[], on
     if (recent.length === 0) return <div className="text-center text-slate-400 text-xs py-10 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-100">Chưa có hoạt động nào.</div>;
 
     return (
-        <div className="space-y-3">
+        <div className="space-y-3" style={{ fontFamily: 'var(--list-font, inherit)' }}>
             {recent.map((r, i) => {
                 const isResolved = r.trangThai === 'Hoàn thành';
                 return (
@@ -589,10 +590,10 @@ const RecentActivityList = ({ reports, onSelect }: { reports: DefectReport[], on
                         </div>
                         <div className="flex-1 min-w-0">
                             <div className="flex justify-between items-center mb-1">
-                                <span className="text-xs font-bold text-slate-700 truncate group-hover:text-[#003DA5] transition-colors">{r.maSanPham}</span>
+                                <span className="font-bold text-slate-700 truncate group-hover:text-[#003DA5] transition-colors" style={{ fontSize: 'var(--list-size, 0.75rem)' }}>{r.maSanPham}</span>
                                 <span className="text-[10px] text-slate-400 font-bold bg-slate-100 px-2 py-0.5 rounded-lg border border-slate-200">{new Date(r.ngayPhanAnh).toLocaleDateString('en-GB')}</span>
                             </div>
-                            <div className="text-[11px] text-slate-500 font-medium truncate group-hover:text-slate-700 transition-colors">
+                            <div className="text-[11px] text-slate-500 font-medium truncate group-hover:text-slate-700 transition-colors" style={{ fontSize: 'var(--list-size, 0.7rem)' }}>
                                 {r.tenThuongMai}
                             </div>
                         </div>
@@ -618,16 +619,16 @@ const DrillDownModal = ({ title, data, type, onClose, onRowClick }: { title: str
                 </div>
                 
                 <div className="flex-1 overflow-y-auto p-0 custom-scrollbar">
-                    <table className="w-full text-left border-collapse">
+                    <table className="w-full text-left border-collapse" style={{ fontFamily: 'var(--list-font, inherit)', fontSize: 'var(--list-size, 1rem)' }}>
                         <thead className="bg-slate-50 sticky top-0 z-10 shadow-sm">
                             <tr>
-                                <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider w-12 text-center">#</th>
-                                <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider">{type === 'distributor' ? 'Nhà phân phối' : 'Sản phẩm'}</th>
-                                <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Số phiếu</th>
+                                <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider w-12 text-center" style={{ fontSize: 'inherit' }}>#</th>
+                                <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider" style={{ fontSize: 'inherit' }}>{type === 'distributor' ? 'Nhà phân phối' : 'Sản phẩm'}</th>
+                                <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right" style={{ fontSize: 'inherit' }}>Số phiếu</th>
                                 {type === 'distributor' && (
                                     <>
-                                        <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Số SKU</th>
-                                        <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Hoàn thành</th>
+                                        <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right" style={{ fontSize: 'inherit' }}>Số SKU</th>
+                                        <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right" style={{ fontSize: 'inherit' }}>Hoàn thành</th>
                                     </>
                                 )}
                             </tr>
@@ -639,9 +640,9 @@ const DrillDownModal = ({ title, data, type, onClose, onRowClick }: { title: str
                                     className={`hover:bg-slate-50/80 transition-colors group ${onRowClick ? 'cursor-pointer hover:bg-blue-50/50' : ''}`}
                                     onClick={() => onRowClick && onRowClick(item)}
                                 >
-                                    <td className="p-4 text-sm text-slate-400 text-center">{idx + 1}</td>
+                                    <td className="p-4 text-slate-400 text-center" style={{ fontSize: 'inherit' }}>{idx + 1}</td>
                                     <td className="p-4">
-                                        <div className={`font-bold text-sm transition-colors ${onRowClick ? 'text-slate-800 group-hover:text-blue-700' : 'text-slate-800'}`}>
+                                        <div className={`font-bold transition-colors ${onRowClick ? 'text-slate-800 group-hover:text-blue-700' : 'text-slate-800'}`} style={{ fontSize: 'inherit' }}>
                                             {type === 'distributor' ? item.name : item.name}
                                         </div>
                                         {type === 'product' && <div className="text-xs text-slate-400 font-bold mt-0.5">{item.code}</div>}
@@ -654,7 +655,7 @@ const DrillDownModal = ({ title, data, type, onClose, onRowClick }: { title: str
                                     {type === 'distributor' && (
                                         <>
                                             <td className="p-4 text-right">
-                                                <span className="font-bold text-slate-600">{item.uniqueSKUs}</span>
+                                                <span className="font-bold text-slate-600" style={{ fontSize: 'inherit' }}>{item.uniqueSKUs}</span>
                                             </td>
                                             <td className="p-4 text-right">
                                                 <div className="flex items-center justify-end gap-2">
@@ -700,21 +701,21 @@ const DetailedReportListModal = ({ title, reports, onClose, onSelectReport }: { 
                     </button>
                 </div>
                 <div className="flex-1 overflow-y-auto p-0 custom-scrollbar bg-slate-50">
-                    <table className="w-full text-left border-collapse">
+                    <table className="w-full text-left border-collapse" style={{ fontFamily: 'var(--list-font, inherit)', fontSize: 'var(--list-size, 1rem)' }}>
                         <thead className="bg-white sticky top-0 z-10 shadow-sm text-xs font-bold text-slate-500 uppercase tracking-wider">
                             <tr>
-                                <th className="p-4 w-12 text-center bg-slate-50/50">#</th>
-                                <th className="p-4 w-32 bg-slate-50/50">Ngày</th>
-                                <th className="p-4 w-32 bg-slate-50/50">Mã SP</th>
-                                <th className="p-4 bg-slate-50/50">Tên sản phẩm & Lỗi</th>
-                                <th className="p-4 w-36 bg-slate-50/50 text-right">Trạng thái</th>
+                                <th className="p-4 w-12 text-center bg-slate-50/50" style={{ fontSize: 'inherit' }}>#</th>
+                                <th className="p-4 w-32 bg-slate-50/50" style={{ fontSize: 'inherit' }}>Ngày</th>
+                                <th className="p-4 w-32 bg-slate-50/50" style={{ fontSize: 'inherit' }}>Mã SP</th>
+                                <th className="p-4 bg-slate-50/50" style={{ fontSize: 'inherit' }}>Tên sản phẩm & Lỗi</th>
+                                <th className="p-4 w-36 bg-slate-50/50 text-right" style={{ fontSize: 'inherit' }}>Trạng thái</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 bg-white">
                             {reports.map((r, idx) => (
                                 <tr key={r.id} onClick={() => onSelectReport(r)} className="hover:bg-blue-50 cursor-pointer transition-colors group">
-                                    <td className="p-4 text-center text-slate-400 text-xs font-bold">{idx + 1}</td>
-                                    <td className="p-4 text-sm text-slate-600 font-medium">
+                                    <td className="p-4 text-center text-slate-400 font-bold" style={{ fontSize: 'inherit' }}>{idx + 1}</td>
+                                    <td className="p-4 text-slate-600 font-medium" style={{ fontSize: 'inherit' }}>
                                         {new Date(r.ngayPhanAnh).toLocaleDateString('en-GB')}
                                     </td>
                                     <td className="p-4">
@@ -723,7 +724,7 @@ const DetailedReportListModal = ({ title, reports, onClose, onSelectReport }: { 
                                         </span>
                                     </td>
                                     <td className="p-4">
-                                        <div className="font-bold text-slate-800 text-sm mb-1 leading-snug line-clamp-1">{r.tenThuongMai}</div>
+                                        <div className="font-bold text-slate-800 mb-1 leading-snug line-clamp-1" style={{ fontSize: 'inherit' }}>{r.tenThuongMai}</div>
                                         <div className="text-xs text-slate-500 line-clamp-1 italic">{r.noiDungPhanAnh}</div>
                                     </td>
                                     <td className="p-4 text-right">

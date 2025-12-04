@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { User, SystemSettings } from '../types';
-import { UserIcon, LockClosedIcon, EyeIcon, EyeSlashIcon, ArrowRightOnRectangleIcon, CompanyLogo } from './Icons';
+import { UserIcon, LockClosedIcon, EyeIcon, EyeSlashIcon, CompanyLogo } from './Icons';
 
 interface Props {
   onLogin: (user: User) => void;
@@ -9,9 +9,12 @@ interface Props {
 }
 
 const Login: React.FC<Props> = ({ onLogin, users, settings }) => {
-  const [username, setUsername] = useState('');
+  // Initialize state from localStorage to prevent flash
+  const [username, setUsername] = useState(() => localStorage.getItem('app_saved_username') || '');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(() => !!localStorage.getItem('app_saved_username'));
+  
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -19,14 +22,17 @@ const Login: React.FC<Props> = ({ onLogin, users, settings }) => {
   const usernameRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => { 
+      // Focus username input if empty on mount
+      if (!username && usernameRef.current) {
+          usernameRef.current.focus();
+      }
+
+      // Trigger entrance animation
       const timer = setTimeout(() => {
           setIsLoaded(true);
-          if (usernameRef.current) {
-              usernameRef.current.focus();
-          }
       }, 100); 
       return () => clearTimeout(timer);
-  }, []);
+  }, []); // Run once on mount
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,12 +50,21 @@ const Login: React.FC<Props> = ({ onLogin, users, settings }) => {
         const user = users.find(u => u.username.toLowerCase() === normalizedInput);
 
         if (user && user.password === password) {
+            if (rememberMe) {
+                localStorage.setItem('app_saved_username', username.trim());
+            } else {
+                localStorage.removeItem('app_saved_username');
+            }
             onLogin(user);
         } else {
             setError('Tên đăng nhập hoặc mật khẩu không chính xác.');
             setLoading(false);
         }
     }, 800);
+  };
+
+  const handleForgotPassword = () => {
+      alert("Vui lòng liên hệ Admin để được cấp lại mật khẩu.");
   };
 
   const renderBackground = () => {
@@ -60,6 +75,12 @@ const Login: React.FC<Props> = ({ onLogin, users, settings }) => {
                  <div className="absolute inset-0 bg-cover bg-center z-0 animate-pulse-slow transition-transform duration-[60s] hover:scale-110 ease-linear" style={{ backgroundImage: `url(${settings.backgroundValue})`, transform: 'scale(1.1)' }}></div>
                  <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-[10px]"></div>
             </div>
+          );
+      }
+      
+      if (settings.backgroundType === 'color' && settings.backgroundValue) {
+          return (
+            <div className="absolute inset-0 overflow-hidden pointer-events-none" style={{ backgroundColor: settings.backgroundValue }}></div>
           );
       }
       
@@ -125,8 +146,7 @@ const Login: React.FC<Props> = ({ onLogin, users, settings }) => {
                         <div className="mb-8">
                             <p className="text-sm font-bold text-blue-200 uppercase tracking-widest mb-2 opacity-90">Hệ thống</p>
                             <p className="text-2xl lg:text-3xl font-black uppercase leading-tight tracking-wide max-w-lg">
-                                THEO DÕI & XỬ LÝ KHIẾU NẠI<br/>
-                                VỀ CHẤT LƯỢNG SẢN PHẨM
+                                {settings.appName || 'THEO DÕI & XỬ LÝ KHIẾU NẠI VỀ CHẤT LƯỢNG SẢN PHẨM'}
                             </p>
                         </div>
                         <div className="pt-6 border-t border-white/10">
@@ -143,13 +163,13 @@ const Login: React.FC<Props> = ({ onLogin, users, settings }) => {
                 <div className="w-full max-w-xs sm:max-w-sm relative z-10">
                     
                     {/* Icon: Login (Circle Avatar Placeholder) */}
-                    <div className="mx-auto mb-10 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
+                    <div className="mx-auto mb-8 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
                         <div className="w-32 h-32 rounded-full bg-white/80 backdrop-blur-md flex items-center justify-center shadow-[0_15px_35px_-5px_rgba(0,0,0,0.1)] border-4 border-white mx-auto group hover:scale-105 transition-transform duration-500">
                             <UserIcon className="w-14 h-14 text-slate-300 group-hover:text-[#003DA5] transition-colors duration-300" />
                         </div>
                     </div>
 
-                    <form onSubmit={handleSubmit} className="space-y-6 animate-fade-in-up" style={{ animationDelay: '400ms' }}>
+                    <form onSubmit={handleSubmit} className="space-y-5 animate-fade-in-up" style={{ animationDelay: '400ms' }}>
                         
                         {/* Inputs */}
                         <div className="space-y-4">
@@ -172,7 +192,7 @@ const Login: React.FC<Props> = ({ onLogin, users, settings }) => {
                             <div className="group">
                                 <div className="relative transform transition-transform duration-300 group-focus-within:scale-[1.02]">
                                     <input 
-                                        type="showPassword"
+                                        type={showPassword ? "text" : "password"} 
                                         value={password} 
                                         onChange={(e) => setPassword(e.target.value)} 
                                         className="block w-full px-5 py-4 bg-white/80 border border-white rounded-[20px] text-slate-800 text-sm font-bold placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-[#003DA5]/50 shadow-sm hover:shadow-md transition-all text-center"
@@ -187,11 +207,31 @@ const Login: React.FC<Props> = ({ onLogin, users, settings }) => {
                                         className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#003DA5] p-2 rounded-xl hover:bg-slate-100/50 transition-all cursor-pointer outline-none active:scale-95" 
                                         title={showPassword ? "Ẩn" : "Hiện"}
                                         disabled={loading}
+                                        tabIndex={-1}
                                     >
                                         {showPassword ? <EyeSlashIcon className="h-5 w-5" /> : <EyeIcon className="h-5 w-5" />}
                                     </button>
                                 </div>
                             </div>
+                        </div>
+
+                        {/* Remember & Forgot Password */}
+                        <div className="flex items-center justify-between px-2">
+                            <label className="flex items-center gap-2 cursor-pointer group select-none">
+                                <div className={`w-4 h-4 rounded border flex items-center justify-center transition-all ${rememberMe ? 'bg-[#003DA5] border-[#003DA5]' : 'border-slate-300 bg-white group-hover:border-[#003DA5]'}`}>
+                                    {rememberMe && <svg viewBox="0 0 24 24" fill="none" className="w-3 h-3 text-white" stroke="currentColor" strokeWidth="3"><path d="M5 13l4 4L19 7" /></svg>}
+                                </div>
+                                <input type="checkbox" className="hidden" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} />
+                                <span className={`text-xs font-bold transition-colors ${rememberMe ? 'text-[#003DA5]' : 'text-slate-500 group-hover:text-[#003DA5]'}`}>Ghi nhớ</span>
+                            </label>
+                            
+                            <button 
+                                type="button" 
+                                onClick={handleForgotPassword}
+                                className="text-xs font-bold text-slate-400 hover:text-[#003DA5] transition-colors"
+                            >
+                                Quên mật khẩu?
+                            </button>
                         </div>
 
                         {error && (
@@ -202,7 +242,7 @@ const Login: React.FC<Props> = ({ onLogin, users, settings }) => {
                         )}
 
                         {/* Button */}
-                        <div className="pt-4">
+                        <div className="pt-2">
                             <button 
                                 type="submit" 
                                 disabled={loading} 

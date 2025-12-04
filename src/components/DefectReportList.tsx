@@ -1,80 +1,20 @@
-import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+
+import React, { useState, useEffect, useMemo } from 'react';
 import { DefectReport, UserRole } from '../types';
-import Pagination from './Pagination';
 import { 
-    MagnifyingGlassIcon, InboxIcon, ClockIcon, CheckCircleIcon, 
-    SparklesIcon, Cog6ToothIcon, TrashIcon, ArrowDownTrayIcon,
-    CalendarIcon, FunnelIcon, XIcon, DocumentDuplicateIcon,
-    ArrowUpIcon, ArrowDownIcon, AdjustmentsIcon, EyeIcon
+  FunnelIcon, MagnifyingGlassIcon, ArrowDownTrayIcon, 
+  TrashIcon, DocumentDuplicateIcon, PencilIcon, 
+  CalendarIcon, AdjustmentsIcon, EyeIcon, 
+  CheckCircleIcon, WrenchIcon, ShoppingBagIcon, 
+  TagIcon, UserIcon, ClockIcon 
 } from './Icons';
-
-interface SummaryStats {
-    total: number;
-    moi: number;
-    dangTiepNhan: number;
-    dangXacMinh: number;
-    dangXuLy: number;
-    chuaTimRaNguyenNhan: number;
-    hoanThanh: number;
-}
-
-interface Props {
-  reports: DefectReport[];
-  totalReports: number;
-  currentPage: number;
-  itemsPerPage: number;
-  onPageChange: (page: number) => void;
-  selectedReport: DefectReport | null;
-  onSelectReport: (report: DefectReport) => void;
-  currentUserRole: UserRole;
-  currentUsername: string; // New prop for user-specific storage
-  filters: {
-    searchTerm: string;
-    statusFilter: string;
-    defectTypeFilter: string;
-    yearFilter: string;
-    dateFilter: { start: string; end: string };
-  };
-  onSearchTermChange: (term: string) => void;
-  onStatusFilterChange: (status: string) => void;
-  onDefectTypeFilterChange: (type: string) => void;
-  onYearFilterChange: (year: string) => void;
-  onDateFilterChange: (dates: { start: string; end: string }) => void;
-  summaryStats: SummaryStats;
-  onItemsPerPageChange: (items: number) => void;
-  onDelete: (id: string) => void;
-  onDeleteMultiple?: (ids: string[]) => void;
-  isLoading?: boolean;
-  onExport: () => void;
-  onDuplicate?: (report: DefectReport) => void;
-  baseFontSize?: string; 
-}
-
-const statusColorMap: { [key in DefectReport['trangThai']]: string } = {
-  'Mới': 'bg-blue-50 text-blue-700 border-blue-200 ring-blue-500/30',
-  'Đang tiếp nhận': 'bg-indigo-50 text-indigo-700 border-indigo-200 ring-indigo-500/30',
-  'Đang xác minh': 'bg-cyan-50 text-cyan-700 border-cyan-200 ring-cyan-500/30',
-  'Đang xử lý': 'bg-amber-50 text-amber-700 border-amber-200 ring-amber-500/30',
-  'Chưa tìm ra nguyên nhân': 'bg-purple-50 text-purple-700 border-purple-200 ring-purple-500/30',
-  'Hoàn thành': 'bg-emerald-50 text-emerald-700 border-emerald-200 ring-emerald-500/30',
-};
-
-const statusDotMap: { [key in DefectReport['trangThai']]: string } = {
-  'Mới': 'bg-blue-500',
-  'Đang tiếp nhận': 'bg-indigo-500',
-  'Đang xác minh': 'bg-cyan-500',
-  'Đang xử lý': 'bg-amber-500',
-  'Chưa tìm ra nguyên nhân': 'bg-purple-500',
-  'Hoàn thành': 'bg-emerald-500',
-};
-
-type ColumnId = 'stt' | 'ngayPhanAnh' | 'maSanPham' | 'tenThuongMai' | 'noiDungPhanAnh' | 'soLo' | 'maNgaySanXuat' | 'trangThai' | 'actions';
+import Pagination from './Pagination';
 
 interface ColumnConfig {
-  id: ColumnId;
+  id: string;
   label: string;
   visible: boolean;
-  width: number;
+  width?: number;
   align?: 'left' | 'center' | 'right';
   fixed?: boolean;
 }
@@ -87,922 +27,395 @@ const DEFAULT_COLUMNS: ColumnConfig[] = [
     { id: 'tenThuongMai', label: 'Tên thương mại', visible: true, width: 250, align: 'left' }, 
     { id: 'noiDungPhanAnh', label: 'Nội dung khiếu nại', visible: true, width: 300, align: 'left' }, 
     { id: 'soLo', label: 'Số lô', visible: true, width: 100, align: 'left' },
+    { id: 'hanDung', label: 'Hạn dùng', visible: false, width: 120, align: 'left' },
+    { id: 'donViTinh', label: 'ĐVT', visible: false, width: 80, align: 'center' },
     { id: 'maNgaySanXuat', label: 'Mã NSX', visible: true, width: 100, align: 'left' },
     { id: 'trangThai', label: 'Trạng thái', visible: true, width: 160, align: 'left' },
     { id: 'actions', label: '', visible: true, width: 100, align: 'center', fixed: true },
 ];
 
-const HighlightText = React.memo(({ text, highlight }: { text: string, highlight: string }) => {
-    if (!highlight.trim() || !text) return <>{text}</>;
-    // Escape special characters for regex to prevent crash
-    const escapedHighlight = highlight.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const regex = new RegExp(`(${escapedHighlight})`, 'gi');
-    const parts = text.split(regex);
-    return (
-        <span>
-            {parts.map((part, i) => 
-                regex.test(part) ? (
-                    <span key={i} className="bg-yellow-200 text-slate-900 rounded-[2px] px-0.5 shadow-sm">{part}</span>
-                ) : (
-                    part
-                )
-            )}
-        </span>
-    );
-});
+interface FilterState {
+    searchTerm: string;
+    statusFilter: string;
+    defectTypeFilter: string;
+    yearFilter: string;
+    dateFilter: { start: string, end: string };
+}
 
-// Mobile Card Component with Fixed Height for Virtualization
-const MobileReportCard = React.memo(({ 
-    report, onSelect, onDuplicate, onDelete, canDelete, highlight, style 
-}: { 
-    report: DefectReport, onSelect: () => void, 
-    onDuplicate: ((r: DefectReport) => void) | undefined, 
-    onDelete: (id: string) => void, canDelete: boolean, highlight: string, style?: React.CSSProperties 
+interface DefectReportListProps {
+  reports: DefectReport[];
+  totalReports: number;
+  currentPage: number;
+  itemsPerPage: number;
+  onPageChange: (page: number) => void;
+  onItemsPerPageChange: (items: number) => void;
+  selectedReport: DefectReport | null;
+  onSelectReport: (report: DefectReport) => void;
+  onDelete: (id: string) => void;
+  currentUserRole: string;
+  currentUsername: string;
+  filters: FilterState;
+  onSearchTermChange: (term: string) => void;
+  onStatusFilterChange: (status: string) => void;
+  onDefectTypeFilterChange: (type: string) => void;
+  onYearFilterChange: (year: string) => void;
+  onDateFilterChange: (range: { start: string, end: string }) => void;
+  summaryStats: any;
+  isLoading: boolean;
+  onExport: () => void;
+  onDuplicate: (report: DefectReport) => void;
+  baseFontSize?: string;
+}
+
+const DefectReportList: React.FC<DefectReportListProps> = ({
+  reports,
+  totalReports,
+  currentPage,
+  itemsPerPage,
+  onPageChange,
+  onItemsPerPageChange,
+  selectedReport,
+  onSelectReport,
+  onDelete,
+  currentUserRole,
+  currentUsername,
+  filters,
+  onSearchTermChange,
+  onStatusFilterChange,
+  onDefectTypeFilterChange,
+  onYearFilterChange,
+  onDateFilterChange,
+  summaryStats,
+  isLoading,
+  onExport,
+  onDuplicate,
+  baseFontSize = '15px'
 }) => {
-    return (
-        <div 
-            style={style}
-            onClick={onSelect}
-            className={`absolute left-0 right-0 w-full px-4 py-3 border-b border-slate-100 active:bg-slate-50 transition-colors touch-manipulation flex flex-col justify-between bg-white`}
-        >
-            <div>
-                <div className="flex justify-between items-center mb-2">
-                    <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded border border-slate-200">
-                            <HighlightText text={report.maSanPham} highlight={highlight} />
-                        </span>
-                        <span className="text-xs text-slate-400 flex items-center gap-1 font-medium">
-                            <CalendarIcon className="w-3 h-3" />
-                            {new Date(report.ngayPhanAnh).toLocaleDateString('en-GB')}
-                        </span>
+    // State for column customization
+    const [columns, setColumns] = useState<ColumnConfig[]>(DEFAULT_COLUMNS);
+    const [showColumnMenu, setShowColumnMenu] = useState(false);
+    const [showDateFilter, setShowDateFilter] = useState(false);
+
+    // Load columns from local storage on mount
+    useEffect(() => {
+        const savedColumns = localStorage.getItem(`columns_${currentUsername}`);
+        if (savedColumns) {
+            try {
+                const parsed = JSON.parse(savedColumns);
+                // Merge with default to ensure new columns appear
+                const merged = DEFAULT_COLUMNS.map(defCol => {
+                    const savedCol = parsed.find((c: ColumnConfig) => c.id === defCol.id);
+                    return savedCol ? { ...defCol, visible: savedCol.visible } : defCol;
+                });
+                setColumns(merged);
+            } catch (e) {
+                console.error("Failed to parse saved columns", e);
+            }
+        }
+    }, [currentUsername]);
+
+    // Save columns to local storage
+    const toggleColumn = (id: string) => {
+        const newColumns = columns.map(col => 
+            col.id === id ? { ...col, visible: !col.visible } : col
+        );
+        setColumns(newColumns);
+        localStorage.setItem(`columns_${currentUsername}`, JSON.stringify(newColumns));
+    };
+
+    const getStatusStyle = (status: string) => {
+        switch (status) {
+            case 'Mới': return 'bg-blue-50 text-blue-700 border-blue-200';
+            case 'Đang tiếp nhận': return 'bg-indigo-50 text-indigo-700 border-indigo-200';
+            case 'Đang xác minh': return 'bg-cyan-50 text-cyan-700 border-cyan-200';
+            case 'Đang xử lý': return 'bg-amber-50 text-amber-700 border-amber-200';
+            case 'Chưa tìm ra nguyên nhân': return 'bg-purple-50 text-purple-700 border-purple-200';
+            case 'Hoàn thành': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+            default: return 'bg-slate-50 text-slate-700 border-slate-200';
+        }
+    };
+
+    const renderCell = (report: DefectReport, columnId: string, index: number) => {
+        switch (columnId) {
+            case 'stt':
+                return (currentPage - 1) * itemsPerPage + index + 1;
+            case 'ngayPhanAnh':
+                return (
+                    <div>
+                        <span className="block font-medium text-slate-700" style={{ fontSize: 'inherit' }}>{new Date(report.ngayPhanAnh).toLocaleDateString('en-GB')}</span>
+                        <span className="text-[10px] text-slate-400">{report.id.substring(0, 8)}</span>
                     </div>
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border uppercase flex items-center gap-1.5 ${statusColorMap[report.trangThai]}`}>
-                        <span className={`status-dot w-1.5 h-1.5 rounded-full ${statusDotMap[report.trangThai]}`} title={report.trangThai}></span>
+                );
+            case 'maSanPham':
+                return (
+                    <span className="font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded border border-blue-100 text-xs">
+                        {report.maSanPham}
+                    </span>
+                );
+            case 'tenThuongMai':
+                return (
+                    <div>
+                        <div className="font-bold text-slate-800 line-clamp-1" title={report.tenThuongMai} style={{ fontSize: 'inherit' }}>{report.tenThuongMai}</div>
+                        <div className="text-xs text-slate-500 mt-0.5 line-clamp-1">{report.dongSanPham} - {report.nhanHang}</div>
+                    </div>
+                );
+            case 'noiDungPhanAnh':
+                return <div className="line-clamp-2 text-slate-600" title={report.noiDungPhanAnh} style={{ fontSize: 'inherit' }}>{report.noiDungPhanAnh}</div>;
+            case 'soLo':
+                return <span className="font-mono text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded text-xs">{report.soLo}</span>;
+            case 'hanDung':
+                return report.hanDung ? new Date(report.hanDung).toLocaleDateString('en-GB') : '';
+            case 'donViTinh':
+                return report.donViTinh;
+            case 'maNgaySanXuat':
+                return report.maNgaySanXuat;
+            case 'trangThai':
+                return (
+                    <span className={`inline-flex px-2 py-1 rounded border text-[11px] font-bold uppercase tracking-wide whitespace-nowrap ${getStatusStyle(report.trangThai)}`}>
                         {report.trangThai}
                     </span>
-                </div>
-                
-                {/* Title: Bold */}
-                <h4 className="font-bold text-slate-800 text-sm mb-1 leading-snug line-clamp-2">
-                    <HighlightText text={report.tenThuongMai} highlight={highlight} />
-                </h4>
-                
-                {/* Content: Regular */}
-                <div className="text-sm font-normal text-slate-500 mb-2 leading-relaxed bg-slate-50 p-2 rounded-lg border border-slate-100 italic line-clamp-2">
-                    <HighlightText text={report.noiDungPhanAnh || 'Không có nội dung'} highlight={highlight} />
-                </div>
-            </div>
-            
-            <div className="flex justify-between items-center mt-1">
-                 <div className="text-xs font-medium text-slate-500">
-                    Lô: <span className="text-slate-900 font-bold"><HighlightText text={report.soLo} highlight={highlight} /></span>
-                 </div>
-                 
-                 <div className="flex items-center gap-3">
-                      {onDuplicate && (
-                          <button 
-                             onClick={(e) => { e.stopPropagation(); onDuplicate(report); }}
-                             className="text-slate-400 hover:text-blue-600 active:scale-95 p-1.5 -m-1.5"
-                             title="Sao chép"
-                          >
-                             <DocumentDuplicateIcon className="h-5 w-5" />
-                          </button>
-                      )}
-                      {canDelete && (
-                          <button 
-                             onClick={(e) => { e.stopPropagation(); onDelete(report.id); }}
-                             className="text-slate-400 hover:text-red-600 active:scale-95 p-1.5 -m-1.5"
-                             title="Xóa"
-                          >
-                             <TrashIcon className="h-5 w-5" />
-                          </button>
-                      )}
-                 </div>
-            </div>
-        </div>
-    );
-});
-
-
-const DefectReportList: React.FC<Props> = ({ 
-  reports, totalReports, currentPage, itemsPerPage, onPageChange, 
-  onSelectReport, currentUserRole, currentUsername,
-  filters, onSearchTermChange, onStatusFilterChange, onDefectTypeFilterChange, onYearFilterChange, onDateFilterChange,
-  summaryStats, onItemsPerPageChange, onDelete, isLoading, onExport, onDuplicate, baseFontSize = '15px'
-}) => {
-  // Columns State
-  const [columns, setColumns] = useState<ColumnConfig[]>(DEFAULT_COLUMNS);
-  const [showSettings, setShowSettings] = useState(false);
-  const settingsRef = useRef<HTMLDivElement>(null);
-  const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
-  
-  // Interaction State
-  const [reportToDelete, setReportToDelete] = useState<DefectReport | null>(null);
-  const [hoveredReport, setHoveredReport] = useState<DefectReport | null>(null);
-  const tooltipRef = useRef<HTMLDivElement>(null);
-
-  // --- VIRTUALIZATION STATE ---
-  const parentRef = useRef<HTMLDivElement>(null);       // Desktop Container
-  const mobileListRef = useRef<HTMLDivElement>(null);   // Mobile Container
-  
-  const [scrollTop, setScrollTop] = useState(0);              // Desktop Scroll
-  const [mobileScrollTop, setMobileScrollTop] = useState(0);  // Mobile Scroll
-  
-  const [containerHeight, setContainerHeight] = useState(600);
-  const [mobileContainerHeight, setMobileContainerHeight] = useState(600);
-  
-  // Dynamic Row Height Calculation
-  const fontSizePx = parseInt(baseFontSize, 10) || 15;
-  const ROW_HEIGHT = Math.max(50, fontSizePx * 3.4);        // Scale row height with font
-  const MOBILE_ROW_HEIGHT = Math.max(190, fontSizePx * 12.5); // Scale mobile card height
-
-  // --- RESIZING LOGIC ---
-  const resizingRef = useRef<{ startX: number; startWidth: number; colId: ColumnId } | null>(null);
-  const [isResizing, setIsResizing] = useState(false);
-
-  // --- DRAG AND DROP STATE ---
-  const [draggedColId, setDraggedColId] = useState<ColumnId | null>(null);
-
-  // Use dynamic storage key based on username
-  const storageKey = `tableColumnConfigV17_${currentUsername}`;
-
-  // Load Columns Config with Order Preservation
-  useEffect(() => {
-    if (!currentUsername) return; // Wait for username
-    
-    const savedColumnsStr = localStorage.getItem(storageKey); 
-    if (savedColumnsStr) {
-        try {
-            const parsedColumns = JSON.parse(savedColumnsStr) as ColumnConfig[];
-            const defaultColMap = new Map(DEFAULT_COLUMNS.map(c => [c.id, c]));
-            const newColumns: ColumnConfig[] = [];
-            const processedIds = new Set<string>();
-
-            // 1. Add saved columns in their saved order, if they still exist in defaults
-            parsedColumns.forEach(savedCol => {
-                const defaultCol = defaultColMap.get(savedCol.id);
-                if (defaultCol) {
-                    newColumns.push({
-                        ...defaultCol, // Keep code-defined props (label, fixed status)
-                        width: savedCol.width, // Restore width
-                        visible: savedCol.visible // Restore visibility
-                    });
-                    processedIds.add(savedCol.id);
-                }
-            });
-
-            // 2. Add any new default columns that weren't in storage (e.g. after update)
-            DEFAULT_COLUMNS.forEach(defCol => {
-                if (!processedIds.has(defCol.id)) {
-                    newColumns.push(defCol);
-                }
-            });
-            
-            if (newColumns.length > 0) setColumns(newColumns);
-            else setColumns(DEFAULT_COLUMNS);
-        } catch (e) {
-            console.error("Failed to load column config", e);
-            setColumns(DEFAULT_COLUMNS);
-        }
-    } else {
-        setColumns(DEFAULT_COLUMNS); // Reset to default if no saved config for this user
-    }
-  }, [currentUsername]);
-
-  // Save Config on Change
-  useEffect(() => { 
-      if (currentUsername) {
-          localStorage.setItem(storageKey, JSON.stringify(columns)); 
-      }
-  }, [columns, currentUsername]);
-
-  // --- RESIZE HANDLERS ---
-  const startResize = (e: React.MouseEvent, colId: ColumnId, currentWidth: number) => {
-      e.stopPropagation();
-      e.preventDefault();
-      setIsResizing(true);
-      resizingRef.current = { startX: e.clientX, startWidth: currentWidth, colId };
-      document.body.style.cursor = 'col-resize';
-      document.body.style.userSelect = 'none';
-
-      window.addEventListener('mousemove', handleResizeMouseMove);
-      window.addEventListener('mouseup', handleResizeMouseUp);
-  };
-
-  const handleResizeMouseMove = useCallback((e: MouseEvent) => {
-      if (!resizingRef.current) return;
-      const { startX, startWidth, colId } = resizingRef.current;
-      const deltaX = e.clientX - startX;
-      const newWidth = Math.max(50, startWidth + deltaX); // Min width 50px
-
-      setColumns(prev => prev.map(col => 
-          col.id === colId ? { ...col, width: newWidth } : col
-      ));
-  }, []);
-
-  const handleResizeMouseUp = useCallback(() => {
-      setIsResizing(false);
-      resizingRef.current = null;
-      document.body.style.cursor = '';
-      document.body.style.userSelect = '';
-      window.removeEventListener('mousemove', handleResizeMouseMove);
-      window.removeEventListener('mouseup', handleResizeMouseUp);
-  }, [handleResizeMouseMove]);
-
-  // --- VIRTUALIZATION HANDLERS ---
-  
-  // 1. Measure Containers
-  useEffect(() => {
-      const handleResize = () => {
-          if (parentRef.current) {
-              setContainerHeight(parentRef.current.clientHeight);
-          }
-          if (mobileListRef.current) {
-              setMobileContainerHeight(mobileListRef.current.clientHeight);
-          }
-      };
-      
-      handleResize();
-      window.addEventListener('resize', handleResize);
-      return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  // 2. Scroll Handlers (Throttled with rAF)
-  const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
-      const target = e.currentTarget;
-      requestAnimationFrame(() => {
-          setScrollTop(target.scrollTop);
-      });
-  }, []);
-
-  const handleMobileScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
-      const target = e.currentTarget;
-      requestAnimationFrame(() => {
-          setMobileScrollTop(target.scrollTop);
-      });
-  }, []);
-
-  // 3. Reset Scroll on Data Change
-  useEffect(() => {
-      if (parentRef.current) {
-          parentRef.current.scrollTop = 0;
-          setScrollTop(0);
-      }
-      if (mobileListRef.current) {
-          mobileListRef.current.scrollTop = 0;
-          setMobileScrollTop(0);
-      }
-  }, [currentPage, filters]);
-
-  // 4. Calculate Visible Items (Desktop)
-  const totalContentHeight = reports.length * ROW_HEIGHT;
-  const startIndex = Math.max(0, Math.floor(scrollTop / ROW_HEIGHT) - 2); 
-  const endIndex = Math.min(
-      reports.length, 
-      Math.ceil((scrollTop + containerHeight) / ROW_HEIGHT) + 2 
-  );
-  const visibleReports = reports.slice(startIndex, endIndex);
-  const offsetY = startIndex * ROW_HEIGHT;
-
-  // 5. Calculate Visible Items (Mobile)
-  const totalMobileContentHeight = reports.length * MOBILE_ROW_HEIGHT;
-  const mobileStartIndex = Math.max(0, Math.floor(mobileScrollTop / MOBILE_ROW_HEIGHT) - 2);
-  const mobileEndIndex = Math.min(
-      reports.length,
-      Math.ceil((mobileScrollTop + mobileContainerHeight) / MOBILE_ROW_HEIGHT) + 2
-  );
-  const visibleMobileReports = reports.slice(mobileStartIndex, mobileEndIndex);
-  const mobileOffsetY = mobileStartIndex * MOBILE_ROW_HEIGHT;
-
-  // --- DRAG & DROP COLUMN ORDERING ---
-  const handleHeaderDragStart = (e: React.DragEvent, colId: ColumnId) => {
-    // Only allow left click drag
-    if (e.button !== 0) {
-        e.preventDefault();
-        return;
-    }
-    setDraggedColId(colId);
-    e.dataTransfer.setData('colId', colId);
-    e.dataTransfer.effectAllowed = 'move';
-    // Transparent ghost image if desired, or let browser handle it
-  };
-
-  const handleHeaderDragEnter = (e: React.DragEvent, targetColId: ColumnId) => {
-      e.preventDefault();
-      // Optional: Add visual indicator for drop target here
-  };
-  
-  const handleHeaderDragOver = (e: React.DragEvent) => {
-      e.preventDefault(); // Necessary to allow dropping
-      e.dataTransfer.dropEffect = 'move';
-  };
-
-  const handleHeaderDrop = (e: React.DragEvent, targetColId: ColumnId) => {
-    e.preventDefault();
-    const sourceColId = e.dataTransfer.getData('colId') as ColumnId;
-    
-    setDraggedColId(null); // Reset drag state
-
-    if (!sourceColId || sourceColId === targetColId) return;
-
-    const fromIndex = columns.findIndex(c => c.id === sourceColId);
-    const toIndex = columns.findIndex(c => c.id === targetColId);
-
-    if (fromIndex !== -1 && toIndex !== -1) {
-        // Prevent moving fixed columns or dropping onto fixed columns if logic requires
-        // Here we allow moving non-fixed columns amongst themselves
-        if (columns[fromIndex].fixed || columns[toIndex].fixed) return;
-
-        const newCols = [...columns];
-        const [movedCol] = newCols.splice(fromIndex, 1);
-        newCols.splice(toIndex, 0, movedCol);
-        setColumns(newCols);
-    }
-  };
-
-  // --- MISC HANDLERS ---
-  const handleRowMouseEnter = (report: DefectReport) => setHoveredReport(report);
-  const handleRowMouseLeave = () => setHoveredReport(null);
-  
-  const handleRowMouseMove = (e: React.MouseEvent) => {
-      if (tooltipRef.current) {
-          const tooltip = tooltipRef.current;
-          let x = e.clientX + 15;
-          let y = e.clientY + 15;
-          const rect = tooltip.getBoundingClientRect();
-          if (x + rect.width > window.innerWidth - 20) x = e.clientX - rect.width - 15;
-          if (y + rect.height > window.innerHeight - 20) y = e.clientY - rect.height - 15;
-          tooltip.style.left = `${x}px`;
-          tooltip.style.top = `${y}px`;
-      }
-  };
-
-  // Close settings on click outside
-  useEffect(() => {
-      const handleClickOutside = (event: MouseEvent) => {
-          if (settingsRef.current && !settingsRef.current.contains(event.target as Node)) {
-              setShowSettings(false);
-          }
-      };
-
-      if (showSettings) {
-          document.addEventListener('mousedown', handleClickOutside);
-      }
-      return () => {
-          document.removeEventListener('mousedown', handleClickOutside);
-      };
-  }, [showSettings]);
-
-  const toggleColumnVisibility = (id: ColumnId) => {
-      setColumns(prev => prev.map(col => col.id === id ? { ...col, visible: !col.visible } : col));
-  };
-
-  const resetColumnsToDefault = () => {
-      setColumns(DEFAULT_COLUMNS);
-  };
-
-  // Function to move column up or down via menu
-  const moveColumn = (index: number, direction: -1 | 1) => {
-    const newCols = [...columns];
-    const targetIndex = index + direction;
-    
-    // Bounds check
-    if (targetIndex < 0 || targetIndex >= newCols.length) return;
-    
-    // Fixed check
-    if (newCols[targetIndex].fixed) return;
-
-    // Swap
-    [newCols[index], newCols[targetIndex]] = [newCols[targetIndex], newCols[index]];
-    setColumns(newCols);
-  };
-
-  const resetFilters = () => {
-    onSearchTermChange('');
-    onStatusFilterChange('All');
-    onDefectTypeFilterChange('All');
-    onYearFilterChange('All');
-    onDateFilterChange({ start: '', end: '' });
-  };
-  
-  const areFiltersActive = filters.searchTerm || filters.statusFilter !== 'All' || filters.defectTypeFilter !== 'All' || filters.yearFilter !== 'All' || filters.dateFilter.start || filters.dateFilter.end;
-  const visibleColumns = useMemo(() => columns.filter(c => c.visible), [columns]);
-
-  const getColumnStyle = (col: ColumnConfig) => {
-      return {
-          // Use flex-none for fixed columns, flex-grow for others to fill space
-          className: `${col.fixed ? 'sticky right-0 z-10 bg-white/90 backdrop-blur-md shadow-[-4px_0_8px_-4px_rgba(0,0,0,0.05)] flex-none' : ''} ${col.align === 'center' ? 'justify-center' : col.align === 'right' ? 'justify-end' : 'justify-start'} flex items-center min-w-0`,
-          style: { 
-              // Flex grow proportional to width, shrink allowed, basis at width
-              flex: col.fixed ? 'none' : `${col.width} 1 ${col.width}px`,
-              minWidth: `${col.width}px`,
-              // width only needed for fixed columns to enforce size
-              width: col.fixed ? `${col.width}px` : undefined
-          }
-      };
-  };
-
-  const renderCell = (report: DefectReport, columnId: ColumnId, index: number) => {
-      switch (columnId) {
-          case 'stt':
-              return <span className="text-slate-400 font-medium text-xs">{(currentPage - 1) * itemsPerPage + index + 1}</span>;
-          case 'ngayPhanAnh':
-              return <span className="text-slate-600 font-normal text-sm whitespace-nowrap">{new Date(report.ngayPhanAnh).toLocaleDateString('en-GB')}</span>;
-          case 'maSanPham':
-              return (
-                  <span className="text-slate-700 font-bold bg-slate-100 px-2 py-0.5 rounded text-sm whitespace-nowrap block truncate border border-slate-200" title={report.maSanPham}>
-                      <HighlightText text={report.maSanPham} highlight={filters.searchTerm} />
-                  </span>
-              );
-          case 'tenThuongMai':
-              return (
-                <div className="w-full pr-2" title={report.tenThuongMai}>
-                    <div className="font-semibold text-slate-800 text-sm leading-snug line-clamp-2 whitespace-normal break-words">
-                        <HighlightText text={report.tenThuongMai} highlight={filters.searchTerm} />
-                    </div>
-                </div>
-              );
-          case 'noiDungPhanAnh':
-              return (
-                <div className="w-full pr-2" title={report.noiDungPhanAnh}>
-                    <div className="text-slate-500 text-sm font-normal leading-snug line-clamp-2 whitespace-normal break-words italic">
-                        <HighlightText text={report.noiDungPhanAnh} highlight={filters.searchTerm} />
-                    </div>
-                </div>
-              );
-          case 'soLo':
-              return (
-                  <div className="w-full pr-1" title={report.soLo}>
-                      <div className="text-slate-700 text-sm font-medium leading-snug line-clamp-2 whitespace-normal break-words">
-                          <HighlightText text={report.soLo} highlight={filters.searchTerm} />
-                      </div>
-                  </div>
-              );
-          case 'maNgaySanXuat':
-              return (
-                  <div className="w-full pr-1" title={report.maNgaySanXuat}>
-                      <div className="text-slate-500 text-sm font-normal leading-snug line-clamp-2 whitespace-normal break-words">
-                          {report.maNgaySanXuat}
-                      </div>
-                  </div>
-              );
-          case 'trangThai':
-              return (
-                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold whitespace-nowrap border shadow-sm transition-all duration-300 hover:scale-105 cursor-default ${statusColorMap[report.trangThai]}`}>
-                      <span className={`status-dot w-1.5 h-1.5 rounded-full ${statusDotMap[report.trangThai]}`} title={report.trangThai}></span>
-                      {report.trangThai}
-                  </span>
-              );
-          case 'actions':
-              const canDelete = ([UserRole.Admin, UserRole.KyThuat] as string[]).includes(currentUserRole);
-              return (
-                  <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-4 group-hover:translate-x-0">
-                      {onDuplicate && (
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                onDuplicate(report);
-                            }}
-                            className="p-1.5 bg-white text-slate-400 hover:text-blue-600 hover:bg-blue-50 border border-slate-200 hover:border-blue-200 rounded-lg transition-all shadow-sm active:scale-95"
-                            title="Sao chép (Duplicate)"
+                );
+            case 'actions':
+                return (
+                    <div className="flex items-center justify-center gap-1">
+                        <button 
+                            onClick={(e) => { e.stopPropagation(); onSelectReport(report); }}
+                            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                            title="Xem chi tiết"
                         >
-                            <DocumentDuplicateIcon className="h-4 w-4" />
+                            <EyeIcon className="w-4 h-4" />
                         </button>
-                      )}
-                      {canDelete && (
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                setReportToDelete(report);
-                            }}
-                            className="p-1.5 bg-white text-slate-400 hover:text-red-600 hover:bg-red-50 border border-slate-200 hover:border-red-200 rounded-lg transition-all shadow-sm active:scale-95"
-                            title="Xóa"
-                        >
-                            <TrashIcon className="h-4 w-4" />
-                        </button>
-                      )}
-                  </div>
-              );
-          default:
-              return null;
-      }
-  };
-
-  const StatTab = ({ label, count, active, onClick, icon }: any) => (
-      <button 
-          onClick={onClick}
-          className={`relative flex items-center gap-2 px-4 py-3 text-sm font-bold transition-all border-b-2 whitespace-nowrap z-10 flex-shrink-0 snap-start select-none ${
-              active 
-              ? 'text-blue-700 border-blue-600 bg-blue-50/60' 
-              : 'text-slate-500 border-transparent hover:text-slate-700 hover:bg-slate-50'
-          }`}
-      >
-          <span className={`transition-colors duration-200 ${active ? 'text-blue-600 scale-110' : 'text-slate-400'}`}>{icon}</span>
-          <span>{label}</span>
-          <span className={`ml-1 py-0.5 px-2 rounded-full text-xs font-extrabold transition-all duration-300 ${
-              active ? 'bg-blue-600 text-white shadow-md shadow-blue-200 scale-105' : 'bg-slate-100 text-slate-500 group-hover:bg-slate-200'
-          }`}>
-              {count}
-          </span>
-      </button>
-  );
-  
-  const canDeleteRole = ([UserRole.Admin, UserRole.KyThuat] as string[]).includes(currentUserRole);
-  // Only show Defect Type filter if NOT 'SanXuat' or 'Kho'
-  const showDefectTypeFilter = !([UserRole.SanXuat, UserRole.Kho] as string[]).includes(currentUserRole);
-
-  return (
-    <div className="flex flex-col h-full w-full relative px-0 sm:px-4 lg:px-8 py-0 sm:py-4">
-      
-      <div className="flex flex-col h-full bg-slate-50 sm:bg-white sm:rounded-2xl sm:shadow-soft sm:border sm:border-slate-200 overflow-hidden sm:ring-1 sm:ring-slate-100 relative transition-all duration-300">
-          
-          {/* TABS (Scrollable on Mobile) */}
-          <div className="flex border-b border-slate-200 overflow-x-auto no-scrollbar bg-white shadow-sm z-20 sticky top-0 h-12 w-full snap-x">
-              <StatTab label="Tất cả" count={summaryStats.total} active={filters.statusFilter === 'All'} onClick={() => onStatusFilterChange('All')} icon={<InboxIcon className="h-4 w-4"/>} />
-              <StatTab label="Mới" count={summaryStats.moi} active={filters.statusFilter === 'Mới'} onClick={() => onStatusFilterChange('Mới')} icon={<SparklesIcon className="h-4 w-4"/>} />
-              <StatTab label="Đang xác minh" count={summaryStats.dangXacMinh} active={filters.statusFilter === 'Đang xác minh'} onClick={() => onStatusFilterChange('Đang xác minh')} icon={<EyeIcon className="h-4 w-4"/>} />
-              <StatTab label="Đang xử lý" count={summaryStats.dangXuLy} active={filters.statusFilter === 'Đang xử lý'} onClick={() => onStatusFilterChange('Đang xử lý')} icon={<ClockIcon className="h-4 w-4"/>} />
-              <StatTab label="Chưa rõ" count={summaryStats.chuaTimRaNguyenNhan} active={filters.statusFilter === 'Chưa tìm ra nguyên nhân'} onClick={() => onStatusFilterChange('Chưa tìm ra nguyên nhân')} icon={<MagnifyingGlassIcon className="h-4 w-4"/>} />
-              <StatTab label="Hoàn thành" count={summaryStats.hoanThanh} active={filters.statusFilter === 'Hoàn thành'} onClick={() => onStatusFilterChange('Hoàn thành')} icon={<CheckCircleIcon className="h-4 w-4"/>} />
-          </div>
-
-          {/* FILTER BAR (Responsive) */}
-          <div className="p-2 sm:p-3 flex flex-col lg:flex-row gap-2 sm:gap-3 items-stretch lg:items-center justify-between bg-white border-b border-slate-100">
-             
-             {/* Mobile Filter Toggle & Search */}
-             <div className="flex gap-2 items-center w-full lg:w-auto">
-                <div className="relative w-full lg:w-80 xl:w-96 group flex-1">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-600 transition-colors">
-                        <MagnifyingGlassIcon className="h-5 w-5" />
-                    </div>
-                    {/* Filter Input: Regular + Small */}
-                    <input
-                        type="text"
-                        className="block w-full pl-10 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-normal placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white transition-all shadow-sm hover:border-slate-300"
-                        placeholder="Tìm theo mã, tên, lô..."
-                        value={filters.searchTerm}
-                        onChange={(e) => onSearchTermChange(e.target.value)}
-                    />
-                </div>
-                <button 
-                    onClick={() => setIsMobileFiltersOpen(!isMobileFiltersOpen)}
-                    className={`lg:hidden p-2 rounded-xl border transition-all ${isMobileFiltersOpen ? 'bg-blue-50 text-blue-600 border-blue-200' : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'}`}
-                >
-                    <AdjustmentsIcon className="h-5 w-5" />
-                </button>
-             </div>
-
-            {/* Collapsible Filter Area (Hidden on Mobile unless toggled) */}
-            <div className={`
-                flex flex-col lg:flex-row gap-2 w-full lg:w-auto overflow-hidden transition-all duration-300 ease-in-out lg:!h-auto lg:!opacity-100
-                ${isMobileFiltersOpen ? 'max-h-[300px] opacity-100 pt-2 lg:pt-0 border-t border-slate-100 lg:border-none' : 'max-h-0 opacity-0 lg:overflow-visible'}
-            `}>
-                <div className="flex flex-col sm:flex-row gap-2 w-full items-center">
-                    {showDefectTypeFilter && (
-                        <div className="relative group w-full sm:w-auto sm:min-w-[150px]">
-                            <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-500 transition-colors">
-                                <FunnelIcon className="h-4 w-4" />
-                            </div>
-                            {/* Filter Select: Regular + Small */}
-                            <select
-                                className="w-full pl-8 pr-8 py-2 text-sm font-normal border border-slate-200 rounded-xl bg-white text-slate-700 focus:outline-none focus:border-blue-500 hover:bg-slate-50 cursor-pointer appearance-none shadow-sm focus:ring-2 focus:ring-blue-500/20"
-                                value={filters.defectTypeFilter}
-                                onChange={(e) => onDefectTypeFilterChange(e.target.value)}
-                            >
-                                <option value="All">Tất cả nguồn</option>
-                                <option value="Lỗi Sản xuất">Lỗi Sản xuất</option>
-                                <option value="Lỗi Nhà cung cấp">Lỗi NCC</option>
-                                <option value="Lỗi Hỗn hợp">Lỗi Hỗn hợp</option>
-                                <option value="Lỗi Khác">Lỗi Khác</option>
-                            </select>
-                        </div>
-                    )}
-                    
-                    {/* DATE FILTER RANGE */}
-                    <div className="flex w-full sm:w-auto items-center bg-white rounded-xl border border-slate-200 px-2 sm:px-3 py-1.5 shadow-sm focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-400 transition-all hover:border-slate-300">
-                        <CalendarIcon className="h-4 w-4 text-slate-400 mr-2 flex-shrink-0" />
-                        <div className="flex items-center gap-1 flex-1">
-                            {/* Filter Date Input: Regular + Small */}
-                            <input
-                                type="date"
-                                className="bg-transparent text-sm text-slate-700 focus:outline-none font-normal py-0.5 w-[85px] cursor-pointer"
-                                value={filters.dateFilter.start}
-                                max={filters.dateFilter.end}
-                                onChange={(e) => onDateFilterChange({ ...filters.dateFilter, start: e.target.value })}
-                            />
-                            <span className="text-slate-300 font-medium">-</span>
-                            <input
-                                type="date"
-                                className="bg-transparent text-sm text-slate-700 focus:outline-none font-normal py-0.5 w-[85px] cursor-pointer"
-                                value={filters.dateFilter.end}
-                                min={filters.dateFilter.start}
-                                onChange={(e) => onDateFilterChange({ ...filters.dateFilter, end: e.target.value })}
-                            />
-                        </div>
-                        {(filters.dateFilter.start || filters.dateFilter.end) && (
+                        {currentUserRole !== 'Kho' && (
                             <button 
-                                onClick={() => onDateFilterChange({ start: '', end: '' })}
-                                className="ml-1 text-slate-400 hover:text-red-500 p-0.5 rounded-full hover:bg-red-50 transition-colors active:scale-90 flex-shrink-0"
+                                onClick={(e) => { e.stopPropagation(); onDuplicate(report); }}
+                                className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded transition-colors"
+                                title="Nhân bản"
                             >
-                                <XIcon className="h-3.5 w-3.5" />
+                                <DocumentDuplicateIcon className="w-4 h-4" />
+                            </button>
+                        )}
+                        {([UserRole.Admin, UserRole.KyThuat] as string[]).includes(currentUserRole) && (
+                            <button 
+                                onClick={(e) => { e.stopPropagation(); if(window.confirm('Xóa phiếu này?')) onDelete(report.id); }}
+                                className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                                title="Xóa"
+                            >
+                                <TrashIcon className="w-4 h-4" />
                             </button>
                         )}
                     </div>
-                </div>
+                );
+            default:
+                return null;
+        }
+    };
 
-                <div className="flex items-center gap-2 justify-end pt-2 lg:pt-0 lg:ml-auto w-full lg:w-auto">
-                     <div className="h-8 w-px bg-slate-200 mx-1 hidden lg:block"></div>
-                     <button onClick={onExport} className="flex-1 lg:flex-none p-2 bg-white border border-slate-200 rounded-xl text-slate-600 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 transition-all shadow-sm active:scale-95 flex items-center justify-center gap-2 lg:block" title="Xuất Excel">
-                        <ArrowDownTrayIcon className="h-5 w-5" />
-                        <span className="lg:hidden text-sm font-bold">Xuất Excel</span>
-                     </button>
-                     <div className="relative hidden md:block" ref={settingsRef}>
-                        <button onClick={() => setShowSettings(!showSettings)} className={`p-2 bg-white border border-slate-200 rounded-xl hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 transition-all shadow-sm active:scale-95 ${showSettings ? 'text-blue-600 border-blue-200 bg-blue-50' : 'text-slate-600'}`} title="Cấu hình cột"><Cog6ToothIcon className="h-5 w-5" /></button>
-                        {showSettings && (
-                            <div className="absolute right-0 mt-2 w-72 bg-white rounded-xl shadow-xl border border-slate-100 z-30 p-3 animate-fade-in-up">
-                                <div className="flex items-center justify-between mb-3 pb-2 border-b border-slate-100">
-                                    <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Cấu hình cột</h4>
-                                    <button 
-                                        onClick={resetColumnsToDefault} 
-                                        className="text-xs font-bold text-blue-600 hover:text-blue-700 hover:bg-blue-50 px-2 py-1 rounded transition-colors"
-                                    >
-                                        Mặc định
-                                    </button>
-                                </div>
-                                <div className="space-y-1 max-h-[60vh] overflow-y-auto custom-scrollbar pr-1">
-                                    {columns.map((col, index) => {
-                                        if (col.fixed) return null;
-                                        const isTop = columns[index - 1]?.fixed;
-                                        const isBottom = columns[index + 1]?.fixed;
-
-                                        return (
-                                            <div key={col.id} className="flex items-center justify-between p-2 hover:bg-slate-50 rounded-lg group transition-colors">
-                                                <button 
-                                                    onClick={() => toggleColumnVisibility(col.id)} 
-                                                    className="flex items-center flex-1 gap-3 min-w-0"
-                                                >
-                                                    <div className={`flex-shrink-0 w-5 h-5 rounded border flex items-center justify-center transition-all ${col.visible ? 'bg-blue-500 border-blue-500' : 'border-slate-300 bg-white'}`}>
-                                                        {col.visible && <CheckCircleIcon className="w-4 h-4 text-white" />}
-                                                    </div>
-                                                    <span className={`text-sm font-medium truncate ${col.visible ? 'text-slate-700' : 'text-slate-400'}`}>
-                                                        {col.label}
-                                                    </span>
-                                                </button>
-                                                
-                                                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity ml-2">
-                                                     <button
-                                                        onClick={(e) => { e.stopPropagation(); moveColumn(index, -1); }}
-                                                        disabled={isTop}
-                                                        className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-md disabled:opacity-20 disabled:hover:bg-transparent disabled:hover:text-slate-400 transition-colors"
-                                                        title="Di chuyển lên"
-                                                     >
-                                                        <ArrowUpIcon className="w-3.5 h-3.5" />
-                                                     </button>
-                                                     <button
-                                                        onClick={(e) => { e.stopPropagation(); moveColumn(index, 1); }}
-                                                        disabled={isBottom}
-                                                        className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-md disabled:opacity-20 disabled:hover:bg-transparent disabled:hover:text-slate-400 transition-colors"
-                                                        title="Di chuyển xuống"
-                                                     >
-                                                        <ArrowDownIcon className="w-3.5 h-3.5" />
-                                                     </button>
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                                <div className="mt-3 pt-2 border-t border-slate-100 text-center">
-                                    <p className="text-[10px] text-slate-400">Kéo thả tiêu đề cột hoặc dùng mũi tên để sắp xếp</p>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                    {areFiltersActive && (
-                        <button onClick={resetFilters} className="p-2 ml-1 text-red-600 bg-red-50 hover:bg-red-100 rounded-xl transition-colors border border-transparent hover:border-red-200 shadow-sm active:scale-95 flex-shrink-0" title="Xóa bộ lọc"><XIcon className="h-5 w-5" /></button>
-                    )}
-                </div>
-            </div>
-          </div>
-
-          {/* LIST CONTENT */}
-          <div className={`flex-1 overflow-hidden relative transition-opacity duration-300 flex flex-col bg-slate-50/50 ${isLoading ? 'opacity-60 pointer-events-none' : 'opacity-100'}`}>
-            
-            {reports.length > 0 ? (
-                <>
-                    {/* MOBILE CARD VIEW (< md) - VIRTUALIZED */}
-                    <div 
-                        ref={mobileListRef}
-                        onScroll={handleMobileScroll}
-                        className="md:hidden flex-1 overflow-y-auto bg-slate-50 pb-24 custom-scrollbar relative"
-                    >
-                        <div style={{ height: totalMobileContentHeight }} className="relative w-full">
-                            {visibleMobileReports.map((report, index) => (
-                                <MobileReportCard
-                                    key={report.id}
-                                    style={{
-                                        top: 0,
-                                        transform: `translateY(${mobileOffsetY + (index * MOBILE_ROW_HEIGHT)}px)`,
-                                        height: MOBILE_ROW_HEIGHT,
-                                        willChange: 'transform'
-                                    }}
-                                    report={report}
-                                    onSelect={() => onSelectReport(report)}
-                                    onDuplicate={onDuplicate}
-                                    onDelete={(id) => setReportToDelete(reports.find(r => r.id === id) || null)}
-                                    canDelete={canDeleteRole}
-                                    highlight={filters.searchTerm}
-                                />
-                            ))}
+    return (
+        <div className="h-full flex flex-col bg-slate-50/50">
+            {/* Filter Bar */}
+            <div className="bg-white border-b border-slate-200 px-4 py-3 sm:px-6 flex flex-col sm:flex-row gap-3 items-center justify-between sticky top-0 z-20 shadow-sm">
+                <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto flex-1">
+                    <div className="relative flex-1 max-w-md">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                            <MagnifyingGlassIcon className="h-5 w-5" />
                         </div>
+                        <input 
+                            type="text" 
+                            placeholder="Tìm kiếm phiếu..." 
+                            value={filters.searchTerm}
+                            onChange={(e) => onSearchTermChange(e.target.value)}
+                            className="pl-10 pr-3 py-2 w-full border border-slate-300 rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500/20 focus:border-[#003DA5] shadow-sm outline-none bg-slate-50 focus:bg-white transition-all"
+                        />
                     </div>
-
-                    {/* DESKTOP TABLE VIEW (>= md) - VIRTUALIZED & RESIZABLE */}
-                    <div 
-                        ref={parentRef} 
-                        onScroll={handleScroll}
-                        className="hidden md:block flex-1 overflow-auto custom-scrollbar relative"
-                    >
-                        <div 
-                            className="min-w-full inline-block align-middle"
-                            style={{ 
-                                fontFamily: 'var(--list-font, inherit)',
-                                fontSize: 'var(--list-size, 1rem)'
-                            }}
-                        >
-                            {/* Sticky Header */}
-                            <div className="flex bg-white/90 backdrop-blur-md border-b border-slate-200 text-left text-sm font-bold text-slate-600 tracking-wide sticky top-0 z-20 shadow-sm min-w-full w-full" style={{ height: ROW_HEIGHT }}>
-                                {visibleColumns.map((col) => {
-                                    const { className, style } = getColumnStyle(col);
-                                    return (
-                                        <div 
-                                            key={col.id}
-                                            draggable={!col.fixed}
-                                            onDragStart={(e) => handleHeaderDragStart(e, col.id)}
-                                            onDragEnter={(e) => handleHeaderDragEnter(e, col.id)}
-                                            onDragOver={handleHeaderDragOver}
-                                            onDrop={(e) => handleHeaderDrop(e, col.id)}
-                                            className={`relative flex items-center px-3 h-full border-r border-transparent hover:border-slate-100 ${className} whitespace-nowrap ${!col.fixed ? 'cursor-move active:cursor-grabbing hover:bg-slate-50' : ''} ${draggedColId === col.id ? 'opacity-50 bg-blue-50' : ''}`} 
-                                            style={style}
-                                            title={!col.fixed ? "Kéo để sắp xếp lại cột" : undefined}
-                                        >
-                                            {col.label}
-                                            
-                                            {/* Resize handle */}
-                                            {!col.fixed && (
-                                                <div 
-                                                    className="absolute right-0 top-0 bottom-0 w-1.5 cursor-col-resize hover:bg-blue-400 z-30 opacity-0 hover:opacity-100 transition-opacity"
-                                                    onMouseDown={(e) => startResize(e, col.id, col.width)}
-                                                    onClick={(e) => e.stopPropagation()}
-                                                />
-                                            )}
-                                        </div>
-                                    )
-                                })}
-                            </div>
-                            
-                            {/* Rows Container */}
-                            <div 
-                                className="relative min-w-full w-full" 
-                                style={{ height: totalContentHeight }}
+                    
+                    <div className="flex gap-2 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0 no-scrollbar">
+                        <div className="relative min-w-[140px]">
+                            <select 
+                                value={filters.statusFilter}
+                                onChange={(e) => onStatusFilterChange(e.target.value)}
+                                className="w-full pl-3 pr-8 py-2 border border-slate-300 rounded-xl text-sm font-bold text-slate-700 focus:ring-2 focus:ring-blue-500/20 focus:border-[#003DA5] shadow-sm outline-none appearance-none bg-white cursor-pointer"
                             >
-                                {visibleReports.map((report, index) => {
-                                    const actualIndex = startIndex + index;
-                                    return (
-                                        <div 
-                                            key={report.id}
-                                            style={{ 
-                                                transform: `translateY(${offsetY + (index * ROW_HEIGHT)}px)`,
-                                                height: ROW_HEIGHT,
-                                                position: 'absolute',
-                                                top: 0, left: 0, right: 0,
-                                                willChange: 'transform'
-                                            }}
-                                            onClick={() => onSelectReport(report)}
-                                            onMouseEnter={() => handleRowMouseEnter(report)}
-                                            onMouseLeave={handleRowMouseLeave}
-                                            onMouseMove={handleRowMouseMove}
-                                            className={`group flex items-center transition-all duration-200 cursor-pointer border-b hover:z-10 min-w-full w-full bg-white border-slate-100 hover:border-blue-500 hover:bg-blue-50/60`}
-                                        >
-                                            {visibleColumns.map((col) => {
-                                                const { className, style } = getColumnStyle(col);
-                                                return (
-                                                    <div 
-                                                        key={col.id} 
-                                                        className={`px-3 h-full flex items-center overflow-hidden ${className}`} 
-                                                        style={style}
-                                                    >
-                                                        {renderCell(report, col.id, actualIndex)}
-                                                    </div>
-                                                )
-                                            })}
-                                        </div>
-                                    );
-                                })}
+                                <option value="All">Tất cả trạng thái</option>
+                                <option value="Mới">Mới</option>
+                                <option value="Đang tiếp nhận">Đang tiếp nhận</option>
+                                <option value="Đang xác minh">Đang xác minh</option>
+                                <option value="Đang xử lý">Đang xử lý</option>
+                                <option value="Chưa tìm ra nguyên nhân">Chưa tìm ra NN</option>
+                                <option value="Hoàn thành">Hoàn thành</option>
+                            </select>
+                            <div className="absolute inset-y-0 right-0 pr-2.5 flex items-center pointer-events-none text-slate-500">
+                                <FunnelIcon className="h-4 w-4" />
                             </div>
                         </div>
-                    </div>
-                </>
-            ) : (
-                <div className="flex-1 flex flex-col items-center justify-center p-16 text-center animate-fade-in-up">
-                    <div className="w-64 h-48 bg-slate-100 rounded-full mb-6 relative overflow-hidden flex items-center justify-center">
-                        <div className="absolute inset-0 bg-gradient-to-tr from-blue-50 to-slate-50 opacity-50"></div>
-                        <InboxIcon className="h-24 w-24 text-slate-300/50" />
-                    </div>
-                    <h3 className="text-xl font-bold text-slate-800 tracking-tight">Trống trơn!</h3>
-                    <p className="text-slate-500 mt-2 max-w-sm font-medium leading-relaxed">
-                        {areFiltersActive 
-                            ? "Không tìm thấy kết quả nào phù hợp với bộ lọc hiện tại. Hãy thử điều chỉnh lại." 
-                            : "Hệ thống chưa có dữ liệu khiếu nại nào. Hãy bắt đầu bằng cách tạo mới."}
-                    </p>
-                    {areFiltersActive && (
-                        <button 
-                            onClick={resetFilters}
-                            className="mt-6 px-8 py-3 bg-white border border-slate-200 text-slate-700 rounded-xl text-sm font-bold shadow-sm transition-all hover:border-blue-300 hover:text-blue-600 active:scale-95"
-                        >
-                            Xóa bộ lọc tìm kiếm
-                        </button>
-                    )}
-                </div>
-            )}
 
-            <div className="hidden md:block p-3 border-t border-slate-200 bg-white shadow-[0_-5px_15px_rgba(0,0,0,0.01)] relative z-20">
-                <Pagination
-                    currentPage={currentPage}
-                    totalItems={totalReports}
-                    itemsPerPage={itemsPerPage}
-                    onPageChange={onPageChange}
-                    onItemsPerPageChange={onItemsPerPageChange}
-                />
+                         <div className="relative min-w-[140px]">
+                            <select 
+                                value={filters.defectTypeFilter}
+                                onChange={(e) => onDefectTypeFilterChange(e.target.value)}
+                                className="w-full pl-3 pr-8 py-2 border border-slate-300 rounded-xl text-sm font-bold text-slate-700 focus:ring-2 focus:ring-blue-500/20 focus:border-[#003DA5] shadow-sm outline-none appearance-none bg-white cursor-pointer"
+                            >
+                                <option value="All">Tất cả lỗi</option>
+                                <option value="Lỗi Sản xuất">Lỗi Sản xuất</option>
+                                <option value="Lỗi Nhà cung cấp">Lỗi Nhà cung cấp</option>
+                                <option value="Lỗi Hỗn hợp">Lỗi Hỗn hợp</option>
+                                <option value="Lỗi Khác">Lỗi Khác</option>
+                            </select>
+                            <div className="absolute inset-y-0 right-0 pr-2.5 flex items-center pointer-events-none text-slate-500">
+                                <TagIcon className="h-4 w-4" />
+                            </div>
+                        </div>
+
+                        <div className="relative">
+                             <button 
+                                onClick={() => setShowDateFilter(!showDateFilter)}
+                                className={`flex items-center px-3 py-2 border rounded-xl text-sm font-bold transition-all whitespace-nowrap shadow-sm active:scale-95 ${
+                                    filters.dateFilter.start || filters.dateFilter.end 
+                                    ? 'bg-blue-50 border-blue-200 text-blue-700' 
+                                    : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50'
+                                }`}
+                             >
+                                <CalendarIcon className="h-4 w-4 mr-2" />
+                                {filters.dateFilter.start ? 'Đã lọc ngày' : 'Lọc ngày'}
+                             </button>
+                             
+                             {showDateFilter && (
+                                 <div className="absolute top-full right-0 mt-2 bg-white rounded-xl shadow-xl border border-slate-100 p-4 z-50 w-72 animate-fade-in-up">
+                                     <h4 className="text-xs font-bold text-slate-500 uppercase mb-3">Khoảng thời gian</h4>
+                                     <div className="space-y-3">
+                                         <div>
+                                             <label className="block text-xs font-medium text-slate-700 mb-1">Từ ngày</label>
+                                             <input 
+                                                type="date" 
+                                                value={filters.dateFilter.start}
+                                                onChange={(e) => onDateFilterChange({...filters.dateFilter, start: e.target.value})}
+                                                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:border-blue-500 outline-none"
+                                             />
+                                         </div>
+                                         <div>
+                                             <label className="block text-xs font-medium text-slate-700 mb-1">Đến ngày</label>
+                                             <input 
+                                                type="date" 
+                                                value={filters.dateFilter.end}
+                                                onChange={(e) => onDateFilterChange({...filters.dateFilter, end: e.target.value})}
+                                                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:border-blue-500 outline-none"
+                                             />
+                                         </div>
+                                         <button 
+                                            onClick={() => { onDateFilterChange({ start: '', end: '' }); setShowDateFilter(false); }}
+                                            className="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-xs font-bold transition-colors"
+                                         >
+                                             Xóa lọc ngày
+                                         </button>
+                                     </div>
+                                 </div>
+                             )}
+                        </div>
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                     <div className="relative">
+                         <button 
+                            onClick={() => setShowColumnMenu(!showColumnMenu)}
+                            className="p-2 bg-white border border-slate-300 text-slate-600 rounded-xl hover:bg-slate-50 transition-all shadow-sm active:scale-95"
+                            title="Tùy chỉnh cột"
+                         >
+                             <AdjustmentsIcon className="h-5 w-5" />
+                         </button>
+                         {showColumnMenu && (
+                             <div className="absolute top-full right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-slate-100 p-2 z-50 animate-fade-in-up max-h-[300px] overflow-y-auto custom-scrollbar">
+                                 <h4 className="text-xs font-bold text-slate-400 uppercase px-3 py-2 border-b border-slate-50 mb-1">Hiển thị cột</h4>
+                                 {columns.map(col => (
+                                     <label key={col.id} className="flex items-center px-3 py-2 hover:bg-slate-50 rounded-lg cursor-pointer">
+                                         <input 
+                                            type="checkbox" 
+                                            checked={col.visible}
+                                            onChange={() => toggleColumn(col.id)}
+                                            className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                                         />
+                                         <span className="ml-2 text-sm text-slate-700">{col.label}</span>
+                                     </label>
+                                 ))}
+                             </div>
+                         )}
+                     </div>
+                </div>
             </div>
-            
-            {/* Mobile Pagination (Simplified) */}
-             <div className="md:hidden p-3 pb-safe bg-white border-t border-slate-200 relative z-20">
-                 <Pagination
+
+            {/* Table Content */}
+            <div className="flex-1 overflow-auto custom-scrollbar p-0 sm:p-4">
+                <div className="bg-white border border-slate-200 shadow-sm rounded-none sm:rounded-xl overflow-hidden min-w-full inline-block align-middle">
+                     <table className="min-w-full divide-y divide-slate-200" style={{ fontFamily: 'var(--list-font, inherit)', fontSize: 'var(--list-size, 1rem)' }}>
+                         <thead className="bg-slate-50 sticky top-0 z-10 shadow-sm">
+                             <tr>
+                                 {columns.filter(c => c.visible).map((col) => (
+                                     <th 
+                                        key={col.id}
+                                        scope="col"
+                                        className={`px-4 py-3 text-left font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap ${col.fixed ? 'sticky right-0 bg-slate-50 shadow-[-4px_0_8px_-4px_rgba(0,0,0,0.1)]' : ''}`}
+                                        style={{ width: col.width, textAlign: col.align || 'left', fontSize: 'inherit' }}
+                                     >
+                                         {col.label}
+                                     </th>
+                                 ))}
+                             </tr>
+                         </thead>
+                         <tbody className="bg-white divide-y divide-slate-100">
+                             {isLoading ? (
+                                 [...Array(5)].map((_, i) => (
+                                     <tr key={i} className="animate-pulse">
+                                         {columns.filter(c => c.visible).map((c, j) => (
+                                             <td key={j} className="px-4 py-4"><div className="h-4 bg-slate-100 rounded w-full"></div></td>
+                                         ))}
+                                     </tr>
+                                 ))
+                             ) : reports.length > 0 ? (
+                                 reports.map((report, index) => (
+                                     <tr 
+                                        key={report.id} 
+                                        onClick={() => onSelectReport(report)}
+                                        className={`hover:bg-blue-50/50 transition-colors cursor-pointer group ${selectedReport?.id === report.id ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''}`}
+                                     >
+                                         {columns.filter(c => c.visible).map((col) => (
+                                             <td 
+                                                key={`${report.id}-${col.id}`} 
+                                                className={`px-4 py-3 align-middle ${col.fixed ? 'sticky right-0 bg-white group-hover:bg-blue-50/50 shadow-[-4px_0_8px_-4px_rgba(0,0,0,0.1)]' : ''}`}
+                                                style={{ textAlign: col.align || 'left' }}
+                                             >
+                                                 {renderCell(report, col.id, index)}
+                                             </td>
+                                         ))}
+                                     </tr>
+                                 ))
+                             ) : (
+                                 <tr>
+                                     <td colSpan={columns.filter(c => c.visible).length} className="px-6 py-12 text-center text-slate-400">
+                                         <div className="flex flex-col items-center justify-center">
+                                             <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-3">
+                                                <MagnifyingGlassIcon className="h-8 w-8 opacity-40" />
+                                             </div>
+                                             <p className="text-sm font-medium">Không tìm thấy dữ liệu phù hợp.</p>
+                                         </div>
+                                     </td>
+                                 </tr>
+                             )}
+                         </tbody>
+                     </table>
+                </div>
+            </div>
+
+            {/* Footer Pagination */}
+            <div className="bg-white border-t border-slate-200 px-4 py-3 sm:px-6 sticky bottom-0 z-20 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+                 <Pagination 
                     currentPage={currentPage}
                     totalItems={totalReports}
                     itemsPerPage={itemsPerPage}
                     onPageChange={onPageChange}
                     onItemsPerPageChange={onItemsPerPageChange}
-                />
-             </div>
-          </div>
-      </div>
-      
-      {reportToDelete && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 animate-pop border border-white/20">
-                <div className="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center mb-5 mx-auto shadow-sm ring-1 ring-red-100">
-                    <TrashIcon className="h-7 w-7 text-red-500" />
-                </div>
-                <h3 className="text-xl font-bold text-slate-900 text-center mb-2 uppercase tracking-tight">XÓA KHIẾU NẠI?</h3>
-                <p className="text-sm text-slate-500 text-center mb-8 font-medium">
-                    Bạn sắp xóa khiếu nại <span className="font-bold text-slate-900 bg-slate-100 px-1 rounded">{reportToDelete.maSanPham}</span>. Hành động này không thể hoàn tác.
-                </p>
-                <div className="flex gap-3">
-                    <button onClick={() => setReportToDelete(null)} className="flex-1 py-3 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 transition-colors active:scale-95">Hủy</button>
-                    <button onClick={() => { onDelete(reportToDelete.id); setReportToDelete(null); }} className="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-red-500/30 transition-all active:scale-95">Xóa ngay</button>
-                </div>
+                 />
             </div>
         </div>
-      )}
-
-      {/* Floating Tooltip (Desktop Only) */}
-      <div 
-        ref={tooltipRef}
-        className={`hidden md:block fixed z-[999] bg-white/95 backdrop-blur-xl border border-white/50 p-4 rounded-2xl shadow-2xl pointer-events-none transition-opacity duration-200 max-w-[340px] w-full ring-1 ring-black/5 ${hoveredReport ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}`}
-        style={{ left: 0, top: 0, transitionProperty: 'opacity, transform' }}
-      >
-        {hoveredReport && (
-            <div className="space-y-3">
-                <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                    <span className="font-bold text-sm text-blue-700 uppercase bg-blue-50 px-2 py-0.5 rounded-lg ring-1 ring-blue-100">{hoveredReport.maSanPham}</span>
-                    <span className={`text-xs px-2 py-1 rounded-full font-bold uppercase shadow-sm ${
-                        hoveredReport.trangThai === 'Mới' ? 'bg-blue-100 text-blue-700' : 
-                        hoveredReport.trangThai === 'Hoàn thành' ? 'bg-emerald-100 text-emerald-700' : 
-                        'bg-amber-100 text-amber-700'
-                    }`}>
-                        {hoveredReport.trangThai}
-                    </span>
-                </div>
-                <div>
-                    <p className="text-base font-bold text-slate-800 mb-1 leading-tight">{hoveredReport.tenThuongMai}</p>
-                    {hoveredReport.tenThietBi && ( <p className="text-sm text-slate-500 truncate mb-2">{hoveredReport.tenThietBi}</p> )}
-                    <div className="flex items-center gap-2 text-xs text-slate-500 font-bold mb-3">
-                         <span className="bg-slate-100 px-1.5 py-0.5 rounded text-slate-600 border border-slate-200">Lô: {hoveredReport.soLo}</span>
-                         {hoveredReport.loaiLoi && <span className="bg-slate-100 px-1.5 py-0.5 rounded text-slate-600 border border-slate-200">{hoveredReport.loaiLoi}</span>}
-                    </div>
-                    <div className="relative bg-slate-50 p-2 rounded-lg border border-slate-100">
-                        <p className="text-sm text-slate-600 leading-relaxed line-clamp-3 italic">
-                            "{hoveredReport.noiDungPhanAnh}"
-                        </p>
-                    </div>
-                </div>
-            </div>
-        )}
-      </div>
-
-    </div>
-  );
+    );
 };
 
 export default React.memo(DefectReportList);

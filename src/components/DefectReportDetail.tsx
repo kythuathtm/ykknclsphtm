@@ -1,7 +1,8 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { DefectReport, UserRole, ActivityLog } from '../types';
 import { PencilIcon, TrashIcon, XIcon, WrenchIcon, QuestionMarkCircleIcon, ClipboardDocumentListIcon, TagIcon, UserIcon, CheckCircleIcon, CalendarIcon, CompanyLogo, ListBulletIcon, ChatBubbleLeftIcon, ClockIcon } from './Icons';
-import ReactToPrint from 'react-to-print';
+import { useReactToPrint } from 'react-to-print';
 
 interface Props {
   report: DefectReport;
@@ -20,7 +21,7 @@ const DetailItem = ({ label, value, className, fullWidth }: any) => {
     return (
         <div className={fullWidth ? 'col-span-full' : ''}>
             <dt className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">{label}</dt>
-            <dd className={`text-base text-slate-800 break-words font-normal ${className}`}>{value}</dd>
+            <dd className={`text-slate-800 break-words font-normal ${className}`} style={{ fontSize: 'var(--list-size, 1rem)' }}>{value}</dd>
         </div>
     );
 };
@@ -84,20 +85,11 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onUpdate, onDelet
 
   const printRef = useRef<HTMLDivElement>(null);
 
-  const getUseReactToPrint = () => {
-      const lib = ReactToPrint as any;
-      if (lib.useReactToPrint) return lib.useReactToPrint;
-      if (lib.default && lib.default.useReactToPrint) return lib.default.useReactToPrint;
-      return null;
-  };
-
-  const useReactToPrint = getUseReactToPrint();
-
-  const handlePrint = useReactToPrint ? useReactToPrint({
-      content: () => printRef.current,
+  const handlePrint = useReactToPrint({
+      contentRef: printRef,
       documentTitle: `Phieu_Khieu_Nai_${report.maSanPham}_${report.id.slice(0, 6)}`,
       bodyClass: 'bg-white',
-  }) : () => { console.warn("Printing is not available: library not loaded correctly."); };
+  });
 
   const isEditing = Object.values(editingSections).some(Boolean);
 
@@ -211,7 +203,7 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onUpdate, onDelet
             
             <button onClick={() => handlePrint()} className="hidden sm:flex p-2 text-slate-400 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-all active:scale-95 border border-transparent hover:border-slate-200" title="In phiếu">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062-.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z" />
                 </svg>
             </button>
 
@@ -232,7 +224,10 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onUpdate, onDelet
           </div>
       </div>
       
-      <div className="flex-1 overflow-y-auto bg-slate-50 p-0 sm:p-6 space-y-0 sm:space-y-6 custom-scrollbar pb-20 sm:pb-6">
+      <div 
+        className="flex-1 overflow-y-auto bg-slate-50 p-0 sm:p-6 space-y-0 sm:space-y-6 custom-scrollbar pb-20 sm:pb-6"
+        style={{ fontFamily: 'var(--list-font, inherit)' }}
+      >
         
         {/* TOP ROW: PRODUCT & CUSTOMER - Stack on mobile, grid on large */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 sm:gap-6 bg-slate-50 sm:bg-transparent">
@@ -243,6 +238,8 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onUpdate, onDelet
                     <DetailItem label="Tên thiết bị y tế" value={report.tenThietBi} fullWidth />
                     <DetailItem label="Số lô" value={report.soLo} className="text-slate-700 bg-slate-100 px-2 py-0.5 rounded w-fit font-bold border border-slate-200"/>
                     <DetailItem label="Mã NSX" value={report.maNgaySanXuat}/>
+                    <DetailItem label="Hạn dùng" value={report.hanDung ? new Date(report.hanDung).toLocaleDateString('en-GB') : ''} />
+                    <DetailItem label="Đơn vị tính" value={report.donViTinh} />
                 </dl>
                 <div className="mt-8 pt-6 border-t border-slate-100 grid grid-cols-3 gap-4">
                     <div className="bg-white rounded-xl p-3 border border-slate-100 text-center shadow-sm">
@@ -269,7 +266,7 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onUpdate, onDelet
                     <DetailItem label="Đơn vị sử dụng" value={report.donViSuDung} fullWidth/>
                     <div className="col-span-full mt-2">
                         <dt className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Nội dung khiếu nại</dt>
-                        <dd className="text-base text-slate-700 bg-slate-50 p-4 rounded-xl border border-slate-200 leading-relaxed shadow-inner font-normal">
+                        <dd className="text-slate-700 bg-slate-50 p-4 rounded-xl border border-slate-200 leading-relaxed shadow-inner font-normal" style={{ fontSize: 'var(--list-size, 1rem)' }}>
                             {report.noiDungPhanAnh}
                         </dd>
                     </div>
@@ -373,7 +370,8 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onUpdate, onDelet
                           </div>
                           {editingSections.nguyenNhan ? (
                               <textarea 
-                                className="w-full bg-white border border-amber-200 rounded-lg p-3 text-base font-normal focus:ring-2 focus:ring-amber-500/20 outline-none resize-none shadow-sm touch-manipulation transition-all"
+                                className="w-full bg-white border border-amber-200 rounded-lg p-3 font-normal focus:ring-2 focus:ring-amber-500/20 outline-none resize-none shadow-sm touch-manipulation transition-all"
+                                style={{ fontSize: 'var(--list-size, 1rem)' }}
                                 rows={3}
                                 placeholder="Nhập nguyên nhân..."
                                 value={quickUpdateData.nguyenNhan}
@@ -381,7 +379,7 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onUpdate, onDelet
                                 autoFocus
                               />
                           ) : (
-                              <p className={`text-base font-normal leading-relaxed ${quickUpdateData.nguyenNhan ? 'text-slate-800' : 'text-slate-400 italic'}`}>
+                              <p className={`font-normal leading-relaxed ${quickUpdateData.nguyenNhan ? 'text-slate-800' : 'text-slate-400 italic'}`} style={{ fontSize: 'var(--list-size, 1rem)' }}>
                                   {quickUpdateData.nguyenNhan || 'Click để nhập nguyên nhân...'}
                               </p>
                           )}
@@ -398,7 +396,8 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onUpdate, onDelet
                           </div>
                           {editingSections.huongKhacPhuc ? (
                                <textarea 
-                                className="w-full bg-white border border-blue-200 rounded-lg p-3 text-base font-normal focus:ring-2 focus:ring-blue-500/20 outline-none resize-none shadow-sm touch-manipulation transition-all"
+                                className="w-full bg-white border border-blue-200 rounded-lg p-3 font-normal focus:ring-2 focus:ring-blue-500/20 outline-none resize-none shadow-sm touch-manipulation transition-all"
+                                style={{ fontSize: 'var(--list-size, 1rem)' }}
                                 rows={3}
                                 placeholder="Nhập hướng xử lý..."
                                 value={quickUpdateData.huongKhacPhuc}
@@ -406,7 +405,7 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onUpdate, onDelet
                                 autoFocus
                               />
                           ) : (
-                               <p className={`text-base font-normal leading-relaxed ${quickUpdateData.huongKhacPhuc ? 'text-slate-800' : 'text-slate-400 italic'}`}>
+                               <p className={`font-normal leading-relaxed ${quickUpdateData.huongKhacPhuc ? 'text-slate-800' : 'text-slate-400 italic'}`} style={{ fontSize: 'var(--list-size, 1rem)' }}>
                                   {quickUpdateData.huongKhacPhuc || 'Click để nhập hướng khắc phục...'}
                                </p>
                           )}
@@ -511,7 +510,7 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onUpdate, onDelet
       )}
 
       {/* Hidden Print Template */}
-      <div style={{ display: 'none' }}>
+      <div className="absolute top-0 left-0 w-0 h-0 overflow-hidden invisible">
             <div ref={printRef} className="print-container p-8 font-sans text-slate-900 bg-white">
                 <style>{`
                     @media print {
@@ -550,7 +549,11 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onUpdate, onDelet
                     </div>
                      <div>
                         <span className="block text-xs font-bold uppercase text-slate-500 mb-1">Hạn dùng/NSX</span>
-                        <span className="block font-bold">{report.maNgaySanXuat || '---'}</span>
+                        <span className="block font-bold">{report.maNgaySanXuat || '---'} {report.hanDung ? `(HD: ${new Date(report.hanDung).toLocaleDateString('en-GB')})` : ''}</span>
+                    </div>
+                     <div>
+                        <span className="block text-xs font-bold uppercase text-slate-500 mb-1">Đơn vị tính</span>
+                        <span className="block font-bold">{report.donViTinh || '---'}</span>
                     </div>
                      <div className="col-span-2">
                         <span className="block text-xs font-bold uppercase text-slate-500 mb-1">Đơn vị sử dụng</span>
@@ -575,6 +578,11 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onUpdate, onDelet
                       <div className="bg-slate-50 p-2 border border-slate-200 rounded">
                          <span className="block text-xs uppercase font-bold text-slate-500">Số lượng đổi</span>
                          <span className="block text-xl font-bold">{report.soLuongDoi}</span>
+                         {report.ngayDoiHang && (
+                             <span className="block text-xs font-semibold text-slate-500 mt-1 pt-1 border-t border-slate-200">
+                                 {new Date(report.ngayDoiHang).toLocaleDateString('en-GB')}
+                             </span>
+                         )}
                      </div>
                 </div>
 

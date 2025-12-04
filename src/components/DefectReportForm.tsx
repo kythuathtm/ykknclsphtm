@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { DefectReport, UserRole, PermissionField, Product } from '../types';
 import { XIcon, CheckCircleIcon, TagIcon, WrenchIcon, LockClosedIcon, ShieldCheckIcon, ClipboardDocumentListIcon, CalendarIcon, BuildingStoreIcon, PlusIcon, TrashIcon, ArrowUpTrayIcon } from './Icons';
@@ -24,7 +25,7 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
     ngayTao: new Date().toISOString(),
     ngayPhanAnh: getTodayDateString(),
     maSanPham: '', dongSanPham: '', tenThuongMai: '', tenThietBi: '', nhaPhanPhoi: '',
-    donViSuDung: '', noiDungPhanAnh: '', soLo: '', maNgaySanXuat: '',
+    donViSuDung: '', noiDungPhanAnh: '', soLo: '', maNgaySanXuat: '', hanDung: '', donViTinh: '',
     soLuongLoi: 0, soLuongDaNhap: 0, soLuongDoi: 0, ngayDoiHang: '',
     nguyenNhan: '', huongKhacPhuc: '', trangThai: 'Mới',
     ngayHoanThanh: '', loaiLoi: '' as any, nhanHang: 'HTM', 
@@ -122,7 +123,7 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
     // Allow unlocking product info if it's a new report (including duplicates)
     if (initialData.id?.startsWith('new_')) return false;
 
-    if (isProductInfoLocked && ['dongSanPham', 'tenThuongMai', 'nhanHang', 'tenThietBi'].includes(fieldName)) return true;
+    if (isProductInfoLocked && ['dongSanPham', 'tenThuongMai', 'nhanHang', 'tenThietBi', 'donViTinh'].includes(fieldName)) return true;
 
     let permissionKey: PermissionField;
     if (['nguyenNhan'].includes(fieldName)) permissionKey = 'nguyenNhan';
@@ -130,7 +131,8 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
     else if (['trangThai'].includes(fieldName)) permissionKey = 'trangThai';
     else if (['ngayHoanThanh'].includes(fieldName)) permissionKey = 'ngayHoanThanh';
     else if (['loaiLoi'].includes(fieldName)) permissionKey = 'loaiLoi';
-    else if (['soLuongDoi', 'ngayDoiHang'].includes(fieldName)) permissionKey = 'soLuongDoi';
+    else if (['soLuongDoi'].includes(fieldName)) permissionKey = 'soLuongDoi';
+    else if (['ngayDoiHang'].includes(fieldName)) permissionKey = 'ngayDoiHang';
     else permissionKey = 'general';
 
     return !editableFields.includes(permissionKey);
@@ -213,6 +215,7 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
                 newState.tenThietBi = '';
                 newState.tenThuongMai = '';
                 newState.maSanPham = '';
+                newState.donViTinh = '';
                 setIsProductInfoLocked(false);
             }
         }
@@ -221,12 +224,14 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
             newState.tenThietBi = '';
             newState.tenThuongMai = '';
             newState.maSanPham = '';
+            newState.donViTinh = '';
             setIsProductInfoLocked(false);
         }
         else if (name === 'tenThietBi') {
             newState.tenThietBi = value;
             newState.tenThuongMai = '';
             newState.maSanPham = '';
+            newState.donViTinh = '';
             setIsProductInfoLocked(false);
         }
         else if (name === 'tenThuongMai') {
@@ -243,10 +248,12 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
                 newState.maSanPham = matches[0].maSanPham;
                 newState.dongSanPham = matches[0].dongSanPham;
                 newState.tenThietBi = matches[0].tenThietBi || '';
+                newState.donViTinh = matches[0].donViTinh || '';
                 if (matches[0].nhanHang) newState.nhanHang = matches[0].nhanHang as any;
                 setIsProductInfoLocked(true);
             } else if (matches.length === 0 && isProductInfoLocked) {
                  newState.maSanPham = '';
+                 newState.donViTinh = '';
                  setIsProductInfoLocked(false);
             }
         }
@@ -257,10 +264,14 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
                 newState.dongSanPham = product.dongSanPham;
                 newState.tenThuongMai = product.tenThuongMai;
                 newState.tenThietBi = product.tenThietBi || '';
+                newState.donViTinh = product.donViTinh || '';
                 if (product.nhanHang) newState.nhanHang = product.nhanHang as any;
                 setIsProductInfoLocked(true);
             } else {
-                if (isProductInfoLocked) setIsProductInfoLocked(false);
+                if (isProductInfoLocked) {
+                    setIsProductInfoLocked(false);
+                    newState.donViTinh = '';
+                }
             }
         } 
         else if (name === 'trangThai') {
@@ -355,7 +366,7 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
   };
   
   const getInputClasses = (fieldName: keyof Omit<DefectReport, 'id'>, isReadOnly: boolean = false) => {
-    const base = "transition-all duration-200 mt-1 block w-full rounded-xl text-base py-2.5 px-3 border outline-none font-medium";
+    const base = "transition-all duration-200 mt-1 block w-full rounded-xl py-2.5 px-3 border outline-none font-medium";
     const normal = "bg-white text-slate-800 border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 placeholder-slate-400 shadow-sm hover:border-blue-300";
     const errorClass = errors[fieldName] ? "border-red-500 ring-2 ring-red-500/10 bg-red-50 animate-shake" : "";
     
@@ -412,7 +423,7 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
             </div>
         )}
 
-        <form id="report-form" ref={formRef} onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-4 sm:p-6 bg-slate-50/50 space-y-8 custom-scrollbar">
+        <form id="report-form" ref={formRef} onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-4 sm:p-6 bg-slate-50/50 space-y-8 custom-scrollbar" style={{ fontFamily: 'var(--list-font, inherit)' }}>
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* COLUMN LEFT: PRODUCT INFO */}
@@ -431,6 +442,7 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
                                 onBlur={handleBlur}
                                 disabled={isFieldDisabled('maSanPham') || isProductInfoLocked}
                                 className={getInputClasses('maSanPham', isProductInfoLocked)}
+                                style={{ fontSize: 'inherit', fontFamily: 'inherit' }}
                                 placeholder="Nhập mã hoặc chọn bên dưới..."
                                 list="productCodes"
                                 autoComplete="off"
@@ -453,6 +465,7 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
                                 onBlur={handleBlur} 
                                 disabled={isFieldDisabled('tenThuongMai') || isProductInfoLocked}
                                 className={getInputClasses('tenThuongMai', isProductInfoLocked)}
+                                style={{ fontSize: 'inherit', fontFamily: 'inherit' }}
                                 list="tradeNames"
                                 autoComplete="off"
                             />
@@ -472,6 +485,7 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
                                     onBlur={handleBlur}
                                     disabled={isFieldDisabled('nhanHang')}
                                     className={getInputClasses('nhanHang')}
+                                    style={{ fontSize: 'inherit', fontFamily: 'inherit' }}
                                 >
                                     <option value="HTM">HTM</option>
                                     <option value="VMA">VMA</option>
@@ -489,6 +503,7 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
                                     onBlur={handleBlur} 
                                     disabled={isFieldDisabled('dongSanPham') || isProductInfoLocked}
                                     className={getInputClasses('dongSanPham', isProductInfoLocked)}
+                                    style={{ fontSize: 'inherit', fontFamily: 'inherit' }}
                                     list="lines"
                                     autoComplete="off"
                                 />
@@ -509,6 +524,7 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
                                 onBlur={handleBlur} 
                                 disabled={isFieldDisabled('tenThietBi') || isProductInfoLocked}
                                 className={getInputClasses('tenThietBi', isProductInfoLocked)}
+                                style={{ fontSize: 'inherit', fontFamily: 'inherit' }}
                                 list="devices"
                                 autoComplete="off"
                             />
@@ -528,6 +544,7 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
                                     onBlur={handleBlur} 
                                     disabled={isFieldDisabled('soLo')}
                                     className={getInputClasses('soLo')}
+                                    style={{ fontSize: 'inherit', fontFamily: 'inherit' }}
                                 />
                                 <ErrorMessage field="soLo" />
                             </div>
@@ -541,6 +558,35 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
                                     onBlur={handleBlur} 
                                     disabled={isFieldDisabled('maNgaySanXuat')}
                                     className={getInputClasses('maNgaySanXuat')}
+                                    style={{ fontSize: 'inherit', fontFamily: 'inherit' }}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700">Hạn dùng</label>
+                                <input 
+                                    type="date" 
+                                    name="hanDung" 
+                                    value={formData.hanDung || ''} 
+                                    onChange={handleChange}
+                                    disabled={isFieldDisabled('hanDung')}
+                                    className={getInputClasses('hanDung')}
+                                    style={{ fontSize: 'inherit', fontFamily: 'inherit' }}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700">Đơn vị tính</label>
+                                <input 
+                                    type="text" 
+                                    name="donViTinh" 
+                                    value={formData.donViTinh || ''} 
+                                    onChange={handleChange} 
+                                    disabled={isFieldDisabled('donViTinh') || isProductInfoLocked}
+                                    className={getInputClasses('donViTinh', isProductInfoLocked)}
+                                    style={{ fontSize: 'inherit', fontFamily: 'inherit' }}
+                                    placeholder="Hộp/Cái..."
                                 />
                             </div>
                         </div>
@@ -555,6 +601,7 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
                                 onBlur={handleBlur}
                                 disabled={isFieldDisabled('nhaPhanPhoi')}
                                 className={getInputClasses('nhaPhanPhoi')}
+                                style={{ fontSize: 'inherit', fontFamily: 'inherit' }}
                                 list="distributors"
                             />
                             <datalist id="distributors">
@@ -582,6 +629,7 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
                                     onBlur={handleBlur}
                                     disabled={isFieldDisabled('ngayPhanAnh')}
                                     className={getInputClasses('ngayPhanAnh')}
+                                    style={{ fontSize: 'inherit', fontFamily: 'inherit' }}
                                 />
                                 <ErrorMessage field="ngayPhanAnh" />
                             </div>
@@ -595,6 +643,7 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
                                     onBlur={handleBlur} 
                                     disabled={isFieldDisabled('donViSuDung')}
                                     className={getInputClasses('donViSuDung')}
+                                    style={{ fontSize: 'inherit', fontFamily: 'inherit' }}
                                 />
                             </div>
                         </div>
@@ -608,6 +657,7 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
                                 onBlur={handleBlur} 
                                 disabled={isFieldDisabled('loaiLoi')}
                                 className={getInputClasses('loaiLoi')}
+                                style={{ fontSize: 'inherit', fontFamily: 'inherit' }}
                             >
                                 <option value="" disabled>-- Chọn nguồn gốc --</option>
                                 <option value="Lỗi Sản xuất">Lỗi Sản xuất</option>
@@ -627,6 +677,7 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
                                 onBlur={handleBlur}
                                 disabled={isFieldDisabled('noiDungPhanAnh')}
                                 className={getInputClasses('noiDungPhanAnh')}
+                                style={{ fontSize: 'inherit', fontFamily: 'inherit' }}
                                 rows={4}
                             />
                             <ErrorMessage field="noiDungPhanAnh" />
@@ -644,6 +695,7 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
                                         onChange={(e) => setNewImageUrl(e.target.value)}
                                         placeholder="Dán URL ảnh hoặc..."
                                         className="flex-1 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/20 outline-none"
+                                        style={{ fontSize: 'inherit', fontFamily: 'inherit' }}
                                     />
                                     <button 
                                         type="button" 
@@ -707,6 +759,7 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
                                         onChange={handleChange} 
                                         disabled={isFieldDisabled('soLuongDaNhap')}
                                         className={getInputClasses('soLuongDaNhap')}
+                                        style={{ fontSize: 'inherit', fontFamily: 'inherit' }}
                                     />
                                  </div>
                                  <div>
@@ -718,6 +771,7 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
                                         onChange={handleChange} 
                                         disabled={isFieldDisabled('soLuongLoi')}
                                         className={getInputClasses('soLuongLoi')}
+                                        style={{ fontSize: 'inherit', fontFamily: 'inherit' }}
                                     />
                                  </div>
                                  <div>
@@ -729,6 +783,7 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
                                         onChange={handleChange} 
                                         disabled={isFieldDisabled('soLuongDoi')}
                                         className={getInputClasses('soLuongDoi')}
+                                        style={{ fontSize: 'inherit', fontFamily: 'inherit' }}
                                     />
                                  </div>
                              </div>
@@ -742,6 +797,7 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
                                     onBlur={handleBlur}
                                     disabled={isFieldDisabled('ngayDoiHang')}
                                     className={getInputClasses('ngayDoiHang')}
+                                    style={{ fontSize: 'inherit', fontFamily: 'inherit' }}
                                 />
                              </div>
                         </div>
@@ -762,6 +818,7 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
                                     onBlur={handleBlur}
                                     disabled={isFieldDisabled('nguyenNhan')}
                                     className={getInputClasses('nguyenNhan')}
+                                    style={{ fontSize: 'inherit', fontFamily: 'inherit' }}
                                     rows={3}
                                 />
                                 <ErrorMessage field="nguyenNhan" />
@@ -775,6 +832,7 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
                                     onBlur={handleBlur}
                                     disabled={isFieldDisabled('huongKhacPhuc')}
                                     className={getInputClasses('huongKhacPhuc')}
+                                    style={{ fontSize: 'inherit', fontFamily: 'inherit' }}
                                     rows={3}
                                 />
                                 <ErrorMessage field="huongKhacPhuc" />
@@ -789,6 +847,7 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
                                         onBlur={handleBlur}
                                         disabled={isFieldDisabled('trangThai')}
                                         className={getInputClasses('trangThai')}
+                                        style={{ fontSize: 'inherit', fontFamily: 'inherit' }}
                                     >
                                         <option value="Mới">Mới</option>
                                         <option value="Đang tiếp nhận">Đang tiếp nhận</option>
@@ -808,6 +867,7 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
                                         onBlur={handleBlur}
                                         disabled={isFieldDisabled('ngayHoanThanh')}
                                         className={getInputClasses('ngayHoanThanh')}
+                                        style={{ fontSize: 'inherit', fontFamily: 'inherit' }}
                                     />
                                     <ErrorMessage field="ngayHoanThanh" />
                                 </div>

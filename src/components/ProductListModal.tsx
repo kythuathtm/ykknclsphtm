@@ -1,3 +1,4 @@
+
 import React, { useRef, useState, useMemo } from 'react';
 import { XIcon, ArrowUpTrayIcon, TrashIcon, PlusIcon, CheckCircleIcon, ArrowDownTrayIcon, MagnifyingGlassIcon, FunnelIcon, CubeIcon, TagIcon } from './Icons';
 import * as XLSX from 'xlsx';
@@ -26,7 +27,8 @@ const ProductListModal: React.FC<Props> = ({ products, onClose, onImport, onAdd,
       tenThietBi: '',
       dongSanPham: '',
       nhanHang: 'HTM',
-      GPLH: ''
+      GPLH: '',
+      donViTinh: ''
   });
 
   const handleDownloadTemplate = () => {
@@ -37,7 +39,8 @@ const ProductListModal: React.FC<Props> = ({ products, onClose, onImport, onAdd,
               "Tên thiết bị": "Kim lấy máu",
               "Dòng sản phẩm": "Vật tư tiêu hao",
               "Nhãn hàng": "HTM",
-              "GPLH": "12345/BYT-TB-CT"
+              "GPLH": "12345/BYT-TB-CT",
+              "Đơn vị tính": "Hộp"
           },
           {
               "Mã SP (Bắt buộc)": "SP002",
@@ -45,7 +48,8 @@ const ProductListModal: React.FC<Props> = ({ products, onClose, onImport, onAdd,
               "Tên thiết bị": "Ống nghiệm",
               "Dòng sản phẩm": "Ống nghiệm",
               "Nhãn hàng": "VMA",
-              "GPLH": ""
+              "GPLH": "",
+              "Đơn vị tính": "Cái"
           }
       ];
       
@@ -91,6 +95,7 @@ const ProductListModal: React.FC<Props> = ({ products, onClose, onImport, onAdd,
                 const dongSanPham = getVal(['Dòng SP', 'Dòng sản phẩm', 'Type', 'Dong San Pham']);
                 const nhanHang = getVal(['Nhãn hàng', 'Nhan Hang', 'Brand']);
                 const gplh = getVal(['GPLH', 'Số đăng ký', 'SDK', 'Registration']);
+                const donViTinh = getVal(['Đơn vị tính', 'ĐVT', 'Unit', 'DVT']);
 
                 if (maSanPham && tenThuongMai) {
                     newProducts.push({
@@ -99,7 +104,8 @@ const ProductListModal: React.FC<Props> = ({ products, onClose, onImport, onAdd,
                         tenThietBi: String(tenThietBi || '').trim(),
                         dongSanPham: String(dongSanPham || '').trim(),
                         nhanHang: nhanHang ? String(nhanHang).trim() : 'HTM',
-                        GPLH: String(gplh || '').trim()
+                        GPLH: String(gplh || '').trim(),
+                        donViTinh: String(donViTinh || '').trim()
                     });
                 }
             });
@@ -129,7 +135,7 @@ const ProductListModal: React.FC<Props> = ({ products, onClose, onImport, onAdd,
           return;
       }
       onAdd(newProduct);
-      setNewProduct({ maSanPham: '', tenThuongMai: '', tenThietBi: '', dongSanPham: '', nhanHang: 'HTM', GPLH: '' });
+      setNewProduct({ maSanPham: '', tenThuongMai: '', tenThietBi: '', dongSanPham: '', nhanHang: 'HTM', GPLH: '', donViTinh: '' });
       setIsAdding(false); // Close form after add
   };
 
@@ -328,7 +334,16 @@ const ProductListModal: React.FC<Props> = ({ products, onClose, onImport, onAdd,
                             className="w-full px-3 py-2.5 border border-blue-200 rounded-xl text-base font-medium focus:border-[#003DA5] focus:ring-2 focus:ring-blue-200 bg-white shadow-sm outline-none"
                         />
                     </div>
-                    <div className="sm:col-span-5 hidden sm:block"></div>
+                    <div className="sm:col-span-1">
+                        <label className="block text-xs font-bold text-[#003DA5] mb-1.5 uppercase">Đơn vị tính</label>
+                        <input 
+                            type="text" placeholder="Hộp/Cái..."
+                            value={newProduct.donViTinh || ''}
+                            onChange={(e) => setNewProduct({...newProduct, donViTinh: e.target.value})}
+                            className="w-full px-3 py-2.5 border border-blue-200 rounded-xl text-base font-medium focus:border-[#003DA5] focus:ring-2 focus:ring-blue-200 bg-white shadow-sm outline-none"
+                        />
+                    </div>
+                    <div className="sm:col-span-4 hidden sm:block"></div>
                     <div className="sm:col-span-1 sm:col-start-6 mt-2 sm:mt-0">
                         <button 
                             type="submit"
@@ -361,6 +376,7 @@ const ProductListModal: React.FC<Props> = ({ products, onClose, onImport, onAdd,
                         <th className="px-4 py-3 text-left font-bold text-slate-500 uppercase sticky top-0 bg-slate-50 z-10" style={{ fontSize: 'inherit' }}>Tên thương mại</th>
                         <th className="px-4 py-3 text-left font-bold text-slate-500 uppercase w-48 sticky top-0 bg-slate-50 z-10" style={{ fontSize: 'inherit' }}>Tên thiết bị YT</th>
                         <th className="px-4 py-3 text-left font-bold text-slate-500 uppercase w-32 sticky top-0 bg-slate-50 z-10" style={{ fontSize: 'inherit' }}>Dòng SP</th>
+                        <th className="px-4 py-3 text-left font-bold text-slate-500 uppercase w-20 sticky top-0 bg-slate-50 z-10" style={{ fontSize: 'inherit' }}>ĐVT</th>
                         <th className="px-4 py-3 text-left font-bold text-slate-500 uppercase w-24 sticky top-0 bg-slate-50 z-10" style={{ fontSize: 'inherit' }}>Nhãn hàng</th>
                         <th className="px-4 py-3 text-left font-bold text-slate-500 uppercase w-32 sticky top-0 bg-slate-50 z-10" style={{ fontSize: 'inherit' }}>GPLH</th>
                         <th className="px-4 py-3 text-right font-bold text-slate-500 uppercase w-16 sticky top-0 bg-slate-50 z-10" style={{ fontSize: 'inherit' }}></th>
@@ -382,6 +398,9 @@ const ProductListModal: React.FC<Props> = ({ products, onClose, onImport, onAdd,
                                 <div className="text-slate-500 line-clamp-1" title={product.dongSanPham} style={{ fontSize: 'inherit' }}>{product.dongSanPham}</div>
                             </td>
                             <td className="px-4 py-3 align-top">
+                                <div className="text-slate-500" style={{ fontSize: 'inherit' }}>{product.donViTinh}</div>
+                            </td>
+                            <td className="px-4 py-3 align-top">
                                 <span className={`px-2 py-1 rounded font-bold border ${
                                     product.nhanHang === 'HTM' ? 'bg-[#003DA5]/10 text-[#003DA5] border-[#003DA5]/20' :
                                     product.nhanHang === 'VMA' ? 'bg-[#009183]/10 text-[#009183] border-[#009183]/20' :
@@ -391,7 +410,7 @@ const ProductListModal: React.FC<Props> = ({ products, onClose, onImport, onAdd,
                                 </span>
                             </td>
                             <td className="px-4 py-3 align-top">
-                                <div className="text-slate-400" style={{ fontSize: '0.85em' }}>{product.GPLH}</div>
+                                <div className="text-slate-400" style={{ fontSize: 'inherit' }}>{product.GPLH}</div>
                             </td>
                             <td className="px-4 py-3 align-top text-right">
                                 <button 
@@ -428,6 +447,7 @@ const ProductListModal: React.FC<Props> = ({ products, onClose, onImport, onAdd,
                             <div className="flex items-center gap-2 text-xs text-slate-500 mt-1">
                                 {product.tenThietBi && <span className="bg-slate-50 px-2 py-1 rounded border border-slate-100 truncate max-w-[150px]">{product.tenThietBi}</span>}
                                 {product.dongSanPham && <span className="bg-slate-50 px-2 py-1 rounded border border-slate-100 truncate">{product.dongSanPham}</span>}
+                                {product.donViTinh && <span className="bg-slate-50 px-2 py-1 rounded border border-slate-100">{product.donViTinh}</span>}
                             </div>
 
                             {product.GPLH && <div className="text-[10px] text-slate-400 mt-1">GPLH: {product.GPLH}</div>}
@@ -466,7 +486,7 @@ const ProductListModal: React.FC<Props> = ({ products, onClose, onImport, onAdd,
         <div className="flex justify-between items-center p-4 bg-white border-t border-slate-200 text-xs text-slate-500">
             <div className="hidden sm:flex items-center gap-2">
                  <TagIcon className="w-3 h-3"/>
-                 <span>File Excel cần có các cột: Mã SP, Tên thương mại, Tên thiết bị, Dòng SP, Nhãn hàng, GPLH.</span>
+                 <span>File Excel cần có các cột: Mã SP, Tên thương mại, Tên thiết bị, Dòng SP, Nhãn hàng, GPLH, Đơn vị tính.</span>
             </div>
             <button onClick={onClose} className="w-full sm:w-auto bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-bold py-2.5 px-6 rounded-xl shadow-sm transition-all active:scale-95">
                 Đóng

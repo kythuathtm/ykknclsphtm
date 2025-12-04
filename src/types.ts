@@ -1,3 +1,4 @@
+
 // Change from enum to const object to support dynamic roles
 export const UserRole = {
   Admin: 'Admin',
@@ -26,6 +27,7 @@ export interface Product {
   dongSanPham: string;
   nhanHang?: string;
   GPLH: string;
+  donViTinh?: string; // Unit
 }
 
 export interface ActivityLog {
@@ -50,6 +52,8 @@ export interface DefectReport {
   noiDungPhanAnh: string;
   images?: string[]; // New field: Image URLs
   soLo: string;
+  hanDung?: string; // New field: Expiration Date
+  donViTinh?: string; // New field: Unit
   maNgaySanXuat: string;
   soLuongLoi: number;
   soLuongDaNhap: number;
