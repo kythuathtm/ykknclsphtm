@@ -69,10 +69,10 @@ const ProductListModal: React.FC<Props> = ({ products, onClose, onImport, onAdd,
     const reader = new FileReader();
     reader.onload = (event) => {
         const data = event.target?.result;
-        if (!data) return;
+        if (!data || !(data instanceof ArrayBuffer)) return;
 
         try {
-            const workbook = xlsxLib.read(data, { type: 'array' });
+            const workbook = xlsxLib.read(new Uint8Array(data), { type: 'array' });
             const firstSheetName = workbook.SheetNames[0];
             const worksheet = workbook.Sheets[firstSheetName];
             const jsonData = xlsxLib.utils.sheet_to_json(worksheet);

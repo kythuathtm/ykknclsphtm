@@ -466,10 +466,10 @@ export const App: React.FC = () => {
       const reader = new FileReader();
       reader.onload = async (event) => {
           const data = event.target?.result;
-          if (!data) return;
+          if (!data || !(data instanceof ArrayBuffer)) return;
 
           try {
-              const workbook = xlsxLib.read(data, { type: 'array' });
+              const workbook = xlsxLib.read(new Uint8Array(data), { type: 'array' });
               const worksheet = workbook.Sheets[workbook.SheetNames[0]];
               const jsonData = xlsxLib.utils.sheet_to_json(worksheet);
               
