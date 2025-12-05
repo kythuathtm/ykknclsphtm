@@ -215,7 +215,7 @@ const ProductListModal: React.FC<Props> = ({ products, onClose, onImport, onAdd,
             </div>
 
             {/* Action Buttons */}
-            <div className="flex gap-2 w-full lg:w-auto justify-end overflow-x-auto pb-1 sm:pb-0 no-scrollbar">
+            <div className="flex gap-2 w-full lg:w-auto justify-end overflow-x-auto pb-2 custom-scrollbar">
                  <button 
                     onClick={() => setIsAdding(!isAdding)}
                     className={`hidden sm:flex items-center px-4 py-2 rounded-xl text-sm font-bold transition-all shadow-sm active:scale-95 whitespace-nowrap ${isAdding ? 'bg-white border border-slate-300 text-slate-700' : 'bg-[#003DA5] text-white hover:bg-[#002a70]'}`}

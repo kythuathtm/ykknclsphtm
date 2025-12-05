@@ -1,15 +1,20 @@
+
 <script type="importmap">
 {
   "imports": {
     "react": "https://esm.sh/react@18.3.1",
+    "react/jsx-runtime": "https://esm.sh/react@18.3.1/jsx-runtime",
     "react-dom/client": "https://esm.sh/react-dom@18.3.1/client",
     "react-dom": "https://esm.sh/react-dom@18.3.1",
     "xlsx": "https://esm.sh/xlsx@0.18.5",
-    "react-to-print": "https://esm.sh/react-to-print@3.0.2?external=react,react-dom",
-    "firebase/app": "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js",
-    "firebase/firestore": "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js",
+    "react-to-print": "https://esm.sh/react-to-print@3.0.5?external=react,react-dom",
+    "firebase/app": "https://esm.sh/firebase@10.12.0/app",
+    "firebase/firestore": "https://esm.sh/firebase@10.12.0/firestore?deps=firebase@10.12.0",
+    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.1.1",
     "vite": "https://aistudiocdn.com/vite@^7.2.6",
-    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.1.1"
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.1/",
+    "react/": "https://aistudiocdn.com/react@^19.2.1/",
+    "firebase/": "https://aistudiocdn.com/firebase@^12.6.0/"
   }
 }
 </script>
@@ -110,18 +115,18 @@
 
       /* Premium Scrollbar */
       ::-webkit-scrollbar {
-        width: 6px;
-        height: 6px;
+        width: 8px;
+        height: 8px;
       }
       ::-webkit-scrollbar-track {
-        background: transparent; 
+        background: rgba(241, 245, 249, 0.5); 
       }
       ::-webkit-scrollbar-thumb {
-        background: rgba(203, 213, 225, 0.5); 
-        border-radius: 10px;
+        background: rgba(148, 163, 184, 0.5); 
+        border-radius: 4px;
       }
       ::-webkit-scrollbar-thumb:hover {
-        background: rgba(148, 163, 184, 0.7); 
+        background: rgba(100, 116, 139, 0.8); 
       }
 
       /* Custom Utilities */
@@ -141,21 +146,6 @@
 
       .pb-safe {
         padding-bottom: env(safe-area-inset-bottom);
-      }
-
-      .custom-scrollbar::-webkit-scrollbar {
-        width: 6px;
-        height: 6px;
-      }
-      .custom-scrollbar::-webkit-scrollbar-track {
-        background: transparent;
-      }
-      .custom-scrollbar::-webkit-scrollbar-thumb {
-        background-color: rgba(156, 163, 175, 0.3);
-        border-radius: 20px;
-      }
-      .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-        background-color: rgba(156, 163, 175, 0.5);
       }
       
       /* Animation Utilities */

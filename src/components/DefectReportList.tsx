@@ -228,7 +228,7 @@ const DefectReportList: React.FC<DefectReportListProps> = ({
                         />
                     </div>
                     
-                    <div className="flex gap-2 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0 no-scrollbar">
+                    <div className="flex gap-2 w-full sm:w-auto overflow-x-auto pb-2 custom-scrollbar">
                         <div className="relative min-w-[140px]">
                             <select 
                                 value={filters.statusFilter}
