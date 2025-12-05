@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Product, ToastType } from '../types';
 import { db } from '../firebaseConfig';
@@ -6,11 +5,8 @@ import { collection, onSnapshot, doc, setDoc, deleteDoc, writeBatch, query, getD
 
 const LS_PRODUCTS = 'app_products_data';
 
-const MOCK_PRODUCTS: Product[] = [
-    { maSanPham: 'SP001', tenThuongMai: 'Kim lấy máu chân không', tenThietBi: 'Kim lấy máu', dongSanPham: 'Vật tư tiêu hao', nhanHang: 'HTM', GPLH: '123/BYT', donViTinh: 'Hộp' },
-    { maSanPham: 'SP002', tenThuongMai: 'Ống nghiệm Serum', tenThietBi: 'Ống nghiệm', dongSanPham: 'Ống nghiệm', nhanHang: 'HTM', GPLH: '456/BYT', donViTinh: 'Khay' },
-    { maSanPham: 'SP003', tenThuongMai: 'Ống nghiệm EDTA', tenThietBi: 'Ống nghiệm', dongSanPham: 'Ống nghiệm', nhanHang: 'VMA', GPLH: '789/BYT', donViTinh: 'Khay' },
-];
+// Removed mock data as requested
+const MOCK_PRODUCTS: Product[] = [];
 
 export const useProducts = (showToast: (msg: string, type: ToastType) => void) => {
   const [products, setProducts] = useState<Product[]>(() => {

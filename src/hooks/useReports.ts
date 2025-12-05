@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { DefectReport, ToastType, ActivityLog } from '../types';
 import { db } from '../firebaseConfig';
@@ -6,59 +5,8 @@ import { collection, onSnapshot, query, orderBy, doc, updateDoc, addDoc, deleteD
 
 const LS_REPORTS = 'app_reports_data';
 
-const MOCK_REPORTS: DefectReport[] = [
-    {
-        id: 'mock-1',
-        ngayTao: new Date().toISOString(),
-        ngayPhanAnh: new Date().toISOString().split('T')[0],
-        maSanPham: 'SP001',
-        tenThuongMai: 'Kim lấy máu chân không',
-        dongSanPham: 'Vật tư tiêu hao',
-        tenThietBi: 'Kim lấy máu',
-        nhaPhanPhoi: 'MediGroup',
-        donViSuDung: 'BV Chợ Rẫy',
-        noiDungPhanAnh: 'Kim bị cong, không lấy được máu',
-        soLo: 'LOT202401',
-        maNgaySanXuat: '0124',
-        soLuongLoi: 10,
-        soLuongDaNhap: 1000,
-        soLuongDoi: 10,
-        trangThai: 'Hoàn thành',
-        loaiLoi: 'Lỗi Sản xuất',
-        nguyenNhan: 'Lỗi máy dập',
-        huongKhacPhuc: 'Đã đổi hàng và kiểm tra lô',
-        ngayHoanThanh: new Date().toISOString().split('T')[0],
-        nhanHang: 'HTM',
-        activityLog: [],
-        donViTinh: 'Hộp',
-        images: []
-    },
-    {
-        id: 'mock-2',
-        ngayTao: new Date(Date.now() - 86400000).toISOString(),
-        ngayPhanAnh: new Date(Date.now() - 86400000).toISOString().split('T')[0],
-        maSanPham: 'SP002',
-        tenThuongMai: 'Ống nghiệm Serum',
-        dongSanPham: 'Ống nghiệm',
-        tenThietBi: 'Ống nghiệm',
-        nhaPhanPhoi: 'Thành An',
-        donViSuDung: 'PK Đa Khoa',
-        noiDungPhanAnh: 'Nắp lỏng, rò rỉ mẫu',
-        soLo: 'LOT202402',
-        maNgaySanXuat: '0224',
-        soLuongLoi: 50,
-        soLuongDaNhap: 5000,
-        soLuongDoi: 0,
-        trangThai: 'Đang xác minh',
-        loaiLoi: 'Lỗi Hỗn hợp',
-        nguyenNhan: '',
-        huongKhacPhuc: '',
-        nhanHang: 'HTM',
-        activityLog: [],
-        donViTinh: 'Khay',
-        images: []
-    }
-];
+// Removed mock data as requested
+const MOCK_REPORTS: DefectReport[] = [];
 
 // Helper to clean data for Firestore
 const cleanData = (data: any): any => {
