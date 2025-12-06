@@ -67,6 +67,18 @@ interface DefectReportListProps {
   baseFontSize?: string;
 }
 
+// Helper to format date string YYYY-MM-DD to DD/MM/YYYY
+const formatDate = (dateStr: string) => {
+    if (!dateStr) return '';
+    try {
+        const parts = dateStr.split('T')[0].split('-');
+        if (parts.length === 3) {
+            return `${parts[2]}/${parts[1]}/${parts[0]}`;
+        }
+        return dateStr;
+    } catch(e) { return dateStr; }
+};
+
 const DefectReportList: React.FC<DefectReportListProps> = ({
   reports,
   totalReports,
@@ -142,8 +154,8 @@ const DefectReportList: React.FC<DefectReportListProps> = ({
             case 'ngayPhanAnh':
                 return (
                     <div>
-                        <span className="block font-medium text-slate-700" style={{ fontSize: 'inherit' }}>{new Date(report.ngayPhanAnh).toLocaleDateString('en-GB')}</span>
-                        <span className="text-[10px] text-slate-400">{report.id.substring(0, 8)}</span>
+                        <span className="block font-medium text-slate-700" style={{ fontSize: 'inherit' }}>{formatDate(report.ngayPhanAnh)}</span>
+                        <span className="text-[10px] text-slate-400 font-bold bg-slate-100 px-1 rounded inline-block mt-0.5">{report.id}</span>
                     </div>
                 );
             case 'maSanPham':
@@ -164,7 +176,7 @@ const DefectReportList: React.FC<DefectReportListProps> = ({
             case 'soLo':
                 return <span className="font-mono text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded text-xs">{report.soLo}</span>;
             case 'hanDung':
-                return report.hanDung ? new Date(report.hanDung).toLocaleDateString('en-GB') : '';
+                return formatDate(report.hanDung || '');
             case 'donViTinh':
                 return report.donViTinh;
             case 'maNgaySanXuat':

@@ -81,8 +81,8 @@ export const useReports = (showToast: (msg: string, type: ToastType) => void) =>
         firestorePromise = updateDoc(reportRef, cleanData(data));
     } else {
         // GENERATE NEW ID: YYYY-XXX
-        const reportDate = new Date(report.ngayPhanAnh);
-        const year = reportDate.getFullYear();
+        // Use string splitting to get the year directly from YYYY-MM-DD input to avoid timezone shifts
+        const year = report.ngayPhanAnh.split('-')[0];
         const prefix = `${year}-`;
         
         // Find existing IDs for this year to increment sequence
@@ -90,12 +90,13 @@ export const useReports = (showToast: (msg: string, type: ToastType) => void) =>
             .filter(r => r.id && r.id.startsWith(prefix))
             .map(r => {
                 const parts = r.id.split('-');
-                // Check if part[1] is a valid number
+                // Check if part[1] is a valid number (XXX)
                 return parts.length === 2 && !isNaN(Number(parts[1])) ? parseInt(parts[1], 10) : 0;
             });
             
         const maxSeq = sequences.length > 0 ? Math.max(...sequences) : 0;
         const nextSeq = maxSeq + 1;
+        // Format XXX (e.g., 001, 010, 100)
         const newId = `${prefix}${String(nextSeq).padStart(3, '0')}`;
 
         const newReport = { ...report, id: newId, ngayTao: new Date().toISOString(), activityLog: [] };
@@ -103,7 +104,7 @@ export const useReports = (showToast: (msg: string, type: ToastType) => void) =>
         
         const { id, ...data } = newReport;
         
-        // Use setDoc to create document with specific ID
+        // Use setDoc to create document with specific ID (YYYY-XXX)
         firestorePromise = setDoc(doc(db, "reports", newId), cleanData(data));
     }
     updateLocal(newReports);

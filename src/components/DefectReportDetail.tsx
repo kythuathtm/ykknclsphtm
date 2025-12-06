@@ -25,6 +25,18 @@ interface Props {
   onAddComment: (reportId: string, content: string, user: { username: string, role: string }) => Promise<boolean>;
 }
 
+// --- Helper Functions ---
+const formatDate = (dateStr: string | undefined) => {
+    if (!dateStr) return '';
+    try {
+        const parts = dateStr.split('T')[0].split('-');
+        if (parts.length === 3) {
+            return `${parts[2]}/${parts[1]}/${parts[0]}`;
+        }
+        return dateStr;
+    } catch(e) { return dateStr || ''; }
+};
+
 // --- Helper Components ---
 
 interface DetailRowProps {
@@ -327,7 +339,7 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onUpdate, onDelet
                 </div>
                 <div className="min-w-0">
                         <div className="flex items-center gap-2 mb-0.5">
-                            <span className="text-[10px] text-slate-400 font-mono font-bold bg-slate-50 px-1.5 py-0.5 rounded border border-slate-200">#{report.id.substring(0,8)}</span>
+                            <span className="text-[10px] text-slate-400 font-mono font-bold bg-slate-50 px-1.5 py-0.5 rounded border border-slate-200">#{report.id}</span>
                             <span className="sm:hidden text-[10px] font-extrabold uppercase text-slate-500">{report.trangThai}</span>
                         </div>
                         <h2 className="text-lg sm:text-xl font-black text-slate-800 leading-tight truncate" title={report.tenThuongMai}>
@@ -408,7 +420,7 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onUpdate, onDelet
                                 <DetailRow label="Tên thương mại" value={report.tenThuongMai} wrapperClass="col-span-2 md:col-span-2" className="font-bold text-slate-800" />
                                 <DetailRow label="Số Lô" value={report.soLo} className="font-mono bg-slate-100" />
                                 <DetailRow label="Mã NSX" value={report.maNgaySanXuat} className="font-mono" />
-                                <DetailRow label="Hạn dùng" value={report.hanDung ? new Date(report.hanDung).toLocaleDateString('en-GB') : ''} icon={<CalendarIcon className="w-3 h-3"/>} />
+                                <DetailRow label="Hạn dùng" value={formatDate(report.hanDung)} icon={<CalendarIcon className="w-3 h-3"/>} />
                                 {/* Hidden: Dòng SP, Tên TB, Nhãn hàng, ĐVT */}
                             </div>
                         </SectionCard>
@@ -421,7 +433,7 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onUpdate, onDelet
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                     <DetailRow label="Nhà phân phối" value={report.nhaPhanPhoi} icon={<BuildingStoreIcon className="w-3 h-3"/>} />
                                     <DetailRow label="Đơn vị sử dụng" value={report.donViSuDung} icon={<UserGroupIcon className="w-3 h-3"/>} />
-                                    <DetailRow label="Ngày phản ánh" value={new Date(report.ngayPhanAnh).toLocaleDateString('en-GB')} icon={<CalendarIcon className="w-3 h-3"/>} />
+                                    <DetailRow label="Ngày phản ánh" value={formatDate(report.ngayPhanAnh)} icon={<CalendarIcon className="w-3 h-3"/>} />
                                 </div>
 
                                 {/* Content & Images */}
@@ -518,7 +530,7 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onUpdate, onDelet
                                                 <div className="flex items-center gap-1 mt-1 bg-emerald-100/60 px-1.5 py-0.5 rounded border border-emerald-200/50 min-h-[20px]">
                                                     {report.ngayDoiHang ? (
                                                         <span className="text-[9px] font-bold text-emerald-800 whitespace-nowrap">
-                                                            {new Date(report.ngayDoiHang).toLocaleDateString('en-GB')}
+                                                            {formatDate(report.ngayDoiHang)}
                                                         </span>
                                                     ) : (
                                                         <span className="text-[8px] text-emerald-600/50 italic">--/--/--</span>
