@@ -32,9 +32,17 @@
     scrollbar-width: none;
 }
 
+html {
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+}
+
 body {
     -webkit-tap-highlight-color: transparent;
+    /* High quality text rendering settings */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
 }

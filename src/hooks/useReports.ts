@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { DefectReport, ToastType, ActivityLog } from '../types';
 import { db } from '../firebaseConfig';
-import { collection, onSnapshot, query, orderBy, doc, updateDoc, addDoc, deleteDoc, writeBatch, arrayUnion } from 'firebase/firestore';
+import { collection, onSnapshot, query, orderBy, doc, updateDoc, setDoc, deleteDoc, writeBatch, arrayUnion } from 'firebase/firestore';
 
 const LS_REPORTS = 'app_reports_data';
 
@@ -80,12 +80,31 @@ export const useReports = (showToast: (msg: string, type: ToastType) => void) =>
         const { id, ...data } = report;
         firestorePromise = updateDoc(reportRef, cleanData(data));
     } else {
-        const newId = report.id?.startsWith('new_') ? `local_${Date.now()}` : report.id;
+        // GENERATE NEW ID: YYYY-XXX
+        const reportDate = new Date(report.ngayPhanAnh);
+        const year = reportDate.getFullYear();
+        const prefix = `${year}-`;
+        
+        // Find existing IDs for this year to increment sequence
+        const sequences = reports
+            .filter(r => r.id && r.id.startsWith(prefix))
+            .map(r => {
+                const parts = r.id.split('-');
+                // Check if part[1] is a valid number
+                return parts.length === 2 && !isNaN(Number(parts[1])) ? parseInt(parts[1], 10) : 0;
+            });
+            
+        const maxSeq = sequences.length > 0 ? Math.max(...sequences) : 0;
+        const nextSeq = maxSeq + 1;
+        const newId = `${prefix}${String(nextSeq).padStart(3, '0')}`;
+
         const newReport = { ...report, id: newId, ngayTao: new Date().toISOString(), activityLog: [] };
         newReports = [newReport, ...newReports];
         
         const { id, ...data } = newReport;
-        firestorePromise = addDoc(collection(db, "reports"), cleanData(data));
+        
+        // Use setDoc to create document with specific ID
+        firestorePromise = setDoc(doc(db, "reports", newId), cleanData(data));
     }
     updateLocal(newReports);
 
