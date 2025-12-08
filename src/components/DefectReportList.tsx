@@ -354,8 +354,8 @@ const DefectReportList: React.FC<DefectReportListProps> = ({
                 </div>
             </div>
 
-            {/* Table Content */}
-            <div className="flex-1 overflow-auto custom-scrollbar p-0 sm:p-4">
+            {/* Desktop Table View */}
+            <div className="hidden md:block flex-1 overflow-auto custom-scrollbar p-0 sm:p-4">
                 <div className="bg-white border border-slate-200 shadow-sm rounded-none sm:rounded-xl overflow-hidden min-w-full inline-block align-middle">
                      <table className="min-w-full divide-y divide-slate-200" style={{ fontFamily: 'var(--list-font, inherit)', fontSize: 'var(--list-size, 1rem)' }}>
                          <thead className="bg-slate-50 sticky top-0 z-10 shadow-sm">
@@ -414,6 +414,98 @@ const DefectReportList: React.FC<DefectReportListProps> = ({
                          </tbody>
                      </table>
                 </div>
+            </div>
+
+            {/* Mobile List View */}
+            <div className="md:hidden flex-1 overflow-y-auto custom-scrollbar p-3 space-y-3" style={{ fontSize: 'var(--list-size, 0.875rem)' }}>
+                {isLoading ? (
+                    [...Array(3)].map((_, i) => (
+                        <div key={i} className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 animate-pulse">
+                            <div className="flex justify-between items-center mb-3">
+                                <div className="h-4 bg-slate-100 rounded w-1/3"></div>
+                                <div className="h-5 bg-slate-100 rounded w-1/4"></div>
+                            </div>
+                            <div className="h-6 bg-slate-100 rounded w-3/4 mb-2"></div>
+                            <div className="h-4 bg-slate-50 rounded w-1/2 mb-3"></div>
+                            <div className="h-16 bg-slate-50 rounded w-full mb-3"></div>
+                            <div className="flex justify-end gap-2 border-t border-slate-50 pt-3">
+                                <div className="h-8 w-8 bg-slate-100 rounded"></div>
+                                <div className="h-8 w-8 bg-slate-100 rounded"></div>
+                            </div>
+                        </div>
+                    ))
+                ) : reports.length > 0 ? (
+                    reports.map((report, index) => (
+                        <div 
+                            key={report.id} 
+                            onClick={() => onSelectReport(report)} 
+                            style={{ animationDelay: `${index * 50}ms` }}
+                            className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 active:scale-[0.98] transition-all flex flex-col gap-2 animate-fade-in-up"
+                        >
+                            {/* Card Header: Date & Status */}
+                            <div className="flex justify-between items-start">
+                                <span className="text-[10px] font-bold text-slate-400 flex items-center gap-1 bg-slate-50 px-2 py-1 rounded-lg border border-slate-100">
+                                     <CalendarIcon className="w-3 h-3"/> {formatDate(report.ngayPhanAnh)}
+                                </span>
+                                <span className={`px-2 py-1 rounded text-[10px] font-bold border uppercase tracking-wide ${getStatusStyle(report.trangThai)}`}>
+                                    {report.trangThai}
+                                </span>
+                            </div>
+
+                            {/* Main Info */}
+                            <div>
+                                <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                                     <span className="font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100 text-[10px] uppercase">{report.maSanPham}</span>
+                                     {report.soLo && (
+                                        <span className="font-mono text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 text-[10px]">{report.soLo}</span>
+                                     )}
+                                     <span className="text-[10px] text-slate-400 font-medium truncate max-w-[120px] ml-auto">{report.nhanHang}</span>
+                                </div>
+                                <h3 className="font-bold text-slate-800 text-sm leading-snug line-clamp-2">{report.tenThuongMai}</h3>
+                                {report.dongSanPham && <div className="text-[10px] text-slate-500 mt-0.5 font-medium">{report.dongSanPham}</div>}
+                            </div>
+
+                            {/* Content Snippet */}
+                            <div className="text-xs text-slate-600 bg-slate-50 p-2.5 rounded-lg border border-slate-100 italic line-clamp-2 leading-relaxed">
+                                "{report.noiDungPhanAnh}"
+                            </div>
+                            
+                            {/* Footer Actions */}
+                            <div className="flex items-center justify-end gap-2 border-t border-slate-100 pt-3 mt-1">
+                                <button 
+                                    onClick={(e) => { e.stopPropagation(); onSelectReport(report); }}
+                                    className="p-2 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+                                    title="Xem chi tiết"
+                                >
+                                    <EyeIcon className="w-4 h-4" />
+                                </button>
+                                {currentUserRole !== 'Kho' && (
+                                    <button 
+                                        onClick={(e) => { e.stopPropagation(); onDuplicate(report); }}
+                                        className="p-2 text-slate-500 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
+                                        title="Nhân bản"
+                                    >
+                                        <DocumentDuplicateIcon className="w-4 h-4" />
+                                    </button>
+                                )}
+                                {([UserRole.Admin, UserRole.KyThuat] as string[]).includes(currentUserRole) && (
+                                    <button 
+                                        onClick={(e) => { e.stopPropagation(); if(window.confirm('Xóa phiếu này?')) onDelete(report.id); }}
+                                        className="p-2 text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
+                                        title="Xóa"
+                                    >
+                                        <TrashIcon className="w-4 h-4" />
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    ))
+                ) : (
+                    <div className="flex flex-col items-center justify-center py-16 text-slate-400">
+                        <MagnifyingGlassIcon className="h-12 w-12 opacity-20 mb-3" />
+                        <p className="text-sm font-medium">Không tìm thấy dữ liệu.</p>
+                    </div>
+                )}
             </div>
 
             {/* Footer Pagination */}
