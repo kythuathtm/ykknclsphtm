@@ -10,7 +10,6 @@ interface Props {
 }
 
 const Login: React.FC<Props> = ({ onLogin, users, settings }) => {
-  // Initialize state from localStorage to prevent flash
   const [username, setUsername] = useState(() => localStorage.getItem('app_saved_username') || '');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -23,17 +22,12 @@ const Login: React.FC<Props> = ({ onLogin, users, settings }) => {
   const usernameRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => { 
-      // Focus username input if empty on mount
       if (!username && usernameRef.current) {
           usernameRef.current.focus();
       }
-
-      // Trigger entrance animation
-      const timer = setTimeout(() => {
-          setIsLoaded(true);
-      }, 100); 
+      const timer = setTimeout(() => setIsLoaded(true), 100); 
       return () => clearTimeout(timer);
-  }, []); // Run once on mount
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,17 +58,12 @@ const Login: React.FC<Props> = ({ onLogin, users, settings }) => {
     }, 800);
   };
 
-  const handleForgotPassword = () => {
-      alert("Vui lòng liên hệ Admin để được cấp lại mật khẩu.");
-  };
-
   const renderBackground = () => {
-      // Dynamic background based on settings or default modern gradient
       if (settings.backgroundType === 'image' && settings.backgroundValue) {
           return (
             <div className="absolute inset-0 overflow-hidden pointer-events-none select-none">
                  <div className="absolute inset-0 bg-cover bg-center z-0 animate-pulse-slow transition-transform duration-[60s] hover:scale-110 ease-linear" style={{ backgroundImage: `url(${settings.backgroundValue})`, transform: 'scale(1.1)' }}></div>
-                 <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-[10px]"></div>
+                 <div className="absolute inset-0 bg-slate-900/20 backdrop-blur-[2px]"></div>
             </div>
           );
       }
@@ -85,14 +74,15 @@ const Login: React.FC<Props> = ({ onLogin, users, settings }) => {
           );
       }
       
-      // Default Glassmorphism Background
+      // Modern Animated Mesh Gradient
       return (
-       <div className="absolute inset-0 overflow-hidden pointer-events-none bg-[#e0e7ff]">
+       <div className="absolute inset-0 overflow-hidden pointer-events-none bg-[#f8fafc]">
+          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-slate-100 via-blue-50 to-indigo-50"></div>
           {/* Animated Blobs */}
-          <div className="absolute top-[-10%] left-[-10%] w-[60vw] h-[60vw] bg-purple-300/60 rounded-full mix-blend-multiply filter blur-[80px] animate-blob"></div>
-          <div className="absolute bottom-[-10%] right-[-10%] w-[60vw] h-[60vw] bg-blue-300/60 rounded-full mix-blend-multiply filter blur-[80px] animate-blob animation-delay-2000"></div>
-          <div className="absolute top-[40%] left-[40%] w-[50vw] h-[50vw] bg-pink-300/60 rounded-full mix-blend-multiply filter blur-[80px] animate-blob animation-delay-4000"></div>
-          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.05]"></div>
+          <div className="absolute top-[-20%] left-[-10%] w-[70vw] h-[70vw] bg-blue-400/20 rounded-full mix-blend-multiply filter blur-[80px] animate-blob"></div>
+          <div className="absolute bottom-[-20%] right-[-10%] w-[70vw] h-[70vw] bg-purple-400/20 rounded-full mix-blend-multiply filter blur-[80px] animate-blob animation-delay-2000"></div>
+          <div className="absolute top-[30%] left-[30%] w-[60vw] h-[60vw] bg-pink-400/20 rounded-full mix-blend-multiply filter blur-[80px] animate-blob animation-delay-4000"></div>
+          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.03]"></div>
        </div>
       );
   }
@@ -101,169 +91,108 @@ const Login: React.FC<Props> = ({ onLogin, users, settings }) => {
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden text-slate-800 font-sans selection:bg-[#003DA5] selection:text-white p-4 sm:p-6">
        {renderBackground()}
        
-       {/* Main Card Container */}
-       <div className={`relative z-10 w-full max-w-[1200px] transition-all duration-1000 ease-out transform ${isLoaded ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-12 scale-95'}`}>
+       <div className={`relative z-10 w-full max-w-[400px] transition-all duration-1000 ease-out transform ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`}>
         
-        {/* Unified Glass Card */}
-        <div className="bg-white/40 backdrop-blur-2xl shadow-[0_35px_60px_-15px_rgba(0,0,0,0.2)] rounded-[32px] border border-white/50 overflow-hidden flex flex-col lg:flex-row min-h-[700px] ring-1 ring-white/40">
+        {/* Glass Card */}
+        <div className="bg-white/80 backdrop-blur-2xl shadow-[0_8px_40px_rgb(0,0,0,0.08)] rounded-[2rem] border border-white/60 p-8 sm:p-10 ring-1 ring-white/60 relative overflow-hidden">
             
-            {/* --- LEFT PANEL: Branding (7/12) --- */}
-            <div className="relative w-full lg:w-7/12 bg-[#003DA5]/90 text-white p-10 lg:p-14 flex flex-col justify-between overflow-hidden">
-                
-                {/* Decorative Background Elements for Left Panel */}
-                <div className="absolute inset-0 bg-gradient-to-br from-[#004dc7] to-[#001533] opacity-90 z-0"></div>
-                <div className="absolute -top-24 -left-24 w-64 h-64 bg-white/10 rounded-full blur-3xl z-0"></div>
-                <div className="absolute -bottom-24 -right-24 w-80 h-80 bg-[#C5003E]/40 rounded-full blur-3xl z-0 animate-pulse-slow"></div>
-                
-                {/* Content Layer */}
-                <div className="relative z-10 h-full flex flex-col justify-between">
-                    
-                    {/* 1. TOP: Logo */}
-                    <div className="flex items-center gap-4 animate-fade-in-up" style={{ animationDelay: '100ms' }}>
-                        <div className="w-16 h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-lg p-1.5">
-                             {settings.logoUrl ? (
-                                <img src={settings.logoUrl} alt="Logo" className="w-full h-full object-contain" />
-                            ) : (
-                                <CompanyLogo className="w-full h-full text-white" />
-                            )}
-                        </div>
-                        <div className="flex flex-col">
-                            <span className="text-[0.625rem] font-bold uppercase tracking-[0.2em] opacity-80">Hệ thống quản lý</span>
-                            <span className="text-2xl font-black uppercase tracking-tight leading-none">{settings.companyName || 'Logo'}</span>
-                        </div>
-                    </div>
-
-                    {/* 2. MIDDLE: Hello, Welcome! */}
-                    <div className="py-12 animate-fade-in-up" style={{ animationDelay: '300ms' }}>
-                        <h1 className="text-6xl lg:text-[5.5rem] font-black leading-[0.9] tracking-tighter drop-shadow-lg">
-                            Hello,<br/>
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-100 via-white to-blue-200">Welcome!</span>
-                        </h1>
-                        <div className="w-24 h-2 bg-[#C5003E] rounded-full mt-8 shadow-lg shadow-red-900/20"></div>
-                    </div>
-
-                    {/* 3. BOTTOM: System Name & Footer */}
-                    <div className="animate-fade-in-up" style={{ animationDelay: '500ms' }}>
-                        <div className="mb-8">
-                            <p className="text-sm font-bold text-blue-200 uppercase tracking-widest mb-2 opacity-90">Hệ thống</p>
-                            <p className="text-2xl lg:text-3xl font-black uppercase leading-tight tracking-wide max-w-lg">
-                                {settings.appName || 'THEO DÕI & XỬ LÝ KHIẾU NẠI VỀ CHẤT LƯỢNG SẢN PHẨM'}
-                            </p>
-                        </div>
-                        <div className="pt-6 border-t border-white/10">
-                             <p className="text-[0.625rem] font-bold tracking-[0.2em] uppercase text-white/40">
-                                © 2025 {settings.companyName || 'Hồng Thiện Mỹ'}
-                             </p>
-                        </div>
-                    </div>
+            {/* Logo Section */}
+            <div className="flex flex-col items-center mb-8 animate-fade-in-up" style={{ animationDelay: '100ms' }}>
+                <div className="w-20 h-20 bg-white rounded-2xl flex items-center justify-center border border-slate-100 shadow-xl shadow-blue-900/5 mb-5 p-4 transform hover:scale-105 transition-transform duration-500">
+                     {settings.logoUrl ? (
+                        <img src={settings.logoUrl} alt="Logo" className="w-full h-full object-contain" />
+                    ) : (
+                        <CompanyLogo className="w-full h-full text-[#003DA5]" />
+                    )}
                 </div>
+                <h1 className="text-2xl font-black text-slate-800 tracking-tight text-center">
+                    {settings.companyName || 'Hồng Thiện Mỹ'}
+                </h1>
+                <p className="text-sm font-semibold text-slate-500 mt-1 text-center max-w-[260px] leading-relaxed tracking-wide opacity-80">
+                    {settings.appName || 'Quản lý chất lượng sản phẩm'}
+                </p>
             </div>
 
-            {/* --- RIGHT PANEL: Form (5/12) --- */}
-            <div className="w-full lg:w-5/12 bg-white/60 backdrop-blur-xl p-8 lg:p-12 flex flex-col justify-center items-center relative border-l border-white/20">
-                <div className="w-full max-w-xs sm:max-w-sm relative z-10">
-                    
-                    {/* Icon: Login (Circle Avatar Placeholder) */}
-                    <div className="mx-auto mb-8 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
-                        <div className="w-32 h-32 rounded-full bg-white/80 backdrop-blur-md flex items-center justify-center shadow-[0_15px_35px_-5px_rgba(0,0,0,0.1)] border-4 border-white mx-auto group hover:scale-105 transition-transform duration-500">
-                            <UserIcon className="w-14 h-14 text-slate-300 group-hover:text-[#003DA5] transition-colors duration-300" />
+            <form onSubmit={handleSubmit} className="space-y-5 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
+                <div className="space-y-4">
+                    <div className="group relative transition-all duration-300 focus-within:scale-[1.02]">
+                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <UserIcon className="h-5 w-5 text-slate-400 group-focus-within:text-[#003DA5] transition-colors" />
                         </div>
+                        <input 
+                            ref={usernameRef}
+                            type="text" 
+                            value={username} 
+                            onChange={(e) => setUsername(e.target.value)} 
+                            className="block w-full pl-11 pr-4 py-3.5 bg-white border border-slate-200 rounded-xl text-slate-800 text-sm font-bold placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-[#003DA5] transition-all shadow-sm"
+                            placeholder="Tên đăng nhập"
+                            autoComplete="username"
+                            required 
+                            disabled={loading}
+                        />
                     </div>
 
-                    <form onSubmit={handleSubmit} className="space-y-5 animate-fade-in-up" style={{ animationDelay: '400ms' }}>
-                        
-                        {/* Inputs */}
-                        <div className="space-y-4">
-                            <div className="group">
-                                <div className="relative transform transition-transform duration-300 group-focus-within:scale-[1.02]">
-                                    <input 
-                                        ref={usernameRef}
-                                        type="text" 
-                                        value={username} 
-                                        onChange={(e) => setUsername(e.target.value)} 
-                                        className="block w-full px-5 py-4 bg-white/80 border border-white rounded-[20px] text-slate-800 text-sm font-bold placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-[#003DA5]/50 shadow-sm hover:shadow-md transition-all text-center"
-                                        placeholder="Tên đăng nhập"
-                                        autoComplete="username"
-                                        required 
-                                        disabled={loading}
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="group">
-                                <div className="relative transform transition-transform duration-300 group-focus-within:scale-[1.02]">
-                                    <input 
-                                        type={showPassword ? "text" : "password"} 
-                                        value={password} 
-                                        onChange={(e) => setPassword(e.target.value)} 
-                                        className="block w-full px-5 py-4 bg-white/80 border border-white rounded-[20px] text-slate-800 text-sm font-bold placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-[#003DA5]/50 shadow-sm hover:shadow-md transition-all text-center"
-                                        placeholder="Mật khẩu"
-                                        autoComplete="current-password"
-                                        required 
-                                        disabled={loading}
-                                    />
-                                    <button 
-                                        type="button" 
-                                        onClick={() => setShowPassword(!showPassword)} 
-                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#003DA5] p-2 rounded-xl hover:bg-slate-100/50 transition-all cursor-pointer outline-none active:scale-95" 
-                                        title={showPassword ? "Ẩn" : "Hiện"}
-                                        disabled={loading}
-                                        tabIndex={-1}
-                                    >
-                                        {showPassword ? <EyeSlashIcon className="h-5 w-5" /> : <EyeIcon className="h-5 w-5" />}
-                                    </button>
-                                </div>
-                            </div>
+                    <div className="group relative transition-all duration-300 focus-within:scale-[1.02]">
+                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <LockClosedIcon className="h-5 w-5 text-slate-400 group-focus-within:text-[#003DA5] transition-colors" />
                         </div>
-
-                        {/* Remember & Forgot Password */}
-                        <div className="flex items-center justify-between px-2">
-                            <label className="flex items-center gap-2 cursor-pointer group select-none">
-                                <div className={`w-4 h-4 rounded border flex items-center justify-center transition-all ${rememberMe ? 'bg-[#003DA5] border-[#003DA5]' : 'border-slate-300 bg-white group-hover:border-[#003DA5]'}`}>
-                                    {rememberMe && <svg viewBox="0 0 24 24" fill="none" className="w-3 h-3 text-white" stroke="currentColor" strokeWidth="3"><path d="M5 13l4 4L19 7" /></svg>}
-                                </div>
-                                <input type="checkbox" className="hidden" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} />
-                                <span className={`text-xs font-bold transition-colors ${rememberMe ? 'text-[#003DA5]' : 'text-slate-500 group-hover:text-[#003DA5]'}`}>Ghi nhớ</span>
-                            </label>
-                            
-                            <button 
-                                type="button" 
-                                onClick={handleForgotPassword}
-                                className="text-xs font-bold text-slate-400 hover:text-[#003DA5] transition-colors"
-                            >
-                                Quên mật khẩu?
-                            </button>
-                        </div>
-
-                        {error && (
-                            <div className="p-4 rounded-2xl bg-red-50/80 border border-red-100 flex items-center justify-center gap-2 text-sm font-bold text-red-600 animate-shake backdrop-blur-sm shadow-sm text-center">
-                                <span className="text-lg leading-none">⚠️</span>
-                                <span className="leading-snug">{error}</span>
-                            </div>
-                        )}
-
-                        {/* Button */}
-                        <div className="pt-2">
-                            <button 
-                                type="submit" 
-                                disabled={loading} 
-                                className="w-full py-4 rounded-[20px] bg-white border border-slate-200 text-[#003DA5] text-sm font-black shadow-lg hover:shadow-xl hover:bg-[#003DA5] hover:text-white hover:border-[#003DA5] hover:scale-[1.02] transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center uppercase tracking-widest active:scale-[0.98]"
-                            >
-                                {loading ? (
-                                    <>
-                                        <svg className="animate-spin -ml-1 mr-3 h-4 w-4 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                        </svg>
-                                        ĐANG XỬ LÝ...
-                                    </>
-                                ) : (
-                                    'ĐĂNG NHẬP HỆ THỐNG'
-                                )}
-                            </button>
-                        </div>
-                    </form>
+                        <input 
+                            type={showPassword ? "text" : "password"} 
+                            value={password} 
+                            onChange={(e) => setPassword(e.target.value)} 
+                            className="block w-full pl-11 pr-12 py-3.5 bg-white border border-slate-200 rounded-xl text-slate-800 text-sm font-bold placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-[#003DA5] transition-all shadow-sm"
+                            placeholder="Mật khẩu"
+                            autoComplete="current-password"
+                            required 
+                            disabled={loading}
+                        />
+                        <button 
+                            type="button" 
+                            onClick={() => setShowPassword(!showPassword)} 
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#003DA5] p-2 rounded-lg hover:bg-slate-50 transition-all cursor-pointer outline-none active:scale-95" 
+                            title={showPassword ? "Ẩn" : "Hiện"}
+                            disabled={loading}
+                            tabIndex={-1}
+                        >
+                            {showPassword ? <EyeSlashIcon className="h-5 w-5" /> : <EyeIcon className="h-5 w-5" />}
+                        </button>
+                    </div>
                 </div>
+
+                <div className="flex items-center justify-between px-1">
+                    <label className="flex items-center gap-2.5 cursor-pointer group select-none">
+                        <div className={`w-5 h-5 rounded-lg border flex items-center justify-center transition-all shadow-sm ${rememberMe ? 'bg-[#003DA5] border-[#003DA5]' : 'border-slate-300 bg-white group-hover:border-[#003DA5]'}`}>
+                            {rememberMe && <svg viewBox="0 0 24 24" fill="none" className="w-3.5 h-3.5 text-white" stroke="currentColor" strokeWidth="3"><path d="M5 13l4 4L19 7" /></svg>}
+                        </div>
+                        <input type="checkbox" className="hidden" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} />
+                        <span className={`text-xs font-bold transition-colors ${rememberMe ? 'text-[#003DA5]' : 'text-slate-500 group-hover:text-[#003DA5]'}`}>Ghi nhớ đăng nhập</span>
+                    </label>
+                </div>
+
+                {error && (
+                    <div className="p-3 rounded-xl bg-red-50 border border-red-100 flex items-center gap-3 text-xs font-bold text-red-600 animate-shake shadow-sm">
+                        <span className="w-1.5 h-1.5 rounded-full bg-red-500 ml-1 flex-shrink-0"></span>
+                        <span>{error}</span>
+                    </div>
+                )}
+
+                <button 
+                    type="submit" 
+                    disabled={loading} 
+                    className="w-full py-3.5 rounded-xl bg-[#003DA5] text-white text-sm font-black shadow-lg shadow-blue-900/20 hover:bg-[#002a70] hover:shadow-xl hover:shadow-blue-900/30 hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center uppercase tracking-widest active:scale-[0.98] active:translate-y-0 relative overflow-hidden group"
+                >
+                    <span className="relative z-10 flex items-center gap-2">
+                        {loading ? 'Đang xử lý...' : 'Đăng Nhập'}
+                    </span>
+                    {/* Hover Shine Effect */}
+                    <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/10 to-transparent pointer-events-none"></div>
+                </button>
+            </form>
+            
+            <div className="mt-8 text-center animate-fade-in-up" style={{ animationDelay: '300ms' }}>
+                <p className="text-[0.6rem] font-bold text-slate-400 uppercase tracking-[0.2em] opacity-60">
+                    © 2025 Internal System
+                </p>
             </div>
         </div>
       </div>

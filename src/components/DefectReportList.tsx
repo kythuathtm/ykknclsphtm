@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { DefectReport, UserRole } from '../types';
 import { 
@@ -20,19 +21,18 @@ interface ColumnConfig {
   fixed?: boolean;
 }
 
-// Default Configuration based on user request
 const DEFAULT_COLUMNS: ColumnConfig[] = [
     { id: 'stt', label: 'STT', visible: true, width: 60, align: 'center' },
-    { id: 'ngayPhanAnh', label: 'Ngày khiếu nại', visible: true, width: 130, align: 'left' },
-    { id: 'maSanPham', label: 'Mã sản phẩm', visible: true, width: 120, align: 'left' },
+    { id: 'ngayPhanAnh', label: 'Ngày', visible: true, width: 110, align: 'left' },
+    { id: 'maSanPham', label: 'Mã SP', visible: true, width: 100, align: 'left' },
     { id: 'tenThuongMai', label: 'Tên thương mại', visible: true, width: 220, align: 'left' }, 
     { id: 'noiDungPhanAnh', label: 'Nội dung khiếu nại', visible: true, width: 280, align: 'left' },
-    { id: 'soLo', label: 'Số lô', visible: true, width: 100, align: 'left' },
-    { id: 'maNgaySanXuat', label: 'Mã NSX', visible: true, width: 100, align: 'left' },
+    { id: 'soLo', label: 'Số lô', visible: true, width: 90, align: 'left' },
+    { id: 'maNgaySanXuat', label: 'Mã NSX', visible: true, width: 90, align: 'left' },
     { id: 'hanDung', label: 'Hạn dùng', visible: false, width: 110, align: 'left' },
     { id: 'donViTinh', label: 'ĐVT', visible: false, width: 80, align: 'center' },
-    { id: 'trangThai', label: 'Trạng thái', visible: true, width: 150, align: 'center' },
-    { id: 'actions', label: '', visible: true, width: 80, align: 'center', fixed: true },
+    { id: 'trangThai', label: 'Trạng thái', visible: true, width: 140, align: 'center' },
+    { id: 'actions', label: '', visible: true, width: 90, align: 'center', fixed: true },
 ];
 
 interface FilterState {
@@ -70,7 +70,6 @@ interface DefectReportListProps {
   onSort?: (key: string) => void;
 }
 
-// Helper to format date string YYYY-MM-DD to DD/MM/YYYY
 const formatDate = (dateStr: string) => {
     if (!dateStr) return '';
     try {
@@ -82,7 +81,6 @@ const formatDate = (dateStr: string) => {
     } catch(e) { return dateStr; }
 };
 
-// --- Style Configuration for Dashboard Tabs ---
 type TabStyleKey = 'All' | 'Mới' | 'Processing' | 'Unknown' | 'Hoàn thành';
 
 const TAB_STYLES: Record<TabStyleKey, { 
@@ -97,102 +95,89 @@ const TAB_STYLES: Record<TabStyleKey, {
     barColor: string 
 }> = {
     'All': {
-        wrapper: 'border-slate-200 hover:border-slate-300 hover:bg-slate-50',
-        activeWrapper: 'bg-white border-slate-300 ring-1 ring-slate-200 shadow-md',
+        wrapper: 'bg-white border border-transparent hover:border-slate-200 shadow-sm hover:shadow',
+        activeWrapper: 'bg-white ring-2 ring-slate-200 border-transparent shadow-md',
         iconBg: 'bg-slate-100',
-        activeIconBg: 'bg-slate-50 shadow-inner',
+        activeIconBg: 'bg-slate-800',
         iconColor: 'text-slate-400',
-        activeIconColor: 'text-slate-600',
+        activeIconColor: 'text-white',
         text: 'text-slate-500',
         activeText: 'text-slate-800',
-        barColor: 'bg-slate-400'
+        barColor: 'bg-slate-800'
     },
     'Mới': {
-        wrapper: 'border-slate-200 hover:border-blue-200 hover:bg-blue-50/30',
-        activeWrapper: 'bg-white border-blue-200 ring-1 ring-blue-100 shadow-md',
+        wrapper: 'bg-white border border-transparent hover:border-blue-200 shadow-sm hover:shadow',
+        activeWrapper: 'bg-white ring-2 ring-blue-100 border-transparent shadow-md',
         iconBg: 'bg-blue-50',
-        activeIconBg: 'bg-blue-50 shadow-inner',
+        activeIconBg: 'bg-blue-600',
         iconColor: 'text-blue-400',
-        activeIconColor: 'text-blue-600',
+        activeIconColor: 'text-white',
         text: 'text-slate-500',
         activeText: 'text-blue-700',
-        barColor: 'bg-blue-500'
+        barColor: 'bg-blue-600'
     },
     'Processing': {
-        wrapper: 'border-slate-200 hover:border-amber-200 hover:bg-amber-50/30',
-        activeWrapper: 'bg-white border-amber-200 ring-1 ring-amber-100 shadow-md',
+        wrapper: 'bg-white border border-transparent hover:border-amber-200 shadow-sm hover:shadow',
+        activeWrapper: 'bg-white ring-2 ring-amber-100 border-transparent shadow-md',
         iconBg: 'bg-amber-50',
-        activeIconBg: 'bg-amber-50 shadow-inner',
+        activeIconBg: 'bg-amber-500',
         iconColor: 'text-amber-400',
-        activeIconColor: 'text-amber-600',
+        activeIconColor: 'text-white',
         text: 'text-slate-500',
         activeText: 'text-amber-700',
         barColor: 'bg-amber-500'
     },
     'Unknown': {
-        wrapper: 'border-slate-200 hover:border-purple-200 hover:bg-purple-50/30',
-        activeWrapper: 'bg-white border-purple-200 ring-1 ring-purple-100 shadow-md',
+        wrapper: 'bg-white border border-transparent hover:border-purple-200 shadow-sm hover:shadow',
+        activeWrapper: 'bg-white ring-2 ring-purple-100 border-transparent shadow-md',
         iconBg: 'bg-purple-50',
-        activeIconBg: 'bg-purple-50 shadow-inner',
+        activeIconBg: 'bg-purple-600',
         iconColor: 'text-purple-400',
-        activeIconColor: 'text-purple-600',
+        activeIconColor: 'text-white',
         text: 'text-slate-500',
         activeText: 'text-purple-700',
-        barColor: 'bg-purple-500'
+        barColor: 'bg-purple-600'
     },
     'Hoàn thành': {
-        wrapper: 'border-slate-200 hover:border-emerald-200 hover:bg-emerald-50/30',
-        activeWrapper: 'bg-white border-emerald-200 ring-1 ring-emerald-100 shadow-md',
+        wrapper: 'bg-white border border-transparent hover:border-emerald-200 shadow-sm hover:shadow',
+        activeWrapper: 'bg-white ring-2 ring-emerald-100 border-transparent shadow-md',
         iconBg: 'bg-emerald-50',
-        activeIconBg: 'bg-emerald-50 shadow-inner',
+        activeIconBg: 'bg-emerald-600',
         iconColor: 'text-emerald-400',
-        activeIconColor: 'text-emerald-600',
+        activeIconColor: 'text-white',
         text: 'text-slate-500',
         activeText: 'text-emerald-700',
-        barColor: 'bg-emerald-500'
+        barColor: 'bg-emerald-600'
     }
 };
 
 const DashboardTab = ({ label, count, total, isActive, onClick, styleKey, icon }: { label: string, count: number, total: number, isActive: boolean, onClick: () => void, styleKey: TabStyleKey, icon?: React.ReactNode }) => {
     const styles = TAB_STYLES[styleKey];
-    const percentage = total > 0 ? (count / total) * 100 : 0;
-
+    
     return (
         <button 
             onClick={onClick}
             className={`
-                relative flex flex-row items-stretch justify-between px-4 py-3 rounded-2xl transition-all duration-300 select-none min-w-[160px] flex-1 lg:flex-none border text-left h-24 bg-white overflow-hidden group
-                ${isActive ? styles.activeWrapper + ' transform -translate-y-0.5' : styles.wrapper}
+                relative flex flex-col justify-between px-4 py-3 rounded-2xl transition-all duration-300 select-none min-w-[140px] flex-1 lg:flex-none h-[88px] group
+                ${isActive ? styles.activeWrapper + ' scale-105 z-10' : styles.wrapper}
             `}
         >
-            {/* Left Side: Label Top, Icon Bottom */}
-            <div className="flex flex-col justify-between items-start z-10 gap-1">
-                <span className={`text-[0.65rem] font-extrabold uppercase tracking-widest leading-tight whitespace-nowrap ${isActive ? styles.activeText : styles.text}`}>
+            <div className="flex justify-between items-start w-full">
+                <span className={`text-[0.65rem] font-extrabold uppercase tracking-widest leading-tight ${isActive ? styles.activeText : styles.text}`}>
                     {label}
                 </span>
-                
-                <div className={`
-                    p-1.5 rounded-lg transition-colors
-                    ${isActive ? styles.activeIconBg : styles.iconBg}
-                    ${isActive ? styles.activeIconColor : styles.iconColor}
-                `}>
-                    {icon && React.cloneElement(icon as React.ReactElement<any>, { className: "w-4 h-4" })}
+                <div className={`p-1.5 rounded-lg transition-colors duration-300 ${isActive ? styles.activeIconBg : styles.iconBg} ${isActive ? styles.activeIconColor : styles.iconColor}`}>
+                    {icon && React.cloneElement(icon as React.ReactElement<any>, { className: "w-3.5 h-3.5" })}
                 </div>
             </div>
             
-            {/* Right Side: Big Number */}
-            <div className="flex items-center justify-end z-10 pl-2">
-                <span className={`text-3xl font-black leading-none tracking-tighter ${isActive ? styles.activeText : 'text-slate-700'}`}>
+            <div className="flex items-end justify-between w-full mt-auto">
+                <span className={`text-2xl font-black leading-none tracking-tight tabular-nums ${isActive ? styles.activeText : 'text-slate-700'}`}>
                     {count.toLocaleString()}
                 </span>
-            </div>
-
-            {/* Bottom Progress Bar Strip */}
-            <div className="absolute bottom-0 left-0 right-0 h-1 bg-slate-50">
-                <div 
-                    className={`h-full transition-all duration-1000 ease-out ${styles.barColor}`} 
-                    style={{ width: `${percentage}%`, opacity: isActive ? 1 : 0.6 }}
-                ></div>
+                {isActive && (
+                    <div className={`h-1 w-8 rounded-full ${styles.barColor}`}></div>
+                )}
             </div>
         </button>
     );
@@ -224,18 +209,15 @@ const DefectReportList: React.FC<DefectReportListProps> = ({
   sortConfig,
   onSort
 }) => {
-    // State for column customization
     const [columns, setColumns] = useState<ColumnConfig[]>(DEFAULT_COLUMNS);
     const [showColumnMenu, setShowColumnMenu] = useState(false);
     const [showDateFilter, setShowDateFilter] = useState(false);
 
-    // Load columns from local storage on mount
     useEffect(() => {
         const savedColumns = localStorage.getItem(`columns_${currentUsername}`);
         if (savedColumns) {
             try {
                 const parsed = JSON.parse(savedColumns);
-                // Merge with default to ensure new columns appear
                 const merged = DEFAULT_COLUMNS.map(defCol => {
                     const savedCol = parsed.find((c: ColumnConfig) => c.id === defCol.id);
                     return savedCol ? { ...defCol, visible: savedCol.visible } : defCol;
@@ -247,7 +229,6 @@ const DefectReportList: React.FC<DefectReportListProps> = ({
         }
     }, [currentUsername]);
 
-    // Save columns to local storage
     const toggleColumn = (id: string) => {
         const newColumns = columns.map(col => 
             col.id === id ? { ...col, visible: !col.visible } : col
@@ -280,13 +261,13 @@ const DefectReportList: React.FC<DefectReportListProps> = ({
             case 'ngayPhanAnh':
                 return (
                     <div>
-                        <span className="block font-bold text-slate-700 tabular-nums" style={{ fontSize: 'inherit' }}>{formatDate(report.ngayPhanAnh)}</span>
-                        <span className="text-[0.6rem] text-slate-400 font-bold bg-slate-100 px-1.5 rounded inline-block mt-0.5 border border-slate-200">#{report.id.split('-')[1] || report.id}</span>
+                        <span className="block font-bold text-slate-700 tabular-nums text-sm" style={{ fontSize: 'inherit' }}>{formatDate(report.ngayPhanAnh)}</span>
+                        <span className="text-[0.6rem] text-slate-400 font-bold bg-slate-50 px-1.5 rounded inline-block mt-0.5 border border-slate-100 tracking-wider">#{report.id.split('-')[1] || report.id}</span>
                     </div>
                 );
             case 'maSanPham':
                 return (
-                    <span className="font-bold text-slate-800 group-hover:text-[#003DA5] transition-colors">
+                    <span className="font-bold text-[#003DA5] bg-blue-50 px-2 py-1 rounded-md border border-blue-100 text-xs">
                         {report.maSanPham}
                     </span>
                 );
@@ -298,23 +279,23 @@ const DefectReportList: React.FC<DefectReportListProps> = ({
                 );
             case 'noiDungPhanAnh':
                 return (
-                    <div className="text-slate-600 line-clamp-2 text-sm italic leading-relaxed" title={report.noiDungPhanAnh}>
+                    <div className="text-slate-500 line-clamp-2 text-sm italic leading-relaxed" title={report.noiDungPhanAnh}>
                         {report.noiDungPhanAnh}
                     </div>
                 );
             case 'soLo':
-                return <span className="font-bold text-slate-800">{report.soLo}</span>;
+                return <span className="font-bold text-slate-700 text-xs tabular-nums bg-slate-50 px-2 py-1 rounded border border-slate-100">{report.soLo}</span>;
             case 'maNgaySanXuat':
-                return <span className="font-bold text-slate-800">{report.maNgaySanXuat}</span>;
+                return <span className="font-bold text-slate-700 text-xs tabular-nums">{report.maNgaySanXuat}</span>;
             case 'hanDung':
-                return <span className="text-slate-600 font-medium text-xs">{formatDate(report.hanDung)}</span>;
+                return <span className="text-slate-600 font-medium text-xs tabular-nums">{formatDate(report.hanDung)}</span>;
             case 'donViTinh':
-                return <span className="text-slate-600 text-xs font-medium">{report.donViTinh}</span>;
+                return <span className="text-slate-600 text-xs font-medium bg-slate-50 px-2 py-1 rounded-md">{report.donViTinh}</span>;
             case 'trangThai':
                 return getStatusBadge(report.trangThai);
             case 'actions':
                 return (
-                    <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200 transform translate-x-2 group-hover:translate-x-0">
+                    <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200">
                         <button 
                             onClick={(e) => { e.stopPropagation(); onSelectReport(report); }}
                             className="p-1.5 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors border border-blue-100"
@@ -349,11 +330,11 @@ const DefectReportList: React.FC<DefectReportListProps> = ({
 
     return (
         <div className="h-full flex flex-col bg-[#F8FAFC]" style={{ fontSize: baseFontSize }}>
-            <div className="flex-1 flex flex-col p-4 sm:p-6 gap-4 overflow-hidden">
+            <div className="flex-1 flex flex-col p-4 sm:p-6 gap-6 overflow-hidden">
                 
-                {/* 1. DASHBOARD SECTION (Integrated into content area) */}
+                {/* DASHBOARD TABS (Summary Container) */}
                 <div className="flex-shrink-0">
-                    <div className="flex gap-4 overflow-x-auto custom-scrollbar pb-2">
+                    <div className="flex gap-4 overflow-x-auto custom-scrollbar pb-2 px-1">
                         <DashboardTab 
                             label="Tổng phiếu" 
                             count={summaryStats.total}
@@ -402,20 +383,18 @@ const DefectReportList: React.FC<DefectReportListProps> = ({
                     </div>
                 </div>
 
-                {/* 2. DATA TABLE SECTION (Fills remaining height) */}
-                <div className="flex-1 bg-white border border-slate-200 shadow-sm rounded-2xl flex flex-col overflow-hidden ring-1 ring-black/5">
+                {/* MAIN TABLE CONTAINER */}
+                <div className="flex-1 flex flex-col overflow-hidden">
                     
-                    {/* TABLE TOOLBAR */}
-                    <div className="px-5 py-4 border-b border-slate-100 flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4 bg-white z-20">
-                        {/* LEFT: Title */}
+                    {/* TOOLBAR */}
+                    <div className="px-5 py-4 flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4 bg-transparent z-20">
                         <div className="flex items-center gap-3">
-                            <div className="p-2 bg-blue-50 text-[#003DA5] rounded-xl">
+                            <div className="p-2 bg-blue-50 text-[#003DA5] rounded-xl shadow-sm border border-blue-100">
                                 <ListBulletIcon className="w-5 h-5"/>
                             </div>
                             <h2 className="text-lg font-black text-slate-800 uppercase tracking-tight">Danh sách khiếu nại</h2>
                         </div>
 
-                        {/* RIGHT: Search & Filter */}
                         <div className="flex flex-col sm:flex-row gap-3 w-full xl:w-auto">
                             <div className="relative flex-1 sm:w-64 group">
                                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 group-focus-within:text-[#003DA5] transition-colors">
@@ -426,12 +405,11 @@ const DefectReportList: React.FC<DefectReportListProps> = ({
                                     placeholder="Tìm kiếm..." 
                                     value={filters.searchTerm}
                                     onChange={(e) => onSearchTermChange(e.target.value)}
-                                    className="pl-9 pr-3 py-2 w-full bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500/20 focus:border-[#003DA5] shadow-sm outline-none transition-all placeholder:text-slate-400 focus:bg-white"
+                                    className="pl-9 pr-3 py-2 w-full bg-white border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500/20 focus:border-[#003DA5] shadow-sm outline-none transition-all placeholder:text-slate-400 hover:border-slate-300"
                                 />
                             </div>
 
                             <div className="flex gap-2">
-                                {/* Date Filter */}
                                 <div className="relative">
                                     <button 
                                         onClick={() => setShowDateFilter(!showDateFilter)}
@@ -479,7 +457,6 @@ const DefectReportList: React.FC<DefectReportListProps> = ({
                                 )}
                                 </div>
 
-                                {/* Columns Toggle */}
                                 <div className="relative">
                                     <button 
                                         onClick={() => setShowColumnMenu(!showColumnMenu)}
@@ -509,10 +486,10 @@ const DefectReportList: React.FC<DefectReportListProps> = ({
                         </div>
                     </div>
 
-                    {/* TABLE CONTENT */}
-                    <div className="flex-1 overflow-auto custom-scrollbar bg-white">
-                        <table className="min-w-full divide-y divide-slate-100" style={{ fontFamily: 'inherit', fontSize: '1rem' }}>
-                            <thead className="bg-slate-50/80 backdrop-blur sticky top-0 z-10">
+                    {/* TABLE */}
+                    <div className="flex-1 overflow-auto custom-scrollbar bg-white rounded-2xl shadow-sm border border-slate-200 ring-1 ring-black/5">
+                        <table className="min-w-full" style={{ fontFamily: 'inherit', fontSize: '1rem', borderCollapse: 'separate', borderSpacing: '0 0' }}>
+                            <thead className="bg-slate-50 sticky top-0 z-10 shadow-[0_1px_3px_rgba(0,0,0,0.05)]">
                                 <tr>
                                     {columns.filter(c => c.visible).map((col) => {
                                         const isSortable = onSort && ['ngayPhanAnh', 'maSanPham', 'tenThuongMai', 'trangThai', 'soLo'].includes(col.id);
@@ -523,8 +500,8 @@ const DefectReportList: React.FC<DefectReportListProps> = ({
                                             <th 
                                                 key={col.id}
                                                 scope="col"
-                                                className={`px-4 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap 
-                                                    ${col.fixed ? 'sticky right-0 bg-slate-50 shadow-[-4px_0_8px_-4px_rgba(0,0,0,0.05)]' : ''}
+                                                className={`px-4 py-4 text-left text-[0.6875rem] font-extrabold text-slate-500 uppercase tracking-widest whitespace-nowrap border-b border-slate-200
+                                                    ${col.fixed ? 'sticky right-0 bg-slate-50 shadow-[-4px_0_8px_-4px_rgba(0,0,0,0.02)]' : ''}
                                                     ${isSortable ? 'cursor-pointer hover:bg-slate-100 hover:text-slate-700 transition-colors select-none group' : ''}
                                                 `}
                                                 style={{ width: col.width, textAlign: col.align || 'left' }}
@@ -543,7 +520,7 @@ const DefectReportList: React.FC<DefectReportListProps> = ({
                                     })}
                                 </tr>
                             </thead>
-                            <tbody className="bg-white divide-y divide-slate-50">
+                            <tbody className="bg-white divide-y divide-slate-100">
                                 {isLoading ? (
                                     [...Array(5)].map((_, i) => (
                                         <tr key={i} className="animate-pulse">
@@ -557,12 +534,16 @@ const DefectReportList: React.FC<DefectReportListProps> = ({
                                         <tr 
                                             key={report.id} 
                                             onClick={() => onSelectReport(report)}
-                                            className={`group hover:bg-blue-50/40 transition-all duration-200 cursor-pointer ${selectedReport?.id === report.id ? 'bg-blue-50 border-l-4 border-l-[#003DA5]' : ''}`}
+                                            className={`
+                                                group transition-all duration-200 cursor-pointer 
+                                                hover:bg-blue-50/30 hover:scale-[1.002] hover:shadow-[0_2px_12px_-3px_rgba(0,0,0,0.08)]
+                                                ${selectedReport?.id === report.id ? 'bg-blue-50 border-l-4 border-l-[#003DA5]' : ''}
+                                            `}
                                         >
                                             {columns.filter(c => c.visible).map((col) => (
                                                 <td 
                                                     key={`${report.id}-${col.id}`} 
-                                                    className={`px-4 py-3.5 align-top text-sm ${col.fixed ? 'sticky right-0 bg-white group-hover:bg-blue-50/40 shadow-[-4px_0_8px_-4px_rgba(0,0,0,0.05)]' : ''}`}
+                                                    className={`px-4 py-3.5 align-top text-sm ${col.fixed ? 'sticky right-0 bg-white group-hover:bg-blue-50/30 shadow-[-4px_0_8px_-4px_rgba(0,0,0,0.02)]' : ''}`}
                                                     style={{ textAlign: col.align || 'left' }}
                                                 >
                                                     {renderCell(report, col.id, index)}
@@ -587,8 +568,8 @@ const DefectReportList: React.FC<DefectReportListProps> = ({
                         </table>
                     </div>
 
-                    {/* PAGINATION FOOTER */}
-                    <div className="border-t border-slate-100 bg-white px-4 py-3 sm:px-6">
+                    {/* PAGINATION */}
+                    <div className="border-t border-transparent px-4 py-3 sm:px-6">
                         <Pagination 
                             currentPage={currentPage}
                             totalItems={totalReports}
@@ -600,7 +581,7 @@ const DefectReportList: React.FC<DefectReportListProps> = ({
                 </div>
             </div>
 
-            {/* Mobile List View (Hidden on Desktop) */}
+            {/* MOBILE LIST VIEW */}
             <div className="md:hidden flex-1 overflow-auto custom-scrollbar p-4 space-y-4" style={{ fontSize: '0.875rem' }}>
                 {isLoading ? (
                     [...Array(3)].map((_, i) => (
@@ -620,7 +601,7 @@ const DefectReportList: React.FC<DefectReportListProps> = ({
                             key={report.id} 
                             onClick={() => onSelectReport(report)} 
                             style={{ animationDelay: `${index * 50}ms` }}
-                            className="bg-white p-5 rounded-2xl shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05)] border border-slate-100 active:scale-[0.98] transition-all flex flex-col gap-3 animate-fade-in-up ring-1 ring-black/5"
+                            className="bg-white p-5 rounded-2xl shadow-[0_2px_10px_-3px_rgba(0,0,0,0.05)] border border-slate-100 active:scale-[0.98] transition-all flex flex-col gap-3 animate-fade-in-up ring-1 ring-black/5"
                         >
                             <div className="flex justify-between items-start">
                                 <div className="flex items-center gap-2">

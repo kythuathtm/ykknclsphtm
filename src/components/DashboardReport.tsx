@@ -1,3 +1,4 @@
+
 import React, { useMemo, useState, useEffect } from 'react';
 import { DefectReport } from '../types';
 import { 
@@ -34,7 +35,6 @@ const BRAND = {
 
 const parseDate = (dateStr: string) => {
     if (!dateStr || typeof dateStr !== 'string') return null;
-    // Handle standard YYYY-MM-DD
     const parts = dateStr.split('-');
     if (parts.length === 3) {
         const [y, m, d] = parts.map(Number);
@@ -42,7 +42,6 @@ const parseDate = (dateStr: string) => {
             return { year: y, month: m - 1, day: d };
         }
     }
-    // Fallback: Try Date.parse
     const d = new Date(dateStr);
     if (!isNaN(d.getTime())) {
         return { year: d.getFullYear(), month: d.getMonth(), day: d.getDate() };
@@ -50,7 +49,6 @@ const parseDate = (dateStr: string) => {
     return null;
 };
 
-// SVG Curve Generator
 const getSmoothPath = (points: {x: number, y: number}[]) => {
     if (points.length < 2) return "";
     let d = `M ${points[0].x} ${points[0].y}`;
@@ -68,7 +66,6 @@ const getSmoothPath = (points: {x: number, y: number}[]) => {
 
 // --- ANIMATION COMPONENTS ---
 
-// Animated Counter (0 -> Value)
 const CountUp = ({ value, duration = 1200, className = "" }: { value: string | number, duration?: number, className?: string }) => {
     const [displayValue, setDisplayValue] = useState(0);
     const numericValue = typeof value === 'string' ? parseFloat(value.replace(/[^0-9.-]+/g,"")) || 0 : value;
@@ -82,7 +79,6 @@ const CountUp = ({ value, duration = 1200, className = "" }: { value: string | n
             if (!startTime) startTime = timestamp;
             const progress = timestamp - startTime;
             const percentage = Math.min(progress / duration, 1);
-            // Ease-out cubic function
             const ease = 1 - Math.pow(1 - percentage, 3); 
             
             setDisplayValue(numericValue * ease);
@@ -107,7 +103,6 @@ const CountUp = ({ value, duration = 1200, className = "" }: { value: string | n
 
 // --- VISUAL COMPONENTS ---
 
-// Sparkline Chart (Mini chart on cards)
 const Sparkline = ({ data, color }: { data: number[], color: string }) => {
     if (!data || data.length < 2) return null;
     const max = Math.max(...data, 1);
@@ -137,7 +132,6 @@ const Sparkline = ({ data, color }: { data: number[], color: string }) => {
     );
 };
 
-// Premium KPI Card - Layout & Effects Optimized
 const KpiCard = ({ title, value, subValue, trend, icon, colorHex, onClick, trendInverse = false, delayIndex = 0 }: any) => {
     const isUp = trend.trend === 'up';
     const isNeutral = trend.trend === 'neutral';
@@ -151,13 +145,25 @@ const KpiCard = ({ title, value, subValue, trend, icon, colorHex, onClick, trend
         else trendColorClass = 'text-rose-700 bg-rose-50 border-rose-100';
     }
 
+    // Determine shadow color based on prop colorHex
+    const shadowStyle = {
+        boxShadow: `0 15px 35px -10px ${colorHex}25` // Colored glow
+    };
+
     return (
         <div 
             onClick={onClick} 
-            className="group relative bg-white rounded-2xl p-6 border border-slate-100 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.12)] transition-all duration-500 ease-out cursor-pointer overflow-hidden hover:-translate-y-1.5 h-full flex flex-col justify-between animate-fade-in-up fill-mode-backwards"
-            style={{ animationDelay: `${delayIndex * 100}ms` }}
+            className="group relative bg-white rounded-3xl p-7 border border-slate-50 transition-all duration-500 ease-out cursor-pointer overflow-hidden hover:-translate-y-1.5 h-full flex flex-col justify-between animate-fade-in-up"
+            style={{ 
+                animationDelay: `${delayIndex * 100}ms`
+            }}
         >
-            {/* Top Accent Bar (Animated) */}
+            <div 
+                className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+                style={shadowStyle}
+            ></div>
+
+            {/* Top Border Gradient */}
             <div 
                 className="absolute top-0 left-0 w-full h-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                 style={{ 
@@ -165,78 +171,61 @@ const KpiCard = ({ title, value, subValue, trend, icon, colorHex, onClick, trend
                 }}
             ></div>
 
-            {/* Background Blob - Subtle glow */}
+            {/* Background Blob */}
             <div 
-                className="absolute -right-10 -top-10 w-40 h-40 rounded-full blur-3xl opacity-0 group-hover:opacity-[0.08] transition-all duration-700 pointer-events-none" 
+                className="absolute -right-12 -top-12 w-48 h-48 rounded-full blur-3xl opacity-[0.04] group-hover:opacity-[0.12] transition-all duration-700 pointer-events-none" 
                 style={{ backgroundColor: colorHex }}
             ></div>
 
-            {/* Content Layout */}
             <div className="relative z-10 flex flex-col h-full">
-                {/* Header: Title Left, Icon Right */}
-                <div className="flex justify-between items-start mb-3">
-                    <p className="text-[0.6875rem] font-extrabold text-slate-400 uppercase tracking-widest leading-tight mt-1">{title}</p>
-                    
-                    <div 
-                        className="p-2.5 rounded-xl transition-all duration-500 shadow-sm group-hover:scale-110 group-hover:rotate-3 ring-1 ring-inset ring-white/50"
-                        style={{ backgroundColor: `${colorHex}10`, color: colorHex }}
-                    >
-                        {React.cloneElement(icon, { className: "h-5 w-5" })}
+                <div className="flex justify-between items-start mb-4">
+                    <div className="flex items-center gap-3">
+                        <div 
+                            className="p-3.5 rounded-2xl transition-all duration-500 shadow-sm group-hover:scale-110 group-hover:rotate-3 ring-1 ring-inset ring-black/5 bg-white"
+                            style={{ color: colorHex }}
+                        >
+                            {React.cloneElement(icon, { className: "h-6 w-6" })}
+                        </div>
+                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider leading-tight pt-1">{title}</p>
                     </div>
                 </div>
                 
-                {/* Body: Big Value */}
-                <div className="mb-4">
+                <div className="mb-6 pl-1">
                     <h3 
-                        className="text-[2.5rem] leading-none font-black text-slate-800 tracking-tight tabular-nums transition-all duration-300 group-hover:scale-105 origin-left"
+                        className="text-[3.25rem] leading-none font-black text-slate-800 tracking-tighter tabular-nums transition-all duration-300 origin-left"
                     >
                         <CountUp value={value} />
                     </h3>
                 </div>
                 
-                {/* Footer: Trend/SubValue (Left) + Sparkline (Right) */}
-                <div className="flex items-end justify-between mt-auto gap-2">
-                    <div className="flex flex-col justify-end gap-1.5 min-w-0">
-                         {/* Trend Badge */}
+                <div className="flex items-center justify-between mt-auto">
+                    <div className="flex items-center gap-3 min-w-0">
                         {!isNeutral && (
-                            <div className={`flex items-center w-fit gap-1 text-[0.625rem] font-bold px-2 py-0.5 rounded-full border ${trendColorClass}`}>
+                            <div className={`flex items-center gap-1 text-[0.65rem] font-bold px-2.5 py-1 rounded-lg border shadow-sm ${trendColorClass}`}>
                                 <TrendIcon className="w-3 h-3 stroke-[3px]" />
                                 {Math.abs(trend.percent)}%
                             </div>
                         )}
-                        {/* SubValue */}
                         {subValue && (
-                            <p className="text-[0.6875rem] font-semibold text-slate-400/90 truncate" title={subValue}>
+                            <p className="text-xs font-semibold text-slate-400 truncate" title={subValue}>
                                 {subValue}
                             </p>
                         )}
                     </div>
                     
-                    {/* Sparkline */}
-                    <div className="w-24 h-10 opacity-50 group-hover:opacity-100 transition-all duration-500 transform translate-y-1 group-hover:translate-y-0 flex-shrink-0">
+                    <div className="w-24 h-10 opacity-60 group-hover:opacity-100 transition-all duration-500 flex-shrink-0">
                          <Sparkline data={trend.sparkline} color={colorHex} />
                     </div>
                 </div>
             </div>
-
-            {/* Interaction Cue: Arrow slides in from right */}
-            {onClick && (
-                <div className="absolute top-1/2 right-3 -translate-y-1/2 translate-x-10 opacity-0 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300 ease-out bg-white/80 backdrop-blur shadow-sm border border-slate-100 p-2 rounded-full text-slate-400 pointer-events-none">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-                    </svg>
-                </div>
-            )}
         </div>
     );
 };
 
-// Donut Chart - Fixed & Animated
 const DonutChart = ({ data, colors, centerLabel, onClickSlice }: any) => {
     const total = data.reduce((acc: number, item: any) => acc + item.value, 0);
     const [hoveredSlice, setHoveredSlice] = useState<any | null>(null);
     
-    // Config
     const size = 200;
     const strokeWidth = 20; 
     const hoverStrokeWidth = 26;
@@ -246,7 +235,6 @@ const DonutChart = ({ data, colors, centerLabel, onClickSlice }: any) => {
 
     const activeItem = hoveredSlice || { label: centerLabel, value: total };
     
-    // Offset calculation
     let cumulativePercent = 0;
 
     if (total === 0) return (
@@ -257,9 +245,9 @@ const DonutChart = ({ data, colors, centerLabel, onClickSlice }: any) => {
     );
 
     return (
-        <div className="flex flex-row items-center gap-6 h-full justify-center w-full select-none">
+        <div className="flex flex-row items-center gap-8 h-full justify-center w-full select-none">
             <div className="relative w-[200px] h-[200px] flex-shrink-0 animate-pop">
-                <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="transform -rotate-90 drop-shadow-lg overflow-visible">
+                <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="transform -rotate-90 drop-shadow-xl overflow-visible">
                     {data.map((item: any, index: number) => {
                         if (item.value === 0) return null;
                         const percent = item.value / total;
@@ -279,11 +267,11 @@ const DonutChart = ({ data, colors, centerLabel, onClickSlice }: any) => {
                                 strokeWidth={isHovered ? hoverStrokeWidth : strokeWidth}
                                 strokeDasharray={strokeDasharray}
                                 strokeDashoffset={strokeDashoffset}
-                                strokeLinecap="butt" 
+                                strokeLinecap="round" 
                                 className="transition-all duration-300 ease-out cursor-pointer"
                                 style={{ 
                                     opacity: hoveredSlice ? (isHovered ? 1 : 0.3) : 1,
-                                    filter: isHovered ? 'drop-shadow(0 0 4px rgba(0,0,0,0.2))' : 'none'
+                                    filter: isHovered ? 'drop-shadow(0 0 10px rgba(0,0,0,0.2))' : 'none'
                                 }}
                                 onMouseEnter={() => setHoveredSlice(item)}
                                 onMouseLeave={() => setHoveredSlice(null)}
@@ -291,56 +279,33 @@ const DonutChart = ({ data, colors, centerLabel, onClickSlice }: any) => {
                             />
                         );
                     })}
-                    
-                    {/* Separator Lines */}
-                    {data.length > 1 && data.map((item: any, index: number) => {
-                         if (item.value === 0) return null;
-                         const currentPercent = data.slice(0, index + 1).reduce((sum: number, i: any) => sum + i.value, 0) / total;
-                         const angle = currentPercent * 360; 
-                         const rad = angle * (Math.PI / 180);
-                         const innerR = radius - strokeWidth/2 - 2;
-                         const outerR = radius + strokeWidth/2 + 2;
-                         const x1 = center + innerR * Math.cos(rad);
-                         const y1 = center + innerR * Math.sin(rad);
-                         const x2 = center + outerR * Math.cos(rad);
-                         const y2 = center + outerR * Math.sin(rad);
-                         
-                         return <line key={`sep-${index}`} x1={x1} y1={y1} x2={x2} y2={y2} stroke="white" strokeWidth="2" strokeLinecap="round" className="pointer-events-none" />;
-                    })}
                 </svg>
                 
-                {/* Center Text Info */}
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                     <span className="text-3xl font-black text-slate-800 tracking-tight tabular-nums transition-all duration-300 transform scale-100">
                         {hoveredSlice ? activeItem.value.toLocaleString() : <CountUp value={activeItem.value} />}
                     </span>
-                    <span className="text-[0.625rem] uppercase font-bold text-slate-400 tracking-widest px-2 text-center line-clamp-1 mt-1 max-w-[120px]">
+                    <span className="text-[0.65rem] uppercase font-bold text-slate-400 tracking-widest px-2 text-center line-clamp-1 mt-1 max-w-[120px]">
                         {activeItem.label}
                     </span>
-                    {hoveredSlice && (
-                        <div className="mt-2 px-2 py-0.5 rounded-md text-[0.625rem] font-bold text-white shadow-sm transition-all animate-fade-in-up" style={{ backgroundColor: colors[data.indexOf(hoveredSlice) % colors.length] }}>
-                            {((hoveredSlice.value / total) * 100).toFixed(1)}%
-                        </div>
-                    )}
                 </div>
             </div>
             
-            {/* Legend Right Side */}
-            <div className="flex flex-col gap-2 min-w-[120px]">
+            <div className="flex flex-col gap-2 min-w-[140px]">
                 {data.map((item: any, index: number) => (
                     <div 
                         key={index} 
-                        className={`flex items-center justify-between text-xs cursor-pointer p-1.5 rounded-lg transition-all border border-transparent animate-fade-in-up ${hoveredSlice?.label === item.label ? 'bg-slate-50 border-slate-200 shadow-sm scale-105' : 'hover:bg-slate-50/50'}`} 
-                        style={{ animationDelay: `${index * 100}ms` }}
+                        className={`flex items-center justify-between text-xs cursor-pointer p-2.5 rounded-xl transition-all border border-transparent animate-fade-in-up ${hoveredSlice?.label === item.label ? 'bg-white border-slate-100 shadow-md scale-105' : 'hover:bg-slate-50'}`} 
+                        style={{ animationDelay: `${index * 50}ms` }}
                         onMouseEnter={() => setHoveredSlice(item)}
                         onMouseLeave={() => setHoveredSlice(null)}
                         onClick={() => onClickSlice && onClickSlice(item.label)}
                     >
-                        <div className="flex items-center gap-2">
-                            <span className="w-2.5 h-2.5 rounded-full shadow-sm" style={{ backgroundColor: colors[index % colors.length] }}></span>
-                            <span className={`font-semibold transition-colors truncate max-w-[90px] ${hoveredSlice?.label === item.label ? 'text-slate-900' : 'text-slate-500'}`}>{item.label}</span>
+                        <div className="flex items-center gap-2.5">
+                            <span className="w-3 h-3 rounded-full shadow-sm" style={{ backgroundColor: colors[index % colors.length] }}></span>
+                            <span className={`font-bold transition-colors truncate max-w-[100px] ${hoveredSlice?.label === item.label ? 'text-slate-900' : 'text-slate-500'}`}>{item.label}</span>
                         </div>
-                        <span className="font-bold text-slate-700 ml-2 tabular-nums">{((item.value / total) * 100).toFixed(0)}%</span>
+                        <span className="font-black text-slate-700 ml-2 tabular-nums opacity-80">{((item.value / total) * 100).toFixed(0)}%</span>
                     </div>
                 ))}
             </div>
@@ -348,7 +313,6 @@ const DonutChart = ({ data, colors, centerLabel, onClickSlice }: any) => {
     );
 };
 
-// Trend Chart - Interactive Cursor
 const TrendChart = ({ data, label, color = BRAND.PRIMARY }: any) => {
     const [hoverIndex, setHoverIndex] = useState<number | null>(null);
     if (!data || data.length === 0) return <div className="h-full flex items-center justify-center text-slate-300 text-xs font-bold uppercase tracking-wide">Chưa có dữ liệu</div>;
@@ -362,7 +326,6 @@ const TrendChart = ({ data, label, color = BRAND.PRIMARY }: any) => {
 
     const getX = (i: number) => paddingX + (i / (data.length - 1)) * (width - paddingX * 2);
     const getY = (v: number) => {
-        // Prevent division by zero if maxVal is 0 (should not happen due to max(..., 5) but safety first)
         const safeMax = maxVal === 0 ? 1 : maxVal;
         return height - paddingY - (v / safeMax) * chartHeight;
     };
@@ -376,7 +339,7 @@ const TrendChart = ({ data, label, color = BRAND.PRIMARY }: any) => {
             <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-full overflow-visible" onMouseLeave={() => setHoverIndex(null)}>
                 <defs>
                     <linearGradient id={`grad-${label.replace(/\s/g, '')}`} x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor={color} stopOpacity="0.25" />
+                        <stop offset="0%" stopColor={color} stopOpacity="0.2" />
                         <stop offset="100%" stopColor={color} stopOpacity="0.0" />
                     </linearGradient>
                     <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
@@ -388,8 +351,7 @@ const TrendChart = ({ data, label, color = BRAND.PRIMARY }: any) => {
                     </filter>
                 </defs>
                 
-                {/* Grid Lines */}
-                {[0, 0.25, 0.5, 0.75, 1].map(t => {
+                {[0, 0.5, 1].map(t => {
                     const y = paddingY + chartHeight * t;
                     return <line key={t} x1={paddingX} y1={y} x2={width - paddingX} y2={y} stroke="#f1f5f9" strokeWidth="1" strokeDasharray="4 4" />;
                 })}
@@ -397,39 +359,31 @@ const TrendChart = ({ data, label, color = BRAND.PRIMARY }: any) => {
                 <path d={areaPath} fill={`url(#grad-${label.replace(/\s/g, '')})`} className="transition-all duration-500" />
                 <path d={dPath} fill="none" stroke={color} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" filter="url(#glow)" />
 
-                {/* Interaction Overlay */}
                 {data.map((d: any, i: number) => {
                     const { x, y } = points[i];
                     const isHover = hoverIndex === i;
                     
                     return (
                         <g key={i}>
-                            {/* Hit Area Rect */}
                             <rect 
                                 x={x - (width/data.length)/2} y={0} width={width/data.length} height={height} 
                                 fill="transparent" 
                                 onMouseEnter={() => setHoverIndex(i)}
                                 style={{cursor: 'crosshair'}}
                             />
-                            
-                            {/* Active Cursor Line */}
                             {isHover && (
                                 <line x1={x} y1={paddingY} x2={x} y2={height - paddingY} stroke={color} strokeWidth="1" strokeDasharray="3 3" className="opacity-50" />
                             )}
-
-                            {/* Data Point Dot */}
                             <circle 
-                                cx={x} cy={y} r={isHover ? 6 : 3.5} 
-                                fill="white" stroke={color} strokeWidth={isHover ? 3 : 2} 
+                                cx={x} cy={y} r={isHover ? 6 : 0} 
+                                fill="white" stroke={color} strokeWidth={3} 
                                 className="transition-all duration-200 shadow-sm"
-                                style={{ opacity: isHover ? 1 : (i === data.length -1 ? 1 : 0) }} // Always show last dot
                             />
                         </g>
                     )
                 })}
             </svg>
             
-            {/* Modern Tooltip */}
             {hoverIndex !== null && data[hoverIndex] && (
                 <div 
                     className={`absolute top-0 pointer-events-none transition-all duration-200 z-20 flex flex-col
@@ -439,7 +393,7 @@ const TrendChart = ({ data, label, color = BRAND.PRIMARY }: any) => {
                     `}
                     style={{ left: `${(getX(hoverIndex) / width) * 100}%` }}
                 >
-                    <div className="bg-white/95 backdrop-blur-md border border-slate-100 text-slate-800 p-2.5 rounded-xl shadow-xl flex flex-col min-w-[90px] ring-1 ring-black/5 transform -translate-y-2">
+                    <div className="bg-white/95 backdrop-blur-md border border-slate-100 text-slate-800 p-3 rounded-xl shadow-xl flex flex-col min-w-[90px] ring-1 ring-black/5 transform -translate-y-4">
                         <span className="font-bold text-[0.625rem] text-slate-400 uppercase tracking-widest mb-0.5">Tháng {data[hoverIndex].month}</span>
                         <div className="flex items-baseline gap-1">
                             <span className="text-xl font-black leading-none tracking-tight" style={{ color: color }}>
@@ -462,7 +416,6 @@ const TrendChart = ({ data, label, color = BRAND.PRIMARY }: any) => {
     );
 };
 
-// 5. Pareto Chart (Gradient Bars + Neon Line + Fix Tooltip)
 const ParetoChart = ({ data, onSelect }: { data: any[], onSelect: (code: string) => void }) => {
     const [hoverIndex, setHoverIndex] = useState<number | null>(null);
     if (!data || data.length === 0) return <div className="h-full flex items-center justify-center text-slate-300 text-xs font-bold uppercase tracking-wide">Chưa có dữ liệu phân tích</div>;
@@ -493,23 +446,14 @@ const ParetoChart = ({ data, onSelect }: { data: any[], onSelect: (code: string)
                         <stop offset="100%" stopColor={BRAND.DANGER} />
                     </linearGradient>
                     <filter id="shadowBar" x="-20%" y="-20%" width="140%" height="140%">
-                        <feDropShadow dx="0" dy="2" stdDeviation="2" floodColor={BRAND.DANGER} floodOpacity="0.3" />
-                    </filter>
-                    <filter id="glowLine" x="-20%" y="-20%" width="140%" height="140%">
-                         <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
-                         <feMerge>
-                            <feMergeNode in="coloredBlur"/>
-                            <feMergeNode in="SourceGraphic"/>
-                        </feMerge>
+                        <feDropShadow dx="0" dy="4" stdDeviation="4" floodColor={BRAND.DANGER} floodOpacity="0.25" />
                     </filter>
                 </defs>
 
-                {/* Grid */}
                 {[0, 0.25, 0.5, 0.75, 1].map(t => (
                     <line key={t} x1={padding.left} y1={padding.top + chartHeight * t} x2={width - padding.right} y2={padding.top + chartHeight * t} stroke="#f1f5f9" strokeWidth="1" />
                 ))}
 
-                {/* Bars */}
                 {data.map((d, i) => {
                     const barHeight = (d.defect / maxDefect) * chartHeight;
                     const x = padding.left + (i * (chartWidth / data.length)) + (chartWidth / data.length - barWidth) / 2;
@@ -520,12 +464,11 @@ const ParetoChart = ({ data, onSelect }: { data: any[], onSelect: (code: string)
                         <g key={`bar-${i}`} onClick={() => onSelect(d.code)} className="cursor-pointer">
                             <rect 
                                 x={x} y={y} width={barWidth} height={barHeight} 
-                                fill="url(#barGradient)" rx="4"
-                                opacity={hoverIndex !== null && !isHover ? 0.4 : 1}
-                                className="transition-all duration-200"
+                                fill="url(#barGradient)" rx="6"
+                                opacity={hoverIndex !== null && !isHover ? 0.3 : 1}
+                                className="transition-all duration-300"
                                 filter={isHover ? "url(#shadowBar)" : ""}
                             />
-                            {/* Hit Area */}
                             <rect 
                                 x={padding.left + (i * (chartWidth / data.length))} y={padding.top} 
                                 width={chartWidth / data.length} height={chartHeight} 
@@ -535,10 +478,8 @@ const ParetoChart = ({ data, onSelect }: { data: any[], onSelect: (code: string)
                     );
                 })}
 
-                {/* Cumulative Line */}
-                <path d={linePath} fill="none" stroke={BRAND.WARNING} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="opacity-90" filter="url(#glowLine)" />
+                <path d={linePath} fill="none" stroke={BRAND.WARNING} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="opacity-90 drop-shadow-md" />
                 
-                {/* Dots */}
                 {linePoints.map((p, i) => (
                     <circle 
                         key={`dot-${i}`} cx={p.x} cy={p.y} r={hoverIndex === i ? 6 : 4} 
@@ -547,7 +488,6 @@ const ParetoChart = ({ data, onSelect }: { data: any[], onSelect: (code: string)
                     />
                 ))}
 
-                {/* X Axis */}
                 {data.map((d, i) => {
                     const x = padding.left + (i * (chartWidth / data.length)) + (chartWidth / data.length) / 2;
                     const isHover = hoverIndex === i;
@@ -564,7 +504,6 @@ const ParetoChart = ({ data, onSelect }: { data: any[], onSelect: (code: string)
                 })}
             </svg>
 
-            {/* Floating Tooltip */}
             {hoverIndex !== null && data[hoverIndex] && (
                 <div 
                     className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white/95 backdrop-blur-xl border border-white/60 text-slate-800 p-4 rounded-2xl shadow-2xl z-30 pointer-events-none min-w-[220px] animate-fade-in-up"
@@ -573,11 +512,11 @@ const ParetoChart = ({ data, onSelect }: { data: any[], onSelect: (code: string)
                     <div className="space-y-2 text-xs">
                         <div className="flex justify-between items-center">
                             <span className="text-slate-500 font-bold">Số lượng lỗi</span>
-                            <span className="font-black text-rose-600 bg-rose-50 px-2 py-0.5 rounded border border-rose-100">{data[hoverIndex].defect}</span>
+                            <span className="font-black text-rose-600 bg-rose-50 px-2 py-0.5 rounded-lg border border-rose-100">{data[hoverIndex].defect}</span>
                         </div>
                         <div className="flex justify-between items-center">
                             <span className="text-slate-500 font-bold">Tích lũy</span>
-                            <span className="font-black text-amber-600 bg-amber-50 px-2 py-0.5 rounded border border-amber-100">{data[hoverIndex].cumPercent.toFixed(1)}%</span>
+                            <span className="font-black text-amber-600 bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-100">{data[hoverIndex].cumPercent.toFixed(1)}%</span>
                         </div>
                     </div>
                 </div>
@@ -586,7 +525,6 @@ const ParetoChart = ({ data, onSelect }: { data: any[], onSelect: (code: string)
     );
 };
 
-// 6. Recent Activity List
 const RecentActivityList = ({ reports, onSelect }: { reports: DefectReport[], onSelect: (r: DefectReport) => void }) => {
     const recent = reports.slice(0, 7);
     if (recent.length === 0) return <div className="text-center text-slate-400 text-xs py-10 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-100">Chưa có hoạt động nào.</div>;
@@ -616,161 +554,15 @@ const RecentActivityList = ({ reports, onSelect }: { reports: DefectReport[], on
     );
 };
 
-// --- MODAL COMPONENTS ---
-
-// Updated DrillDownModal with Row Click support
-const DrillDownModal = ({ title, data, type, onClose, onRowClick }: { title: string, data: any[], type: 'distributor' | 'product', onClose: () => void, onRowClick?: (item: any) => void }) => {
-    return (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fade-in">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[80vh] flex flex-col overflow-hidden animate-pop ring-1 ring-white/20">
-                <div className="flex justify-between items-center p-5 border-b border-slate-100">
-                    <h3 className="text-lg font-bold text-slate-800 uppercase tracking-wide">{title}</h3>
-                    <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-all active:scale-95">
-                        <XIcon className="h-6 w-6" />
-                    </button>
-                </div>
-                
-                <div className="flex-1 overflow-y-auto p-0 custom-scrollbar">
-                    <table className="w-full text-left border-collapse" style={{ fontFamily: 'var(--list-font, inherit)', fontSize: 'var(--list-size, 1rem)' }}>
-                        <thead className="bg-slate-50 sticky top-0 z-10 shadow-sm">
-                            <tr>
-                                <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider w-12 text-center" style={{ fontSize: 'inherit' }}>#</th>
-                                <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider" style={{ fontSize: 'inherit' }}>{type === 'distributor' ? 'Nhà phân phối' : 'Sản phẩm'}</th>
-                                <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right" style={{ fontSize: 'inherit' }}>Số phiếu</th>
-                                {type === 'distributor' && (
-                                    <>
-                                        <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right" style={{ fontSize: 'inherit' }}>Số SKU</th>
-                                        <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right" style={{ fontSize: 'inherit' }}>Hoàn thành</th>
-                                    </>
-                                )}
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100">
-                            {data.length > 0 ? data.map((item, idx) => (
-                                <tr 
-                                    key={idx} 
-                                    className={`hover:bg-slate-50/80 transition-colors group ${onRowClick ? 'cursor-pointer hover:bg-blue-50/50' : ''}`}
-                                    onClick={() => onRowClick && onRowClick(item)}
-                                >
-                                    <td className="p-4 text-slate-400 text-center" style={{ fontSize: 'inherit' }}>{idx + 1}</td>
-                                    <td className="p-4">
-                                        <div className={`font-bold transition-colors ${onRowClick ? 'text-slate-800 group-hover:text-blue-700' : 'text-slate-800'}`} style={{ fontSize: 'inherit' }}>
-                                            {type === 'distributor' ? item.name : item.name}
-                                        </div>
-                                        {type === 'product' && <div className="text-xs text-slate-400 font-bold mt-0.5">{item.code}</div>}
-                                    </td>
-                                    <td className="p-4 text-right">
-                                        <span className="font-bold text-slate-700 bg-slate-100 px-2 py-1 rounded text-xs">
-                                            {item.totalTickets}
-                                        </span>
-                                    </td>
-                                    {type === 'distributor' && (
-                                        <>
-                                            <td className="p-4 text-right">
-                                                <span className="font-bold text-slate-600" style={{ fontSize: 'inherit' }}>{item.uniqueSKUs}</span>
-                                            </td>
-                                            <td className="p-4 text-right">
-                                                <div className="flex items-center justify-end gap-2">
-                                                    <div className="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                                                        <div 
-                                                            className={`h-full rounded-full ${item.completionRate === 100 ? 'bg-emerald-500' : 'bg-blue-500'}`} 
-                                                            style={{ width: `${item.completionRate}%` }}
-                                                        ></div>
-                                                    </div>
-                                                    <span className={`text-xs font-bold ${item.completionRate === 100 ? 'text-emerald-600' : 'text-slate-500'}`}>
-                                                        {item.completionRate.toFixed(0)}%
-                                                    </span>
-                                                </div>
-                                            </td>
-                                        </>
-                                    )}
-                                </tr>
-                            )) : (
-                                <tr>
-                                    <td colSpan={5} className="p-8 text-center text-slate-400 text-sm">Chưa có dữ liệu</td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    );
-};
-
-// Detailed Report List Modal (Drill Down Level 2)
-const DetailedReportListModal = ({ title, reports, onClose, onSelectReport }: { title: string, reports: DefectReport[], onClose: () => void, onSelectReport: (r: DefectReport) => void }) => {
-    return (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fade-in">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[85vh] flex flex-col overflow-hidden animate-pop ring-1 ring-white/20">
-                <div className="flex justify-between items-center p-5 border-b border-slate-100 bg-white">
-                    <div>
-                        <h3 className="text-lg font-bold text-slate-800 uppercase tracking-wide">{title}</h3>
-                        <p className="text-sm text-slate-500 mt-1">Tổng cộng: <span className="font-bold text-slate-800">{reports.length}</span> phiếu</p>
-                    </div>
-                    <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-all active:scale-95">
-                        <XIcon className="h-6 w-6" />
-                    </button>
-                </div>
-                <div className="flex-1 overflow-y-auto p-0 custom-scrollbar bg-slate-50">
-                    <table className="w-full text-left border-collapse" style={{ fontFamily: 'var(--list-font, inherit)', fontSize: 'var(--list-size, 1rem)' }}>
-                        <thead className="bg-white sticky top-0 z-10 shadow-sm text-xs font-bold text-slate-500 uppercase tracking-wider">
-                            <tr>
-                                <th className="p-4 w-12 text-center bg-slate-50/50" style={{ fontSize: 'inherit' }}>#</th>
-                                <th className="p-4 w-32 bg-slate-50/50" style={{ fontSize: 'inherit' }}>Ngày</th>
-                                <th className="p-4 w-32 bg-slate-50/50" style={{ fontSize: 'inherit' }}>Mã SP</th>
-                                <th className="p-4 bg-slate-50/50" style={{ fontSize: 'inherit' }}>Tên sản phẩm & Lỗi</th>
-                                <th className="p-4 w-36 bg-slate-50/50 text-right" style={{ fontSize: 'inherit' }}>Trạng thái</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100 bg-white">
-                            {reports.map((r, idx) => (
-                                <tr key={r.id} onClick={() => onSelectReport(r)} className="hover:bg-blue-50 cursor-pointer transition-colors group">
-                                    <td className="p-4 text-center text-slate-400 font-bold" style={{ fontSize: 'inherit' }}>{idx + 1}</td>
-                                    <td className="p-4 text-slate-600 font-medium" style={{ fontSize: 'inherit' }}>
-                                        {new Date(r.ngayPhanAnh).toLocaleDateString('en-GB')}
-                                    </td>
-                                    <td className="p-4">
-                                        <span className="font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded border border-blue-100 text-xs">
-                                            {r.maSanPham}
-                                        </span>
-                                    </td>
-                                    <td className="p-4">
-                                        <div className="font-bold text-slate-800 mb-1 leading-snug line-clamp-1" style={{ fontSize: 'inherit' }}>{r.tenThuongMai}</div>
-                                        <div className="text-xs text-slate-500 line-clamp-1 italic">{r.noiDungPhanAnh}</div>
-                                    </td>
-                                    <td className="p-4 text-right">
-                                        <span className={`px-2 py-1 rounded text-[0.625rem] font-bold border uppercase whitespace-nowrap ${
-                                            r.trangThai === 'Mới' ? 'bg-blue-50 text-blue-600 border-blue-100' :
-                                            r.trangThai === 'Hoàn thành' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
-                                            'bg-amber-50 text-amber-600 border-amber-100'
-                                        }`}>
-                                            {r.trangThai}
-                                        </span>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    );
-};
-
-// --- MAIN DASHBOARD COMPONENT ---
-
 const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectReport, isLoading }) => {
   const [viewMode, setViewMode] = useState<'service' | 'production'>('service');
   const [prodMetric, setProdMetric] = useState<'defect' | 'exchange' | 'ratio'>('defect');
   
-  // State for Modal
   const [activeModal, setActiveModal] = useState<'none' | 'distributor' | 'product'>('none');
   const [selectedDistributorForDetail, setSelectedDistributorForDetail] = useState<string | null>(null);
   const [selectedBrandForDetail, setSelectedBrandForDetail] = useState<string | null>(null);
   const [selectedProductForDetail, setSelectedProductForDetail] = useState<string | null>(null);
 
-  // Calculate Data (Memoized)
   const stats = useMemo(() => {
       let totalTickets = 0, totalDefectQty = 0, totalExchangeQty = 0;
       const distMap = new Map<string, { total: number, completed: number, skus: Set<string> }>();
@@ -787,7 +579,6 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
       const today = new Date();
       const currentYear = today.getFullYear();
 
-      // Helper for sparklines
       const getSparklineData = (mode: 'ticket' | 'qty' | 'exchange', monthsBack: number = 6) => {
         const data = [];
         const currentM = today.getMonth();
@@ -864,12 +655,10 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
                 if (r.maSanPham) brandCounts[brand].skus.add(r.maSanPham);
             }
             
-            // Product Map
             if (r.maSanPham) {
                 uniqueSKUs.add(r.maSanPham);
                 let p = prodMap.get(r.maSanPham);
                 if (!p) {
-                    // Normalize brand for product categorization
                     const normalizedBrand = (r.nhanHang === 'HTM' || r.nhanHang === 'VMA') ? r.nhanHang : 'HTM';
                     p = { 
                         code: r.maSanPham, 
@@ -888,7 +677,6 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
             
             const createdDate = parseDate(r.ngayPhanAnh);
             
-            // Distributor Map Aggregation
             if (r.nhaPhanPhoi) {
                 const dName = r.nhaPhanPhoi.trim();
                 if (!distMap.has(dName)) {
@@ -911,7 +699,7 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
         });
       }
 
-      // Prepare lists for modals
+      // ... rest of data processing logic ...
       const distributorStats = Array.from(distMap.entries()).map(([name, val]) => ({
           name,
           totalTickets: val.total,
@@ -935,7 +723,6 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
       const topProductsByDefect = [...topProducts].sort((a,b) => b.defect - a.defect).slice(0, 10);
       
       let cumDefect = 0;
-      // Protect division by zero
       const safeTotalDefect = totalDefectQty > 0 ? totalDefectQty : 1;
       
       const paretoData = topProductsByDefect.map(p => {
@@ -961,7 +748,6 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
           { label: 'Khác', value: sourceCounts['Khác'] },
       ].filter(d => d.value > 0);
       
-      // Calculate chart ratio safely
       const chartRatio = monthlyDefect.map((d, i) => ({ 
           month: i + 1, 
           count: d > 0 ? (monthlyExchange[i] / d) * 100 : 0 
@@ -994,34 +780,31 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
   );
 
   return (
-    <div className="flex flex-col h-full bg-slate-50/50 font-sans relative">
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 custom-scrollbar pb-24">
+    <div className="flex flex-col h-full bg-[#f8fafc] font-sans relative">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-8 space-y-8 custom-scrollbar pb-24">
             
-            {/* HEADER */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                    <h2 className="text-2xl font-black text-slate-800 tracking-tight animate-fade-in-up">
+                    <h2 className="text-3xl font-black text-slate-800 tracking-tight animate-fade-in-up">
                         {viewMode === 'service' ? 'Tổng quan Dịch vụ' : 'Chất lượng Sản xuất'}
                     </h2>
                     <p className="text-sm text-slate-500 font-medium mt-1 flex items-center gap-2 animate-fade-in-up" style={{ animationDelay: '100ms' }}>
-                        <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]"></span>
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]"></span>
                         Cập nhật theo thời gian thực
                     </p>
                 </div>
                 
                 <div className="flex flex-wrap items-center gap-3 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
-                    
-                    {/* View Mode Switcher */}
                     <div className="bg-white/80 backdrop-blur-md p-1.5 rounded-2xl shadow-sm border border-slate-200 inline-flex">
                         <button 
                             onClick={() => setViewMode('service')}
-                            className={`flex items-center px-4 py-2 rounded-xl text-sm font-bold transition-all duration-300 ${viewMode === 'service' ? 'bg-[#003DA5] text-white shadow-lg shadow-blue-900/20' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'}`}
+                            className={`flex items-center px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${viewMode === 'service' ? 'bg-[#003DA5] text-white shadow-lg shadow-blue-900/20' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'}`}
                         >
                             <UserGroupIcon className="w-4 h-4 mr-2" /> Dịch vụ
                         </button>
                         <button 
                             onClick={() => setViewMode('production')}
-                            className={`flex items-center px-4 py-2 rounded-xl text-sm font-bold transition-all duration-300 ${viewMode === 'production' ? 'bg-[#C5003E] text-white shadow-lg shadow-rose-900/20' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'}`}
+                            className={`flex items-center px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${viewMode === 'production' ? 'bg-[#C5003E] text-white shadow-lg shadow-rose-900/20' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'}`}
                         >
                             <CubeIcon className="w-4 h-4 mr-2" /> Sản xuất
                         </button>
@@ -1029,13 +812,10 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
                 </div>
             </div>
 
-            {/* KPI GRID */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {viewMode === 'service' ? (
                     <>
                         <KpiCard title="TỔNG PHIẾU" value={stats.totalTickets} trend={stats.trendTicket} icon={<InboxIcon/>} colorHex={BRAND.PRIMARY} onClick={() => onFilterSelect('all')} delayIndex={0} />
-                        
-                        {/* OPEN DISTRIBUTOR MODAL */}
                         <KpiCard 
                             title="NHÀ PHÂN PHỐI" 
                             value={stats.uniqueDistributors} 
@@ -1046,8 +826,6 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
                             onClick={() => setActiveModal('distributor')} 
                             delayIndex={1}
                         />
-                        
-                        {/* OPEN PRODUCT MODAL */}
                         <KpiCard 
                             title="SẢN PHẨM LỖI" 
                             value={stats.totalUniqueSKUs} 
@@ -1059,7 +837,6 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
                             onClick={() => setActiveModal('product')} 
                             delayIndex={2}
                         />
-                        
                         <KpiCard title="TỶ LỆ HOÀN THÀNH" value={`${stats.totalTickets > 0 ? ((stats.statusCounts['Hoàn thành']/stats.totalTickets)*100).toFixed(0) : 0}%`} trend={stats.trendTicket} icon={<CheckCircleIcon/>} colorHex={BRAND.SUCCESS} onClick={() => onFilterSelect('status', 'Hoàn thành')} delayIndex={3} />
                     </>
                 ) : (
@@ -1072,58 +849,54 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
                 )}
             </div>
 
-            {/* CONTENT AREA */}
             {viewMode === 'service' ? (
                 <>
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        {/* Brand Stats */}
-                        <div className="bg-white/80 backdrop-blur-md p-6 rounded-3xl border border-white/60 shadow-card hover:shadow-lg transition-all duration-500 animate-fade-in-up" style={{ animationDelay: '400ms' }}>
-                            <div className="flex items-center gap-3 mb-6">
-                                <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl"><TagIcon className="w-5 h-5"/></div>
-                                <h3 className="text-lg font-bold text-slate-800 uppercase tracking-tight">Thống kê Nhãn hàng</h3>
+                        <div className="bg-white p-7 rounded-3xl border border-slate-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] transition-all duration-500 animate-fade-in-up hover:shadow-lg" style={{ animationDelay: '400ms' }}>
+                            <div className="flex items-center gap-3 mb-8">
+                                <div className="p-2.5 bg-blue-50 text-blue-600 rounded-2xl"><TagIcon className="w-5 h-5"/></div>
+                                <h3 className="text-lg font-black text-slate-800 uppercase tracking-tight">Thống kê Nhãn hàng</h3>
                             </div>
-                            <div className="space-y-4">
+                            <div className="space-y-5">
                                 {['HTM', 'VMA'].map(brand => {
                                     const bStats = stats.brandCounts[brand as 'HTM'|'VMA'];
                                     const pct = stats.totalTickets ? (bStats.t / stats.totalTickets) * 100 : 0;
                                     const color = brand === 'HTM' ? BRAND.PRIMARY : BRAND.SUCCESS;
                                     return (
-                                        <div key={brand} onClick={() => setSelectedBrandForDetail(brand)} className="relative p-5 border border-slate-100 rounded-2xl hover:shadow-md transition-all cursor-pointer group overflow-hidden bg-white hover:-translate-y-0.5">
-                                            <div className="flex justify-between items-center mb-3 relative z-10">
-                                                <div className="flex items-center gap-2">
+                                        <div key={brand} onClick={() => setSelectedBrandForDetail(brand)} className="relative p-6 border border-slate-100 rounded-3xl hover:shadow-md transition-all cursor-pointer group overflow-hidden bg-slate-50/50 hover:bg-white hover:-translate-y-1">
+                                            <div className="flex justify-between items-center mb-4 relative z-10">
+                                                <div className="flex items-center gap-3">
                                                     <span className="w-3 h-3 rounded-full shadow-sm" style={{ backgroundColor: color }}></span>
                                                     <span className="font-black text-xl text-slate-800">{brand}</span>
                                                 </div>
-                                                <span className="text-xs font-black bg-slate-50 px-2 py-1 rounded-lg text-slate-500">{pct.toFixed(0)}%</span>
+                                                <span className="text-xs font-black bg-white px-3 py-1.5 rounded-xl text-slate-600 shadow-sm">{pct.toFixed(0)}%</span>
                                             </div>
-                                            <div className="w-full h-2 bg-slate-100 rounded-full mb-4 overflow-hidden relative z-10">
+                                            <div className="w-full h-2.5 bg-white rounded-full mb-5 overflow-hidden relative z-10 ring-1 ring-slate-100">
                                                 <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${pct}%`, backgroundColor: color }}></div>
                                             </div>
                                             <div className="grid grid-cols-2 gap-4 relative z-10">
                                                 <div className="text-center">
-                                                    <span className="block text-[0.625rem] text-slate-400 font-bold uppercase">Phiếu</span>
-                                                    <span className="block text-lg font-black text-slate-700"><CountUp value={bStats.t} /></span>
+                                                    <span className="block text-[0.625rem] text-slate-400 font-extrabold uppercase tracking-wide">Phiếu</span>
+                                                    <span className="block text-xl font-black text-slate-700 mt-1"><CountUp value={bStats.t} /></span>
                                                 </div>
                                                 <div className="text-center">
-                                                    <span className="block text-[0.625rem] text-slate-400 font-bold uppercase">SKU Lỗi</span>
-                                                    <span className="block text-lg font-black text-slate-700"><CountUp value={bStats.skus.size} /></span>
+                                                    <span className="block text-[0.625rem] text-slate-400 font-extrabold uppercase tracking-wide">SKU Lỗi</span>
+                                                    <span className="block text-xl font-black text-slate-700 mt-1"><CountUp value={bStats.skus.size} /></span>
                                                 </div>
                                             </div>
-                                            {/* Decoration */}
-                                            <div className="absolute -right-4 -bottom-4 w-20 h-20 rounded-full opacity-[0.08] blur-xl group-hover:scale-150 transition-transform duration-500" style={{ backgroundColor: color }}></div>
+                                            <div className="absolute -right-6 -bottom-6 w-32 h-32 rounded-full opacity-[0.06] blur-2xl group-hover:scale-125 transition-transform duration-700" style={{ backgroundColor: color }}></div>
                                         </div>
                                     )
                                 })}
                             </div>
                         </div>
 
-                        {/* Status Donut */}
-                        <div className="bg-white/80 backdrop-blur-md p-6 rounded-3xl border border-white/60 shadow-card hover:shadow-lg transition-all duration-500 animate-fade-in-up flex flex-col" style={{ animationDelay: '500ms' }}>
-                            <div className="flex items-center gap-3 mb-6">
-                                <div className="p-2.5 bg-amber-50 text-amber-600 rounded-xl"><FunnelIcon className="w-5 h-5"/></div>
-                                <h3 className="text-lg font-bold text-slate-800 uppercase tracking-tight">Tiến độ xử lý</h3>
+                        <div className="bg-white p-7 rounded-3xl border border-slate-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] transition-all duration-500 animate-fade-in-up hover:shadow-lg flex flex-col" style={{ animationDelay: '500ms' }}>
+                            <div className="flex items-center gap-3 mb-8">
+                                <div className="p-2.5 bg-amber-50 text-amber-600 rounded-2xl"><FunnelIcon className="w-5 h-5"/></div>
+                                <h3 className="text-lg font-black text-slate-800 uppercase tracking-tight">Tiến độ xử lý</h3>
                             </div>
-                            <div className="flex-1 flex items-center justify-center min-h-[220px]">
+                            <div className="flex-1 flex items-center justify-center min-h-[240px]">
                                 <DonutChart 
                                     data={stats.donutStatusData} 
                                     colors={stats.donutStatusColors} 
@@ -1133,24 +906,23 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
                             </div>
                         </div>
 
-                        {/* Top Products */}
-                        <div className="bg-white/80 backdrop-blur-md p-6 rounded-3xl border border-white/60 shadow-card hover:shadow-lg transition-all duration-500 animate-fade-in-up" style={{ animationDelay: '600ms' }}>
-                            <div className="flex items-center gap-3 mb-6">
-                                <div className="p-2.5 bg-rose-50 text-rose-600 rounded-xl"><ShieldCheckIcon className="w-5 h-5"/></div>
-                                <h3 className="text-lg font-bold text-slate-800 uppercase tracking-tight">Top Sự cố (Tần suất)</h3>
+                        <div className="bg-white p-7 rounded-3xl border border-slate-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] transition-all duration-500 animate-fade-in-up hover:shadow-lg" style={{ animationDelay: '600ms' }}>
+                            <div className="flex items-center gap-3 mb-8">
+                                <div className="p-2.5 bg-rose-50 text-rose-600 rounded-2xl"><ShieldCheckIcon className="w-5 h-5"/></div>
+                                <h3 className="text-lg font-black text-slate-800 uppercase tracking-tight">Top Sự cố (Tần suất)</h3>
                             </div>
-                            <div className="space-y-3">
+                            <div className="space-y-4">
                                 {stats.topProductsByTicket.map((p, idx) => (
                                     <div key={idx} onClick={() => onFilterSelect('search', p.code)} className="flex items-center gap-4 cursor-pointer group p-3 hover:bg-slate-50 rounded-2xl transition-all border border-transparent hover:border-slate-100 hover:shadow-sm">
-                                        <div className={`w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-lg text-xs font-black shadow-sm transition-transform group-hover:scale-110 ${idx === 0 ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-500'}`}>
+                                        <div className={`w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-xl text-sm font-black shadow-sm transition-transform group-hover:scale-110 ${idx === 0 ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-500'}`}>
                                             {idx+1}
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <div className="flex justify-between items-center mb-1">
-                                                <span className="text-xs font-bold text-slate-700 truncate group-hover:text-blue-600 transition-colors" title={p.name}>{p.name}</span>
-                                                <span className="text-[0.625rem] font-bold bg-slate-100 px-2 py-0.5 rounded text-slate-500">{p.ticket} phiếu</span>
+                                            <div className="flex justify-between items-center mb-1.5">
+                                                <span className="text-sm font-bold text-slate-700 truncate group-hover:text-blue-600 transition-colors" title={p.name}>{p.name}</span>
+                                                <span className="text-[0.65rem] font-bold bg-slate-100 px-2.5 py-1 rounded-lg text-slate-500">{p.ticket} phiếu</span>
                                             </div>
-                                            <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                            <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
                                                 <div className={`h-full rounded-full ${idx === 0 ? 'bg-amber-500' : 'bg-slate-400'}`} style={{width: `${(p.ticket / stats.topProductsByTicket[0].ticket)*100}%`}}></div>
                                             </div>
                                         </div>
@@ -1160,21 +932,21 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-auto lg:h-[420px]">
-                        <div className="lg:col-span-2 bg-white/80 backdrop-blur-md p-6 rounded-3xl border border-white/60 shadow-card hover:shadow-lg transition-all duration-500 animate-fade-in-up flex flex-col" style={{ animationDelay: '700ms' }}>
-                            <div className="flex items-center gap-3 mb-6">
-                                <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl"><ClockIcon className="w-5 h-5"/></div>
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-auto lg:h-[450px]">
+                        <div className="lg:col-span-2 bg-white p-7 rounded-3xl border border-slate-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] transition-all duration-500 animate-fade-in-up flex flex-col hover:shadow-lg" style={{ animationDelay: '700ms' }}>
+                            <div className="flex items-center gap-3 mb-8">
+                                <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-2xl"><ClockIcon className="w-5 h-5"/></div>
                                 <div>
-                                    <h3 className="text-lg font-bold text-slate-800 uppercase tracking-tight">Xu hướng khiếu nại</h3>
-                                    <p className="text-xs font-medium text-slate-400">Số lượng phiếu theo tháng</p>
+                                    <h3 className="text-lg font-black text-slate-800 uppercase tracking-tight">Xu hướng khiếu nại</h3>
+                                    <p className="text-xs font-bold text-slate-400 mt-0.5">Số lượng phiếu theo tháng</p>
                                 </div>
                             </div>
-                            <div className="flex-1 min-h-[220px]"><TrendChart data={stats.chartTicket} label="Phiếu" color={BRAND.PRIMARY} /></div>
+                            <div className="flex-1 min-h-[260px]"><TrendChart data={stats.chartTicket} label="Phiếu" color={BRAND.PRIMARY} /></div>
                         </div>
-                        <div className="bg-white/80 backdrop-blur-md p-6 rounded-3xl border border-white/60 shadow-card hover:shadow-lg transition-all duration-500 animate-fade-in-up flex flex-col" style={{ animationDelay: '800ms' }}>
-                            <div className="flex items-center gap-3 mb-4">
-                                <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl"><SparklesIcon className="w-5 h-5"/></div>
-                                <h3 className="text-lg font-bold text-slate-800 uppercase tracking-tight">Hoạt động mới</h3>
+                        <div className="bg-white p-7 rounded-3xl border border-slate-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] transition-all duration-500 animate-fade-in-up flex flex-col hover:shadow-lg" style={{ animationDelay: '800ms' }}>
+                            <div className="flex items-center gap-3 mb-6">
+                                <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-2xl"><SparklesIcon className="w-5 h-5"/></div>
+                                <h3 className="text-lg font-black text-slate-800 uppercase tracking-tight">Hoạt động mới</h3>
                             </div>
                             <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 -mr-2"><RecentActivityList reports={reports} onSelect={onSelectReport} /></div>
                         </div>
@@ -1182,28 +954,28 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
                 </>
             ) : (
                 <>
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-auto lg:h-[450px]">
-                        <div className="lg:col-span-2 bg-white/80 backdrop-blur-md p-6 rounded-3xl border border-white/60 shadow-card hover:shadow-lg transition-all duration-500 animate-fade-in-up flex flex-col" style={{ animationDelay: '400ms' }}>
-                            <div className="flex justify-between items-center mb-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-auto lg:h-[480px]">
+                        <div className="lg:col-span-2 bg-white p-7 rounded-3xl border border-slate-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] transition-all duration-500 animate-fade-in-up flex flex-col hover:shadow-lg" style={{ animationDelay: '400ms' }}>
+                            <div className="flex justify-between items-center mb-8">
                                 <div className="flex items-center gap-3">
-                                    <div className="p-2.5 bg-rose-50 text-rose-600 rounded-xl"><ClockIcon className="w-5 h-5"/></div>
+                                    <div className="p-2.5 bg-rose-50 text-rose-600 rounded-2xl"><ClockIcon className="w-5 h-5"/></div>
                                     <div>
-                                        <h3 className="text-lg font-bold text-slate-800 uppercase tracking-tight">Xu hướng Số lượng</h3>
-                                        <p className="text-xs font-medium text-slate-400">Biến động sản phẩm lỗi/đổi</p>
+                                        <h3 className="text-lg font-black text-slate-800 uppercase tracking-tight">Xu hướng Số lượng</h3>
+                                        <p className="text-xs font-bold text-slate-400 mt-0.5">Biến động sản phẩm lỗi/đổi</p>
                                     </div>
                                 </div>
-                                <div className="flex bg-slate-100 p-1 rounded-xl">
+                                <div className="flex bg-slate-100 p-1.5 rounded-xl">
                                     {['defect', 'exchange', 'ratio'].map(m => (
                                         <button 
                                             key={m} onClick={() => setProdMetric(m as any)}
-                                            className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${prodMetric === m ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                                            className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${prodMetric === m ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                                         >
                                             {m === 'defect' ? 'Lỗi' : m === 'exchange' ? 'Đổi' : '% Đổi'}
                                         </button>
                                     ))}
                                 </div>
                             </div>
-                            <div className="flex-1 min-h-[280px]">
+                            <div className="flex-1 min-h-[300px]">
                                 <TrendChart 
                                     data={prodMetric === 'defect' ? stats.chartDefect : prodMetric === 'exchange' ? stats.chartExchange : stats.chartRatio}
                                     label={prodMetric === 'defect' ? 'SP Lỗi' : prodMetric === 'exchange' ? 'SP Đổi' : '% Đổi'}
@@ -1211,12 +983,12 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
                                 />
                             </div>
                         </div>
-                        <div className="bg-white/80 backdrop-blur-md p-6 rounded-3xl border border-white/60 shadow-card hover:shadow-lg transition-all duration-500 animate-fade-in-up flex flex-col" style={{ animationDelay: '500ms' }}>
-                            <div className="flex items-center gap-3 mb-6">
-                                <div className="p-2.5 bg-orange-50 text-orange-600 rounded-xl"><TableCellsIcon className="w-5 h-5"/></div>
-                                <h3 className="text-lg font-bold text-slate-800 uppercase tracking-tight">Phân loại Nguyên nhân</h3>
+                        <div className="bg-white p-7 rounded-3xl border border-slate-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] transition-all duration-500 animate-fade-in-up flex flex-col hover:shadow-lg" style={{ animationDelay: '500ms' }}>
+                            <div className="flex items-center gap-3 mb-8">
+                                <div className="p-2.5 bg-orange-50 text-orange-600 rounded-2xl"><TableCellsIcon className="w-5 h-5"/></div>
+                                <h3 className="text-lg font-black text-slate-800 uppercase tracking-tight">Phân loại Nguyên nhân</h3>
                             </div>
-                            <div className="flex-1 flex items-center justify-center min-h-[280px]">
+                            <div className="flex-1 flex items-center justify-center min-h-[300px]">
                                 <DonutChart 
                                     data={stats.donutSourceData}
                                     colors={[BRAND.DANGER, BRAND.WARNING, BRAND.INDIGO, BRAND.SLATE]} 
@@ -1228,55 +1000,53 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
                     </div>
                     
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <div className="lg:col-span-2 bg-white/80 backdrop-blur-md p-6 rounded-3xl border border-white/60 shadow-card hover:shadow-lg transition-all duration-500 animate-fade-in-up" style={{ animationDelay: '600ms' }}>
-                            <div className="flex items-center gap-3 mb-6">
-                                <div className="p-2.5 bg-violet-50 text-violet-600 rounded-xl"><ChartPieIcon className="w-5 h-5"/></div>
+                        <div className="lg:col-span-2 bg-white p-7 rounded-3xl border border-slate-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] transition-all duration-500 animate-fade-in-up hover:shadow-lg" style={{ animationDelay: '600ms' }}>
+                            <div className="flex items-center gap-3 mb-8">
+                                <div className="p-2.5 bg-violet-50 text-violet-600 rounded-2xl"><ChartPieIcon className="w-5 h-5"/></div>
                                 <div>
-                                    <h3 className="text-lg font-bold text-slate-800 uppercase tracking-tight">Biểu đồ Pareto (80/20)</h3>
-                                    <p className="text-xs font-medium text-slate-400">Top sản phẩm đóng góp nhiều nhất vào tổng lỗi</p>
+                                    <h3 className="text-lg font-black text-slate-800 uppercase tracking-tight">Biểu đồ Pareto (80/20)</h3>
+                                    <p className="text-xs font-bold text-slate-400 mt-0.5">Top sản phẩm đóng góp nhiều nhất vào tổng lỗi</p>
                                 </div>
                             </div>
-                            <div className="h-72 w-full px-2">
+                            <div className="h-80 w-full px-2">
                                 <ParetoChart data={stats.paretoData} onSelect={(code) => onFilterSelect('search', code)} />
                             </div>
                         </div>
 
-                        {/* Brand Stats for Production */}
-                        <div className="bg-white/80 backdrop-blur-md p-6 rounded-3xl border border-white/60 shadow-card hover:shadow-lg transition-all duration-500 animate-fade-in-up" style={{ animationDelay: '700ms' }}>
-                            <div className="flex items-center gap-3 mb-6">
-                                <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl"><TagIcon className="w-5 h-5"/></div>
-                                <h3 className="text-lg font-bold text-slate-800 uppercase tracking-tight">Thống kê Nhãn hàng</h3>
+                        <div className="bg-white p-7 rounded-3xl border border-slate-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] transition-all duration-500 animate-fade-in-up hover:shadow-lg" style={{ animationDelay: '700ms' }}>
+                            <div className="flex items-center gap-3 mb-8">
+                                <div className="p-2.5 bg-blue-50 text-blue-600 rounded-2xl"><TagIcon className="w-5 h-5"/></div>
+                                <h3 className="text-lg font-black text-slate-800 uppercase tracking-tight">Thống kê Nhãn hàng</h3>
                             </div>
-                            <div className="space-y-4">
+                            <div className="space-y-5">
                                 {['HTM', 'VMA'].map(brand => {
                                     const bStats = stats.brandCounts[brand as 'HTM'|'VMA'];
                                     const totalQ = stats.totalDefectQty || 1;
                                     const pct = (bStats.q / totalQ) * 100;
                                     const color = brand === 'HTM' ? BRAND.PRIMARY : BRAND.SUCCESS;
                                     return (
-                                        <div key={brand} onClick={() => setSelectedBrandForDetail(brand)} className="relative p-5 border border-slate-100 rounded-2xl hover:shadow-md transition-all cursor-pointer group overflow-hidden bg-white hover:-translate-y-0.5">
-                                            <div className="flex justify-between items-center mb-3 relative z-10">
-                                                <div className="flex items-center gap-2">
+                                        <div key={brand} onClick={() => setSelectedBrandForDetail(brand)} className="relative p-6 border border-slate-100 rounded-3xl hover:shadow-md transition-all cursor-pointer group overflow-hidden bg-slate-50/50 hover:bg-white hover:-translate-y-1">
+                                            <div className="flex justify-between items-center mb-4 relative z-10">
+                                                <div className="flex items-center gap-3">
                                                     <span className="w-3 h-3 rounded-full shadow-sm" style={{ backgroundColor: color }}></span>
                                                     <span className="font-black text-xl text-slate-800">{brand}</span>
                                                 </div>
-                                                <span className="text-xs font-black bg-slate-50 px-2 py-1 rounded-lg text-slate-500">{pct.toFixed(0)}%</span>
+                                                <span className="text-xs font-black bg-white px-3 py-1.5 rounded-xl text-slate-600 shadow-sm">{pct.toFixed(0)}%</span>
                                             </div>
-                                            <div className="w-full h-2 bg-slate-100 rounded-full mb-4 overflow-hidden relative z-10">
+                                            <div className="w-full h-2.5 bg-white rounded-full mb-5 overflow-hidden relative z-10 ring-1 ring-slate-100">
                                                 <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${pct}%`, backgroundColor: color }}></div>
                                             </div>
                                             <div className="grid grid-cols-2 gap-4 relative z-10">
                                                 <div className="text-center">
-                                                    <span className="block text-[0.625rem] text-slate-400 font-bold uppercase">Lỗi</span>
-                                                    <span className="block text-lg font-black text-slate-700"><CountUp value={bStats.q} /></span>
+                                                    <span className="block text-[0.625rem] text-slate-400 font-extrabold uppercase tracking-wide">Lỗi</span>
+                                                    <span className="block text-xl font-black text-slate-700 mt-1"><CountUp value={bStats.q} /></span>
                                                 </div>
                                                 <div className="text-center">
-                                                    <span className="block text-[0.625rem] text-slate-400 font-bold uppercase">Đổi</span>
-                                                    <span className="block text-lg font-black text-slate-700"><CountUp value={bStats.e} /></span>
+                                                    <span className="block text-[0.625rem] text-slate-400 font-extrabold uppercase tracking-wide">Đổi</span>
+                                                    <span className="block text-xl font-black text-slate-700 mt-1"><CountUp value={bStats.e} /></span>
                                                 </div>
                                             </div>
-                                            {/* Decoration */}
-                                            <div className="absolute -right-4 -bottom-4 w-20 h-20 rounded-full opacity-[0.08] blur-xl group-hover:scale-150 transition-transform duration-500" style={{ backgroundColor: color }}></div>
+                                            <div className="absolute -right-6 -bottom-6 w-32 h-32 rounded-full opacity-[0.06] blur-2xl group-hover:scale-125 transition-transform duration-700" style={{ backgroundColor: color }}></div>
                                         </div>
                                     )
                                 })}
@@ -1286,54 +1056,6 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
                 </>
             )}
         </div>
-
-        {/* --- MODAL OVERLAYS --- */}
-        {activeModal === 'distributor' && !selectedDistributorForDetail && (
-            <DrillDownModal 
-                title="Thống kê Nhà phân phối" 
-                data={stats.distributorStats} 
-                type="distributor" 
-                onClose={() => setActiveModal('none')} 
-                onRowClick={(item) => setSelectedDistributorForDetail(item.name)}
-            />
-        )}
-
-        {selectedDistributorForDetail && (
-            <DetailedReportListModal 
-                title={`Chi tiết: ${selectedDistributorForDetail}`} 
-                reports={reports.filter(r => r.nhaPhanPhoi === selectedDistributorForDetail)}
-                onClose={() => setSelectedDistributorForDetail(null)}
-                onSelectReport={onSelectReport}
-            />
-        )}
-        
-        {activeModal === 'product' && (
-            <DrillDownModal 
-                title="Danh sách Sản phẩm lỗi" 
-                data={stats.productStats} 
-                type="product" 
-                onClose={() => setActiveModal('none')} 
-            />
-        )}
-
-        {selectedBrandForDetail && (
-            <DrillDownModal 
-                title={`Sản phẩm lỗi - Nhãn hàng ${selectedBrandForDetail}`}
-                data={stats.productStats.filter(p => p.brand === selectedBrandForDetail)}
-                type="product"
-                onClose={() => setSelectedBrandForDetail(null)}
-                onRowClick={(item) => setSelectedProductForDetail(item.code)}
-            />
-        )}
-
-        {selectedProductForDetail && (
-            <DetailedReportListModal 
-                title={`Chi tiết mã: ${selectedProductForDetail}`}
-                reports={reports.filter(r => r.maSanPham === selectedProductForDetail)}
-                onClose={() => setSelectedProductForDetail(null)}
-                onSelectReport={onSelectReport}
-            />
-        )}
     </div>
   );
 }
