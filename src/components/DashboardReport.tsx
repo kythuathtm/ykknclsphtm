@@ -14,6 +14,7 @@ interface Props {
   reports: DefectReport[];
   onFilterSelect: (filterType: 'status' | 'defectType' | 'all' | 'search' | 'brand', value?: string) => void;
   onSelectReport: (report: DefectReport) => void;
+  onOpenAiAnalysis: () => void;
   isLoading?: boolean;
 }
 
@@ -554,14 +555,27 @@ const RecentActivityList = ({ reports, onSelect }: { reports: DefectReport[], on
     );
 };
 
-const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectReport, isLoading }) => {
+// Internal Modal Component for Detail Views
+const DashboardDetailModal = ({ title, onClose, children }: { title: string, onClose: () => void, children: React.ReactNode }) => (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[80vh] flex flex-col overflow-hidden animate-pop ring-1 ring-white/20">
+            <div className="flex justify-between items-center p-5 border-b border-slate-100 bg-white">
+                <h3 className="text-lg font-bold text-slate-800 uppercase tracking-wide">{title}</h3>
+                <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-all">
+                    <XIcon className="w-6 h-6" />
+                </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-0 custom-scrollbar">
+                {children}
+            </div>
+        </div>
+    </div>
+);
+
+const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectReport, onOpenAiAnalysis, isLoading }) => {
   const [viewMode, setViewMode] = useState<'service' | 'production'>('service');
   const [prodMetric, setProdMetric] = useState<'defect' | 'exchange' | 'ratio'>('defect');
-  
   const [activeModal, setActiveModal] = useState<'none' | 'distributor' | 'product'>('none');
-  const [selectedDistributorForDetail, setSelectedDistributorForDetail] = useState<string | null>(null);
-  const [selectedBrandForDetail, setSelectedBrandForDetail] = useState<string | null>(null);
-  const [selectedProductForDetail, setSelectedProductForDetail] = useState<string | null>(null);
 
   const stats = useMemo(() => {
       let totalTickets = 0, totalDefectQty = 0, totalExchangeQty = 0;
@@ -795,6 +809,14 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
                 </div>
                 
                 <div className="flex flex-wrap items-center gap-3 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
+                    <button 
+                        onClick={onOpenAiAnalysis}
+                        className="flex items-center px-4 py-2.5 rounded-xl text-sm font-bold bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/30 hover:shadow-blue-500/40 hover:-translate-y-0.5 transition-all duration-300 active:scale-95"
+                    >
+                        <SparklesIcon className="w-4 h-4 mr-2 animate-pulse" />
+                        Phân tích số liệu
+                    </button>
+
                     <div className="bg-white/80 backdrop-blur-md p-1.5 rounded-2xl shadow-sm border border-slate-200 inline-flex">
                         <button 
                             onClick={() => setViewMode('service')}
@@ -863,7 +885,7 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
                                     const pct = stats.totalTickets ? (bStats.t / stats.totalTickets) * 100 : 0;
                                     const color = brand === 'HTM' ? BRAND.PRIMARY : BRAND.SUCCESS;
                                     return (
-                                        <div key={brand} onClick={() => setSelectedBrandForDetail(brand)} className="relative p-6 border border-slate-100 rounded-3xl hover:shadow-md transition-all cursor-pointer group overflow-hidden bg-slate-50/50 hover:bg-white hover:-translate-y-1">
+                                        <div key={brand} onClick={() => onFilterSelect('brand', brand)} className="relative p-6 border border-slate-100 rounded-3xl hover:shadow-md transition-all cursor-pointer group overflow-hidden bg-slate-50/50 hover:bg-white hover:-translate-y-1">
                                             <div className="flex justify-between items-center mb-4 relative z-10">
                                                 <div className="flex items-center gap-3">
                                                     <span className="w-3 h-3 rounded-full shadow-sm" style={{ backgroundColor: color }}></span>
@@ -1025,7 +1047,7 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
                                     const pct = (bStats.q / totalQ) * 100;
                                     const color = brand === 'HTM' ? BRAND.PRIMARY : BRAND.SUCCESS;
                                     return (
-                                        <div key={brand} onClick={() => setSelectedBrandForDetail(brand)} className="relative p-6 border border-slate-100 rounded-3xl hover:shadow-md transition-all cursor-pointer group overflow-hidden bg-slate-50/50 hover:bg-white hover:-translate-y-1">
+                                        <div key={brand} onClick={() => onFilterSelect('brand', brand)} className="relative p-6 border border-slate-100 rounded-3xl hover:shadow-md transition-all cursor-pointer group overflow-hidden bg-slate-50/50 hover:bg-white hover:-translate-y-1">
                                             <div className="flex justify-between items-center mb-4 relative z-10">
                                                 <div className="flex items-center gap-3">
                                                     <span className="w-3 h-3 rounded-full shadow-sm" style={{ backgroundColor: color }}></span>
@@ -1054,6 +1076,65 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
                         </div>
                     </div>
                 </>
+            )}
+
+            {/* MODALS */}
+            {activeModal === 'distributor' && (
+                <DashboardDetailModal title="Chi tiết Nhà Phân Phối" onClose={() => setActiveModal('none')}>
+                    <table className="w-full text-sm text-left">
+                        <thead className="bg-slate-50 text-slate-500 font-bold uppercase text-xs sticky top-0 shadow-sm">
+                            <tr>
+                                <th className="px-6 py-4">Nhà phân phối</th>
+                                <th className="px-6 py-4 text-center">Tổng phiếu</th>
+                                <th className="px-6 py-4 text-center">SKU Lỗi</th>
+                                <th className="px-6 py-4 text-right">Tỷ lệ hoàn thành</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                            {stats.distributorStats.map((d, i) => (
+                                <tr key={i} className="hover:bg-slate-50 transition-colors">
+                                    <td className="px-6 py-4 font-bold text-slate-700">{d.name}</td>
+                                    <td className="px-6 py-4 text-center font-bold">{d.totalTickets}</td>
+                                    <td className="px-6 py-4 text-center">{d.uniqueSKUs}</td>
+                                    <td className="px-6 py-4 text-right">
+                                        <span className={`px-2 py-1 rounded-lg text-xs font-bold ${d.completionRate === 100 ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>
+                                            {d.completionRate.toFixed(0)}%
+                                        </span>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </DashboardDetailModal>
+            )}
+
+            {activeModal === 'product' && (
+                <DashboardDetailModal title="Chi tiết Sản Phẩm Lỗi" onClose={() => setActiveModal('none')}>
+                    <table className="w-full text-sm text-left">
+                        <thead className="bg-slate-50 text-slate-500 font-bold uppercase text-xs sticky top-0 shadow-sm">
+                            <tr>
+                                <th className="px-6 py-4">Mã SP</th>
+                                <th className="px-6 py-4">Tên sản phẩm</th>
+                                <th className="px-6 py-4 text-center">Nhãn hàng</th>
+                                <th className="px-6 py-4 text-center">Tổng phiếu</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                            {stats.productStats.map((p, i) => (
+                                <tr key={i} className="hover:bg-slate-50 transition-colors cursor-pointer" onClick={() => onFilterSelect('search', p.code)}>
+                                    <td className="px-6 py-4 font-bold text-[#003DA5]">{p.code}</td>
+                                    <td className="px-6 py-4 font-medium text-slate-700">{p.name}</td>
+                                    <td className="px-6 py-4 text-center">
+                                        <span className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase border ${p.brand === 'HTM' ? 'bg-blue-50 text-blue-600 border-blue-100' : 'bg-teal-50 text-teal-600 border-teal-100'}`}>
+                                            {p.brand}
+                                        </span>
+                                    </td>
+                                    <td className="px-6 py-4 text-center font-bold">{p.totalTickets}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </DashboardDetailModal>
             )}
         </div>
     </div>

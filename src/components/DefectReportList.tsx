@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { DefectReport, UserRole } from '../types';
 import { 
@@ -256,23 +257,23 @@ const DefectReportList: React.FC<DefectReportListProps> = ({
     const renderCell = (report: DefectReport, columnId: string, index: number) => {
         switch (columnId) {
             case 'stt':
-                return <span className="font-bold text-slate-400 text-xs">{(currentPage - 1) * itemsPerPage + index + 1}</span>;
+                return <span className="font-medium text-slate-700 text-xs">{(currentPage - 1) * itemsPerPage + index + 1}</span>;
             case 'ngayPhanAnh':
                 return (
                     <div>
-                        <span className="block font-bold text-slate-700 tabular-nums text-sm" style={{ fontSize: 'inherit' }}>{formatDate(report.ngayPhanAnh)}</span>
-                        <span className="text-[0.6rem] text-slate-400 font-bold bg-slate-50 px-1.5 rounded inline-block mt-0.5 border border-slate-100 tracking-wider">#{report.id.split('-')[1] || report.id}</span>
+                        <span className="block font-medium text-slate-700 tabular-nums text-sm" style={{ fontSize: 'inherit' }}>{formatDate(report.ngayPhanAnh)}</span>
+                        <span className="text-[0.6rem] text-slate-400 font-bold bg-slate-50 px-1.5 rounded inline-block mt-0.5 border border-slate-100 tracking-wider">{report.id}</span>
                     </div>
                 );
             case 'maSanPham':
                 return (
-                    <span className="font-bold text-slate-700 group-hover:text-[#003DA5] transition-colors">
+                    <span className="font-medium text-slate-700 group-hover:text-[#C5003E] transition-colors">
                         {report.maSanPham}
                     </span>
                 );
             case 'tenThuongMai':
                 return (
-                    <div className="font-bold text-slate-800 line-clamp-2 leading-snug group-hover:text-[#003DA5] transition-colors" title={report.tenThuongMai} style={{ fontSize: 'inherit' }}>
+                    <div className="font-medium text-slate-800 line-clamp-2 leading-snug group-hover:text-[#003DA5] transition-colors" title={report.tenThuongMai} style={{ fontSize: 'inherit' }}>
                         {report.tenThuongMai}
                     </div>
                 );
@@ -536,134 +537,88 @@ const DefectReportList: React.FC<DefectReportListProps> = ({
                                 {isLoading ? (
                                     [...Array(5)].map((_, i) => (
                                         <tr key={i} className="animate-pulse">
-                                            {columns.filter(c => c.visible).map((c, j) => (
-                                                <td key={j} className="px-4 py-4"><div className="h-4 bg-slate-100 rounded w-full"></div></td>
+                                            {columns.filter(c => c.visible).map((col, j) => (
+                                                <td key={j} className="px-4 py-4 whitespace-nowrap">
+                                                    <div className="h-4 bg-slate-200 rounded w-3/4"></div>
+                                                </td>
                                             ))}
                                         </tr>
                                     ))
-                                ) : reports.length > 0 ? (
+                                ) : (
                                     reports.map((report, index) => (
                                         <tr 
                                             key={report.id} 
                                             onClick={() => onSelectReport(report)}
-                                            className={`
-                                                group transition-all duration-200 cursor-pointer 
-                                                hover:bg-blue-50/30 hover:scale-[1.002] hover:shadow-[0_2px_12px_-3px_rgba(0,0,0,0.08)]
-                                                ${selectedReport?.id === report.id ? 'bg-blue-50 border-l-4 border-l-[#003DA5]' : ''}
-                                            `}
+                                            className={`hover:bg-blue-50/50 transition-colors group cursor-pointer ${selectedReport?.id === report.id ? 'bg-blue-50' : ''}`}
                                         >
                                             {columns.filter(c => c.visible).map((col) => (
                                                 <td 
-                                                    key={`${report.id}-${col.id}`} 
-                                                    className={`px-4 py-3.5 align-top text-sm ${col.fixed ? 'sticky right-0 bg-white group-hover:bg-blue-50/30 shadow-[-4px_0_8px_-4px_rgba(0,0,0,0.02)]' : ''}`}
-                                                    style={{ textAlign: col.align || 'left' }}
+                                                    key={col.id} 
+                                                    className={`px-4 py-3 align-middle border-b border-slate-50 ${
+                                                        col.fixed ? 'sticky right-0 bg-white group-hover:bg-blue-50/50 shadow-[-4px_0_8px_-4px_rgba(0,0,0,0.02)]' : ''
+                                                    }`}
+                                                    style={{ textAlign: col.align || 'left', width: col.width }}
                                                 >
                                                     {renderCell(report, col.id, index)}
                                                 </td>
                                             ))}
                                         </tr>
                                     ))
-                                ) : (
-                                    <tr>
-                                        <td colSpan={columns.filter(c => c.visible).length} className="px-6 py-24 text-center text-slate-400">
-                                            <div className="flex flex-col items-center justify-center">
-                                                <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-4 shadow-inner">
-                                                    <InboxIcon className="h-10 w-10 opacity-30" />
-                                                </div>
-                                                <p className="text-sm font-bold text-slate-500">Không tìm thấy dữ liệu</p>
-                                                <p className="text-xs text-slate-400 mt-1">Vui lòng thử lại với từ khóa khác hoặc xóa bộ lọc</p>
-                                            </div>
-                                        </td>
-                                    </tr>
                                 )}
                             </tbody>
                         </table>
-                    </div>
-
-                    {/* MOBILE LIST VIEW */}
-                    <div className="md:hidden flex-1 overflow-auto custom-scrollbar p-4 space-y-4 bg-slate-50/30" style={{ fontSize: '0.875rem' }}>
-                        {isLoading ? (
-                            [...Array(3)].map((_, i) => (
-                                <div key={i} className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 animate-pulse">
-                                    <div className="flex justify-between items-center mb-3">
-                                        <div className="h-4 bg-slate-100 rounded w-1/3"></div>
-                                        <div className="h-5 bg-slate-100 rounded w-1/4"></div>
-                                    </div>
-                                    <div className="h-6 bg-slate-100 rounded w-3/4 mb-2"></div>
-                                    <div className="h-4 bg-slate-50 rounded w-1/2 mb-3"></div>
-                                    <div className="h-16 bg-slate-50 rounded w-full mb-3"></div>
+                        
+                        {reports.length === 0 && !isLoading && (
+                            <div className="flex flex-col items-center justify-center py-12 text-slate-400">
+                                <div className="bg-slate-50 p-4 rounded-full mb-3">
+                                    <InboxIcon className="h-10 w-10 opacity-30" />
                                 </div>
-                            ))
-                        ) : reports.length > 0 ? (
-                            reports.map((report, index) => (
-                                <div 
-                                    key={report.id} 
-                                    onClick={() => onSelectReport(report)} 
-                                    style={{ animationDelay: `${index * 50}ms` }}
-                                    className="bg-white p-5 rounded-2xl shadow-[0_2px_10px_-3px_rgba(0,0,0,0.05)] border border-slate-100 active:scale-[0.98] transition-all flex flex-col gap-3 animate-fade-in-up ring-1 ring-black/5"
-                                >
-                                    <div className="flex justify-between items-start">
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-[0.65rem] font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded-md border border-slate-200">
-                                                #{report.id.split('-')[1] || report.id}
-                                            </span>
-                                            <span className="text-[0.65rem] font-bold text-slate-400 flex items-center gap-1">
-                                                <CalendarIcon className="w-3 h-3"/> {formatDate(report.ngayPhanAnh)}
-                                            </span>
-                                        </div>
-                                        {getStatusBadge(report.trangThai)}
-                                    </div>
-
-                                    <div>
-                                        <div className="flex items-center gap-2 mb-2 flex-wrap">
-                                            <span className="font-bold text-[#003DA5] bg-blue-50 px-2.5 py-0.5 rounded-md border border-blue-100 text-xs">{report.maSanPham}</span>
-                                            {report.soLo && (
-                                                <span className="font-semibold text-slate-500 text-xs bg-slate-50 px-2 py-0.5 rounded border border-slate-100">Lô: {report.soLo}</span>
-                                            )}
-                                        </div>
-                                        <h3 className="font-bold text-slate-800 text-sm leading-snug line-clamp-2">{report.tenThuongMai}</h3>
-                                    </div>
-
-                                    <div className="text-xs text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-100 italic line-clamp-2 leading-relaxed">
-                                        "{report.noiDungPhanAnh}"
-                                    </div>
-                                    
-                                    <div className="flex items-center justify-end gap-2 border-t border-slate-50 pt-3 mt-1">
-                                        <button 
-                                            onClick={(e) => { e.stopPropagation(); onSelectReport(report); }}
-                                            className="p-2 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-xl transition-colors"
-                                        >
-                                            <EyeIcon className="w-5 h-5" />
-                                        </button>
-                                        {currentUserRole !== 'Kho' && (
-                                            <button 
-                                                onClick={(e) => { e.stopPropagation(); onDuplicate(report); }}
-                                                className="p-2 text-slate-500 bg-slate-50 hover:bg-slate-200 rounded-xl transition-colors"
-                                            >
-                                                <DocumentDuplicateIcon className="w-5 h-5" />
-                                            </button>
-                                        )}
-                                        {([UserRole.Admin, UserRole.KyThuat] as string[]).includes(currentUserRole) && (
-                                            <button 
-                                                onClick={(e) => { e.stopPropagation(); if(window.confirm('Xóa phiếu này?')) onDelete(report.id); }}
-                                                className="p-2 text-red-500 bg-red-50 hover:bg-red-100 rounded-xl transition-colors"
-                                            >
-                                                <TrashIcon className="w-5 h-5" />
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
-                            ))
-                        ) : (
-                            <div className="flex flex-col items-center justify-center py-20 text-slate-400">
-                                <InboxIcon className="h-16 w-16 opacity-20 mb-4" />
-                                <p className="text-sm font-bold">Không tìm thấy dữ liệu.</p>
+                                <p className="text-sm font-bold">Không tìm thấy dữ liệu</p>
+                                <p className="text-xs opacity-70 mt-1">Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm</p>
                             </div>
                         )}
                     </div>
 
-                    {/* PAGINATION */}
-                    <div className="border-t border-slate-100 px-4 py-3 sm:px-6 bg-slate-50/50">
+                    {/* MOBILE LIST VIEW */}
+                    <div className="md:hidden flex-1 overflow-y-auto p-4 custom-scrollbar space-y-3">
+                        {isLoading ? (
+                            [...Array(3)].map((_, i) => (
+                                <div key={i} className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 animate-pulse h-32"></div>
+                            ))
+                        ) : reports.length > 0 ? (
+                            reports.map((report) => (
+                                <div 
+                                    key={report.id}
+                                    onClick={() => onSelectReport(report)}
+                                    className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 active:scale-[0.98] transition-all relative overflow-hidden"
+                                >
+                                    <div className="flex justify-between items-start mb-2">
+                                        <span className="text-[0.6rem] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-lg">{report.id}</span>
+                                        {getStatusBadge(report.trangThai)}
+                                    </div>
+                                    <h3 className="text-sm font-bold text-slate-800 leading-tight mb-1 line-clamp-2">{report.tenThuongMai}</h3>
+                                    <div className="flex items-center gap-2 text-xs text-slate-500 mb-2">
+                                        <span className="font-medium text-[#003DA5]">{report.maSanPham}</span>
+                                        <span>•</span>
+                                        <span>{formatDate(report.ngayPhanAnh)}</span>
+                                    </div>
+                                    {report.loaiLoi && (
+                                        <div className="inline-block text-[0.6rem] font-bold bg-slate-50 text-slate-600 px-2 py-1 rounded border border-slate-100">
+                                            {report.loaiLoi}
+                                        </div>
+                                    )}
+                                </div>
+                            ))
+                        ) : (
+                            <div className="flex flex-col items-center justify-center py-10 text-slate-400">
+                                <InboxIcon className="h-10 w-10 opacity-30 mb-2" />
+                                <p className="text-xs font-bold">Không có dữ liệu</p>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Pagination Footer */}
+                    <div className="p-4 border-t border-slate-200 bg-white z-10 flex-shrink-0">
                         <Pagination 
                             currentPage={currentPage}
                             totalItems={totalReports}

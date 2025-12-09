@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { User, SystemSettings, UserRole } from '../types';
 import { 
@@ -135,19 +134,39 @@ export const Header: React.FC<HeaderProps> = ({
                 </div>
             )}
             
-            <div className="hidden md:flex flex-col justify-center items-start">
-               <span className="font-bold uppercase tracking-tight leading-none text-slate-800 group-hover:text-[#003DA5] transition-colors duration-300" style={{ fontSize: 'var(--header-size, 1.1rem)' }}>
-                 {systemSettings.companyName || 'HỒNG THIỆN MỸ'}
-               </span>
-               <span className="font-bold text-slate-400 uppercase tracking-[0.2em] text-[0.6rem] mt-1 group-hover:text-slate-500 transition-colors">
-                 {systemSettings.appName || 'QUALITY MANAGEMENT SYSTEM'}
-               </span>
+            <div className="hidden md:flex flex-col justify-center">
+               <div className="flex flex-col w-max">
+                   {systemSettings.companyName.includes('HỒNG THIỆN MỸ') ? (
+                       <div className="flex items-center gap-1.5 leading-none whitespace-nowrap" style={{ fontSize: 'var(--header-size, 1.1rem)' }}>
+                           <span className="font-bold uppercase tracking-tight text-[#003DA5]">CÔNG TY CỔ PHẦN VẬT TƯ Y TẾ</span>
+                           <span className="font-bold uppercase tracking-tight text-[#C5003E]">HỒNG THIỆN MỸ</span>
+                       </div>
+                   ) : (
+                       <div className="font-bold uppercase tracking-tight leading-none text-slate-800 group-hover:text-[#003DA5] transition-colors duration-300 whitespace-nowrap" style={{ fontSize: 'var(--header-size, 1.1rem)' }}>
+                         {systemSettings.companyName || 'HỒNG THIỆN MỸ'}
+                       </div>
+                   )}
+                   <div className="w-full mt-1">
+                        <div className="font-bold text-slate-400 uppercase group-hover:text-slate-400 transition-colors">
+                            {systemSettings.appName || 'QUALITY MANAGEMENT SYSTEM'}
+                        </div>
+                   </div>
+               </div>
             </div>
             
             {/* Mobile Branding */}
             <div className="md:hidden flex flex-col justify-center items-start">
-               <span className="font-bold uppercase leading-none text-slate-800 text-sm">HTM JSC</span>
-               <span className="font-bold text-[#003DA5] uppercase tracking-wide text-[0.6rem]">QMS</span>
+               {systemSettings.companyName.includes('HỒNG THIỆN MỸ') ? (
+                   <>
+                       <span className="font-bold uppercase leading-none text-[#003DA5] text-xs">VẬT TƯ</span>
+                       <span className="font-bold text-[#C5003E] uppercase tracking-wide text-xs">HỒNG THIỆN MỸ</span>
+                   </>
+               ) : (
+                   <>
+                       <span className="font-bold uppercase leading-none text-slate-800 text-sm">HTM JSC</span>
+                       <span className="font-bold text-[#003DA5] uppercase tracking-wide text-[0.6rem]">QMS</span>
+                   </>
+               )}
             </div>
 
             {isLoadingReports && (

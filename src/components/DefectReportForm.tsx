@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { DefectReport, UserRole, PermissionField, Product } from '../types';
 import { XIcon, CheckCircleIcon, TagIcon, WrenchIcon, LockClosedIcon, ShieldCheckIcon, ClipboardDocumentListIcon, CalendarIcon, BuildingStoreIcon, PlusIcon, TrashIcon, ArrowUpTrayIcon } from './Icons';
@@ -19,6 +20,44 @@ const getTodayDateString = () => {
     return `${year}-${month}-${day}`;
 }
 
+const compressImage = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (event) => {
+            const img = new Image();
+            img.src = event.target?.result as string;
+            img.onload = () => {
+                const elem = document.createElement('canvas');
+                const maxWidth = 1024; // Max width for reasonable quality but low size
+                const maxHeight = 1024;
+                let width = img.width;
+                let height = img.height;
+
+                if (width > height) {
+                    if (width > maxWidth) {
+                        height *= maxWidth / width;
+                        width = maxWidth;
+                    }
+                } else {
+                    if (height > maxHeight) {
+                        width *= maxHeight / height;
+                        height = maxHeight;
+                    }
+                }
+                elem.width = width;
+                elem.height = height;
+                const ctx = elem.getContext('2d');
+                ctx?.drawImage(img, 0, 0, width, height);
+                // Compress to JPEG at 0.7 quality
+                resolve(elem.toDataURL('image/jpeg', 0.7));
+            };
+            img.onerror = (error) => reject(error);
+        };
+        reader.onerror = (error) => reject(error);
+    });
+};
+
 const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, currentUserRole, editableFields, products }) => {
   const [formData, setFormData] = useState<Omit<DefectReport, 'id'>>({
     ngayTao: new Date().toISOString(),
@@ -28,7 +67,7 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
     soLuongLoi: 0, soLuongDaNhap: 0, soLuongDoi: 0, ngayDoiHang: '',
     nguyenNhan: '', huongKhacPhuc: '', trangThai: 'Mới',
     ngayHoanThanh: '', 
-    loaiLoi: '' as any, // Initial empty state handled in useEffect
+    loaiLoi: '' as any, 
     nhanHang: 'HTM', 
     images: []
   });
@@ -55,7 +94,6 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
   useEffect(() => {
       const handleKeyDown = (e: KeyboardEvent) => {
           if (e.key === 'Escape') {
-              // Only trigger if top modal
               handleCloseAttempt();
           }
           if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
@@ -70,7 +108,6 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
 
   // Auto-set Status to 'Hoàn thành' if sufficient info provided
   useEffect(() => {
-    // Only auto-complete if NOT already completed and has key info
     if (
         formData.trangThai !== 'Hoàn thành' &&
         formData.nguyenNhan && formData.nguyenNhan.trim().length > 5 &&
@@ -121,7 +158,6 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
   const isFieldDisabled = (fieldName: keyof Omit<DefectReport, 'id'>) => {
     if (!initialData) return false; 
     
-    // Allow unlocking product info if it's a new report (including duplicates)
     if (initialData.id?.startsWith('new_')) return false;
 
     if (isProductInfoLocked && ['dongSanPham', 'tenThuongMai', 'nhanHang', 'tenThietBi', 'donViTinh'].includes(fieldName)) return true;
@@ -152,7 +188,6 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
     if (!formData.noiDungPhanAnh?.trim()) newErrors.noiDungPhanAnh = "Nội dung khiếu nại không được để trống";
     if (!formData.loaiLoi) newErrors.loaiLoi = "Vui lòng chọn nguồn gốc lỗi";
     
-    // Strict validation for 'Hoàn thành' status
     if (formData.trangThai === 'Hoàn thành') {
         if (!formData.ngayHoanThanh) newErrors.ngayHoanThanh = "Cần có ngày hoàn thành khi trạng thái là Hoàn thành";
         if (!formData.nguyenNhan || formData.nguyenNhan.trim().length < 5) newErrors.nguyenNhan = "Phải nhập nguyên nhân chi tiết để hoàn thành";
@@ -182,7 +217,6 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
 
     setErrors(prev => {
         if (error) return { ...prev, [name]: error };
-        // Clear error if valid
         const { [name as keyof typeof prev]: _, ...rest } = prev;
         return rest;
     });
@@ -193,13 +227,11 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
       setFormData({
           ...initialData,
           images: initialData.images || [],
-          // Safely handle potentially missing numeric fields from legacy data
           soLuongLoi: initialData.soLuongLoi || 0,
           soLuongDaNhap: initialData.soLuongDaNhap || 0,
           soLuongDoi: initialData.soLuongDoi || 0,
       });
       const product = products.find(p => p.maSanPham.toLowerCase() === initialData.maSanPham.toLowerCase());
-      // Lock if product exists AND not a new copy
       setIsProductInfoLocked(!!product && !initialData.id.startsWith('new_'));
     } else {
       setFormData(prev => ({ 
@@ -221,7 +253,6 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
     setFormData(prev => {
         const newState = { ...prev };
         
-        // --- Product Logic ---
         if (name === 'nhanHang') {
             newState.nhanHang = value as any;
             if (value !== 'Khác') {
@@ -292,11 +323,10 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
             newState.trangThai = value as any;
             if (value === 'Hoàn thành' && !newState.ngayHoanThanh) newState.ngayHoanThanh = getTodayDateString();
         } else {
-            // General Field Handling
             let processedValue: string | number = value;
             if (type === 'number') {
                 if (value === '') {
-                    processedValue = 0; // Default to 0 for empty number fields
+                    processedValue = 0;
                 } else {
                     const parsed = parseFloat(value);
                     processedValue = isNaN(parsed) ? 0 : parsed;
@@ -327,25 +357,21 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
       }
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
       if (!file) return;
 
-      if (file.size > 2 * 1024 * 1024) { 
-          alert("Kích thước ảnh quá lớn (>2MB). Vui lòng chọn ảnh nhỏ hơn.");
-          return;
-      }
-
-      const reader = new FileReader();
-      reader.onloadend = () => {
-          const base64 = reader.result as string;
+      try {
+          const compressedBase64 = await compressImage(file);
           setFormData(prev => ({
               ...prev,
-              images: [...(prev.images || []), base64]
+              images: [...(prev.images || []), compressedBase64]
           }));
           setIsDirty(true);
-      };
-      reader.readAsDataURL(file);
+      } catch (error) {
+          console.error("Error compressing image:", error);
+          alert("Không thể xử lý ảnh. Vui lòng thử ảnh khác.");
+      }
       
       if (fileInputRef.current) fileInputRef.current.value = '';
   };
@@ -566,7 +592,6 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
                                      />
                                  </div>
                                  
-                                 {/* URL Input Alternative */}
                                  <div className="flex items-center gap-2 w-full mt-2">
                                      <input 
                                         type="text" 

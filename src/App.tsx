@@ -448,6 +448,11 @@ export const App: React.FC = () => {
           } else if (filterType === 'defectType' && value) {
               setDefectTypeFilter(value);
               setCurrentView('list');
+          } else if (filterType === 'brand' && value) {
+              setSearchTerm(value);
+              setStatusFilter('All');
+              setDefectTypeFilter('All');
+              setCurrentView('list');
           }
       });
   };
@@ -675,6 +680,7 @@ export const App: React.FC = () => {
                         reports={filteredReports} 
                         onFilterSelect={handleDashboardFilterSelect}
                         onSelectReport={setSelectedReport} 
+                        onOpenAiAnalysis={() => setIsChatOpen(true)}
                     />
                 )}
             </div>

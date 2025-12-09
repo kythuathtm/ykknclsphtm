@@ -11,6 +11,43 @@ interface Props {
   availableRoles: string[]; // Dynamic roles from settings
 }
 
+const compressImage = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (event) => {
+            const img = new Image();
+            img.src = event.target?.result as string;
+            img.onload = () => {
+                const elem = document.createElement('canvas');
+                const maxWidth = 400; // Small size for avatar
+                const maxHeight = 400;
+                let width = img.width;
+                let height = img.height;
+
+                if (width > height) {
+                    if (width > maxWidth) {
+                        height *= maxWidth / width;
+                        width = maxWidth;
+                    }
+                } else {
+                    if (height > maxHeight) {
+                        width *= maxHeight / height;
+                        height = maxHeight;
+                    }
+                }
+                elem.width = width;
+                elem.height = height;
+                const ctx = elem.getContext('2d');
+                ctx?.drawImage(img, 0, 0, width, height);
+                resolve(elem.toDataURL('image/jpeg', 0.7));
+            };
+            img.onerror = (error) => reject(error);
+        };
+        reader.onerror = (error) => reject(error);
+    });
+};
+
 const UserManagementModal: React.FC<Props> = ({ users, onSaveUser, onDeleteUser, onClose, availableRoles = [] }) => {
   const [formData, setFormData] = useState<User>({ username: '', fullName: '', role: UserRole.KyThuat, password: '', avatarUrl: '' });
   const [isEditing, setIsEditing] = useState(false);
@@ -48,20 +85,17 @@ const UserManagementModal: React.FC<Props> = ({ users, onSaveUser, onDeleteUser,
       setIsEditing(false);
   }
 
-  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 500 * 1024) {
-        alert('Kích thước ảnh nên nhỏ hơn 500KB.');
-        return;
+    try {
+        const compressedBase64 = await compressImage(file);
+        setFormData(prev => ({ ...prev, avatarUrl: compressedBase64 }));
+    } catch (e) {
+        console.error("Avatar compression error", e);
+        alert("Lỗi xử lý ảnh.");
     }
-
-    const reader = new FileReader();
-    reader.onloadend = () => {
-        setFormData(prev => ({ ...prev, avatarUrl: reader.result as string }));
-    };
-    reader.readAsDataURL(file);
   };
 
   return (

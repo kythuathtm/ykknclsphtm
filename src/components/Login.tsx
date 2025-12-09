@@ -31,6 +31,10 @@ const Login: React.FC<Props> = ({ onLogin, users, settings }) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    handleLoginProcess();
+  };
+
+  const handleLoginProcess = () => {
     setError('');
     setLoading(true);
 
@@ -55,7 +59,7 @@ const Login: React.FC<Props> = ({ onLogin, users, settings }) => {
             setError('Tên đăng nhập hoặc mật khẩu không chính xác.');
             setLoading(false);
         }
-    }, 800);
+    }, 600);
   };
 
   const renderBackground = () => {
@@ -91,7 +95,7 @@ const Login: React.FC<Props> = ({ onLogin, users, settings }) => {
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden text-slate-800 font-sans selection:bg-[#003DA5] selection:text-white p-4 sm:p-6">
        {renderBackground()}
        
-       <div className={`relative z-10 w-full max-w-[400px] transition-all duration-1000 ease-out transform ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`}>
+       <div className={`relative z-10 w-full max-w-[420px] transition-all duration-1000 ease-out transform ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`}>
         
         {/* Glass Card */}
         <div className="bg-white/80 backdrop-blur-2xl shadow-[0_8px_40px_rgb(0,0,0,0.08)] rounded-[2rem] border border-white/60 p-8 sm:p-10 ring-1 ring-white/60 relative overflow-hidden">
@@ -105,10 +109,23 @@ const Login: React.FC<Props> = ({ onLogin, users, settings }) => {
                         <CompanyLogo className="w-full h-full text-[#003DA5]" />
                     )}
                 </div>
-                <h1 className="text-2xl font-bold text-slate-800 tracking-tight text-center">
-                    {settings.companyName || 'Hồng Thiện Mỹ'}
-                </h1>
-                <p className="text-sm font-bold text-slate-500 mt-1 text-center max-w-[260px] leading-relaxed tracking-wide opacity-80">
+                
+                {settings.companyName.includes('HỒNG THIỆN MỸ') ? (
+                    <div className="text-center">
+                        <h1 className="text-xl font-bold text-[#003DA5] tracking-tight uppercase"> 
+                            CÔNG TY CỔ PHẦN VẬT TƯ Y TẾ
+                        </h1>
+                        <h1 className="text-2xl font-black text-[#C5003E] tracking-tight uppercase mt-1">
+                            HỒNG THIỆN MỸ
+                        </h1>
+                    </div>
+                ) : (
+                    <h1 className="text-2xl font-bold text-slate-800 tracking-tight text-center">
+                        {settings.companyName || 'Hồng Thiện Mỹ'}
+                    </h1>
+                )}
+
+                <p className="text-sm font-bold text-slate-500 mt-2 text-center max-w-[260px] leading-relaxed tracking-wide opacity-80">
                     {settings.appName || 'Quản lý chất lượng sản phẩm'}
                 </p>
             </div>
@@ -127,7 +144,6 @@ const Login: React.FC<Props> = ({ onLogin, users, settings }) => {
                             className="block w-full pl-11 pr-4 py-3.5 bg-white border border-slate-200 rounded-xl text-slate-800 text-sm font-bold placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-[#003DA5] transition-all shadow-sm"
                             placeholder="Tên đăng nhập"
                             autoComplete="username"
-                            required 
                             disabled={loading}
                         />
                     </div>
@@ -143,7 +159,6 @@ const Login: React.FC<Props> = ({ onLogin, users, settings }) => {
                             className="block w-full pl-11 pr-12 py-3.5 bg-white border border-slate-200 rounded-xl text-slate-800 text-sm font-bold placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-[#003DA5] transition-all shadow-sm"
                             placeholder="Mật khẩu"
                             autoComplete="current-password"
-                            required 
                             disabled={loading}
                         />
                         <button 
@@ -159,7 +174,7 @@ const Login: React.FC<Props> = ({ onLogin, users, settings }) => {
                     </div>
                 </div>
 
-                <div className="flex items-center justify-between px-1">
+                <div className="flex items-center justify-start px-1">
                     <label className="flex items-center gap-2.5 cursor-pointer group select-none">
                         <div className={`w-5 h-5 rounded-lg border flex items-center justify-center transition-all shadow-sm ${rememberMe ? 'bg-[#003DA5] border-[#003DA5]' : 'border-slate-300 bg-white group-hover:border-[#003DA5]'}`}>
                             {rememberMe && <svg viewBox="0 0 24 24" fill="none" className="w-3.5 h-3.5 text-white" stroke="currentColor" strokeWidth="3"><path d="M5 13l4 4L19 7" /></svg>}
@@ -189,8 +204,8 @@ const Login: React.FC<Props> = ({ onLogin, users, settings }) => {
                 </button>
             </form>
             
-            <div className="mt-8 text-center animate-fade-in-up" style={{ animationDelay: '300ms' }}>
-                <p className="text-[0.6rem] font-bold text-slate-400 uppercase tracking-[0.2em] opacity-60">
+            <div className="mt-6 text-center animate-fade-in-up" style={{ animationDelay: '400ms' }}>
+                <p className="text-[0.6rem] font-bold text-slate-300 uppercase tracking-[0.2em] hover:text-slate-400 transition-colors cursor-default">
                     © 2025 Internal System
                 </p>
             </div>

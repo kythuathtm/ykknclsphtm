@@ -1,13 +1,14 @@
+
 // Import the functions you need from the SDKs you need
 import * as firebaseApp from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
-import { getFirestore } from "firebase/firestore"; // <-- Thêm dòng này để import Firestore
+import { getFirestore } from "firebase/firestore";
 
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+// Workaround for TypeScript error: Module '"firebase/app"' has no exported member...
+// This allows the code to run with Firebase v9+ even if types are not resolving correctly
+const { initializeApp, getApps, getApp } = firebaseApp as any;
 
 // Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyDeqjEcX4eEvl-2FBhY4mCTx7zmMVl55vE",
   authDomain: "ykkhclsp.firebaseapp.com",
@@ -19,12 +20,11 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-// Fix: Use namespace import and cast to any to resolve "no exported member" error in some environments
-export const app = (firebaseApp as any).initializeApp(firebaseConfig);
+// Check if an app is already initialized to avoid "Firebase: Firebase App named '[DEFAULT]' already exists" error during HMR
+export const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 export const analytics = getAnalytics(app);
 
 // Initialize Cloud Firestore and get a reference to the service
-export const db = getFirestore(app); // <-- Thêm dòng này để kết nối với Firestore
+export const db = getFirestore(app);
 
-// Bây giờ bạn có thể sử dụng biến 'db' để tương tác với cơ sở dữ liệu Firestore của mình
-console.log("Firebase Analytics và Firestore đã được kết nối thành công!", app, analytics, db);
+console.log("Firebase Analytics và Firestore đã được kết nối thành công!");

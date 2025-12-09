@@ -12,6 +12,43 @@ interface Props {
   connectionError?: string;
 }
 
+const compressImage = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (event) => {
+            const img = new Image();
+            img.src = event.target?.result as string;
+            img.onload = () => {
+                const elem = document.createElement('canvas');
+                const maxWidth = 500; // Logo doesn't need to be huge
+                const maxHeight = 500;
+                let width = img.width;
+                let height = img.height;
+
+                if (width > height) {
+                    if (width > maxWidth) {
+                        height *= maxWidth / width;
+                        width = maxWidth;
+                    }
+                } else {
+                    if (height > maxHeight) {
+                        width *= maxHeight / height;
+                        height = maxHeight;
+                    }
+                }
+                elem.width = width;
+                elem.height = height;
+                const ctx = elem.getContext('2d');
+                ctx?.drawImage(img, 0, 0, width, height);
+                resolve(elem.toDataURL('image/png', 0.8));
+            };
+            img.onerror = (error) => reject(error);
+        };
+        reader.onerror = (error) => reject(error);
+    });
+};
+
 const SystemSettingsModal: React.FC<Props> = ({ currentSettings, onSave, onClose, isOffline, connectionError }) => {
   const [settings, setSettings] = useState<SystemSettings>(currentSettings);
   const [activeTab, setActiveTab] = useState<'general' | 'header' | 'list' | 'database'>(isOffline ? 'database' : 'general');
@@ -44,21 +81,17 @@ const SystemSettingsModal: React.FC<Props> = ({ currentSettings, onSave, onClose
       { label: 'Tối đa (24px)', value: '24px' },
   ];
 
-  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 500 * 1024) {
-        alert('Kích thước ảnh logo nên nhỏ hơn 500KB để đảm bảo hiệu suất.');
-        return;
+    try {
+        const compressed = await compressImage(file);
+        setSettings(prev => ({ ...prev, logoUrl: compressed }));
+    } catch (e) {
+        console.error("Logo compression error", e);
+        alert("Lỗi xử lý ảnh.");
     }
-
-    const reader = new FileReader();
-    reader.onloadend = () => {
-        const base64 = reader.result as string;
-        setSettings(prev => ({ ...prev, logoUrl: base64 }));
-    };
-    reader.readAsDataURL(file);
   };
 
   const handleBackgroundTypeChange = (type: 'default' | 'image' | 'color') => {

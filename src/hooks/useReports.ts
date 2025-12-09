@@ -80,22 +80,32 @@ export const useReports = (showToast: (msg: string, type: ToastType) => void) =>
         const { id, ...data } = report;
         firestorePromise = updateDoc(reportRef, cleanData(data));
     } else {
-        // GENERATE NEW ID: YYYY-XXX
-        // Use string splitting to get the year directly from YYYY-MM-DD input to avoid timezone shifts
+        // GENERATE NEW ID: FB-YYYY-XXX
         const year = report.ngayPhanAnh.split('-')[0];
-        const prefix = `${year}-`;
+        const prefix = `FB-${year}-`;
         
-        // Find existing IDs for this year to increment sequence
-        const sequences = reports
-            .filter(r => r.id && r.id.startsWith(prefix))
-            .map(r => {
-                const parts = r.id.split('-');
-                // Check if part[1] is a valid number (XXX)
-                return parts.length === 2 && !isNaN(Number(parts[1])) ? parseInt(parts[1], 10) : 0;
-            });
+        // Calculate max sequence for the year safely using reduce
+        const maxSeq = reports.reduce((max, r) => {
+            if (!r.id) return max;
+            const parts = r.id.split('-');
             
-        const maxSeq = sequences.length > 0 ? Math.max(...sequences) : 0;
+            // Check for new format: FB-YYYY-XXX
+            if (parts.length === 3 && parts[0] === 'FB' && parts[1] === year) {
+                const seq = parseInt(parts[2], 10);
+                return !isNaN(seq) && seq > max ? seq : max;
+            }
+            
+            // Check for legacy format: YYYY-XXX
+            if (parts.length === 2 && parts[0] === year) {
+                const seq = parseInt(parts[1], 10);
+                return !isNaN(seq) && seq > max ? seq : max;
+            }
+            
+            return max;
+        }, 0);
+            
         const nextSeq = maxSeq + 1;
+        
         // Format XXX (e.g., 001, 010, 100)
         const newId = `${prefix}${String(nextSeq).padStart(3, '0')}`;
 
@@ -104,7 +114,7 @@ export const useReports = (showToast: (msg: string, type: ToastType) => void) =>
         
         const { id, ...data } = newReport;
         
-        // Use setDoc to create document with specific ID (YYYY-XXX)
+        // Use setDoc to create document with specific ID
         firestorePromise = setDoc(doc(db, "reports", newId), cleanData(data));
     }
     updateLocal(newReports);
