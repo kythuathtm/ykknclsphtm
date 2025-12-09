@@ -134,7 +134,7 @@ export const Header: React.FC<HeaderProps> = ({
             )}
             
             <div className="hidden md:flex flex-col justify-center items-start">
-               <span className="font-black uppercase tracking-tight leading-none text-slate-800 group-hover:text-[#003DA5] transition-colors duration-300" style={{ fontSize: 'var(--header-size, 1.1rem)' }}>
+               <span className="font-bold uppercase tracking-tight leading-none text-slate-800 group-hover:text-[#003DA5] transition-colors duration-300" style={{ fontSize: 'var(--header-size, 1.1rem)' }}>
                  {systemSettings.companyName || 'HỒNG THIỆN MỸ'}
                </span>
                <span className="font-bold text-slate-400 uppercase tracking-[0.2em] text-[0.6rem] mt-1 group-hover:text-slate-500 transition-colors">
@@ -144,7 +144,7 @@ export const Header: React.FC<HeaderProps> = ({
             
             {/* Mobile Branding */}
             <div className="md:hidden flex flex-col justify-center items-start">
-               <span className="font-black uppercase leading-none text-slate-800 text-sm">HTM JSC</span>
+               <span className="font-bold uppercase leading-none text-slate-800 text-sm">HTM JSC</span>
                <span className="font-bold text-[#003DA5] uppercase tracking-wide text-[0.6rem]">QMS</span>
             </div>
 
@@ -245,7 +245,7 @@ export const Header: React.FC<HeaderProps> = ({
                         <div className={`${dropdownClasses} w-80 sm:w-96 py-0`}>
                             <div className="px-4 py-3 border-b border-slate-100 flex justify-between items-center bg-slate-50/50 backdrop-blur">
                                 <div className="flex items-center gap-2">
-                                    <span className="text-xs font-black text-slate-800 uppercase tracking-wider">Thông báo</span>
+                                    <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">Thông báo</span>
                                     {unreadCount > 0 && <span className="bg-red-100 text-red-600 text-[10px] font-bold px-1.5 py-0.5 rounded-md animate-pulse">{unreadCount} mới</span>}
                                 </div>
                                 <button 
@@ -320,7 +320,7 @@ export const Header: React.FC<HeaderProps> = ({
                         {isDataMenuOpen && (
                             <div className={`${dropdownClasses} w-64`}>
                                 <div className="px-4 py-2 border-b border-slate-100 mb-1">
-                                    <p className="text-[0.65rem] font-extrabold text-slate-400 uppercase tracking-widest">Excel Tools</p>
+                                    <p className="text-[0.65rem] font-bold text-slate-400 uppercase tracking-widest">Excel Tools</p>
                                 </div>
                                 <div className="p-1 space-y-0.5">
                                     <button onClick={() => { onExport(); setIsDataMenuOpen(false); }} className="flex w-full items-center px-3 py-2.5 text-sm font-bold text-slate-700 hover:bg-blue-50 hover:text-[#003DA5] rounded-xl transition-colors text-left group">
@@ -355,7 +355,7 @@ export const Header: React.FC<HeaderProps> = ({
                         {isAdminMenuOpen && (
                             <div className={`${dropdownClasses} w-72`}>
                                 <div className="px-4 py-2 border-b border-slate-100 mb-1 bg-orange-50/30 backdrop-blur-sm">
-                                    <p className="text-[0.65rem] font-extrabold text-orange-600 uppercase tracking-widest flex items-center gap-2">
+                                    <p className="text-[0.65rem] font-bold text-orange-600 uppercase tracking-widest flex items-center gap-2">
                                         <Cog8ToothIcon className="w-3 h-3" /> System Control
                                     </p>
                                 </div>
@@ -414,7 +414,7 @@ export const Header: React.FC<HeaderProps> = ({
                                 </div>
                             )}
                             <div className="min-w-0 flex-1 w-full">
-                                <p className="text-lg font-black text-slate-800 capitalize truncate" title={currentUser.fullName || currentUser.username}>{currentUser.fullName || currentUser.username}</p>
+                                <p className="text-lg font-bold text-slate-800 capitalize truncate" title={currentUser.fullName || currentUser.username}>{currentUser.fullName || currentUser.username}</p>
                                 <p className="text-[0.65rem] font-bold text-blue-600 mt-1 uppercase tracking-wide bg-blue-50 px-3 py-1 rounded-full inline-block border border-blue-100 shadow-sm">{currentUser.role}</p>
                             </div>
                         </div>

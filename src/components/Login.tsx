@@ -105,10 +105,10 @@ const Login: React.FC<Props> = ({ onLogin, users, settings }) => {
                         <CompanyLogo className="w-full h-full text-[#003DA5]" />
                     )}
                 </div>
-                <h1 className="text-2xl font-black text-slate-800 tracking-tight text-center">
+                <h1 className="text-2xl font-bold text-slate-800 tracking-tight text-center">
                     {settings.companyName || 'Hồng Thiện Mỹ'}
                 </h1>
-                <p className="text-sm font-semibold text-slate-500 mt-1 text-center max-w-[260px] leading-relaxed tracking-wide opacity-80">
+                <p className="text-sm font-bold text-slate-500 mt-1 text-center max-w-[260px] leading-relaxed tracking-wide opacity-80">
                     {settings.appName || 'Quản lý chất lượng sản phẩm'}
                 </p>
             </div>
@@ -179,7 +179,7 @@ const Login: React.FC<Props> = ({ onLogin, users, settings }) => {
                 <button 
                     type="submit" 
                     disabled={loading} 
-                    className="w-full py-3.5 rounded-xl bg-[#003DA5] text-white text-sm font-black shadow-lg shadow-blue-900/20 hover:bg-[#002a70] hover:shadow-xl hover:shadow-blue-900/30 hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center uppercase tracking-widest active:scale-[0.98] active:translate-y-0 relative overflow-hidden group"
+                    className="w-full py-3.5 rounded-xl bg-[#003DA5] text-white text-sm font-bold shadow-lg shadow-blue-900/20 hover:bg-[#002a70] hover:shadow-xl hover:shadow-blue-900/30 hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center uppercase tracking-widest active:scale-[0.98] active:translate-y-0 relative overflow-hidden group"
                 >
                     <span className="relative z-10 flex items-center gap-2">
                         {loading ? 'Đang xử lý...' : 'Đăng Nhập'}

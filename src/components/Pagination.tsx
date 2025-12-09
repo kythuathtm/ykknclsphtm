@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { ChevronLeftIcon, ChevronRightIcon } from './Icons';
 
@@ -92,7 +93,7 @@ const Pagination: React.FC<PaginationProps> = ({ currentPage, totalItems, itemsP
       {/* Left Side: Info & Page Size */}
       <div className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-start">
         <p className="text-sm text-slate-500">
-          <span className="font-semibold text-slate-700">{startItem}-{endItem}</span> trong <span className="font-bold text-slate-800">{totalItems}</span> kết quả
+          <span className="font-bold text-slate-700">{startItem}-{endItem}</span> trong <span className="font-bold text-slate-800">{totalItems}</span> kết quả
         </p>
         
         <div className="flex items-center gap-2 bg-slate-100 rounded-lg p-1 pl-3 border border-slate-200">

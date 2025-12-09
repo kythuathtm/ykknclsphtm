@@ -192,7 +192,7 @@ const KpiCard = ({ title, value, subValue, trend, icon, colorHex, onClick, trend
                 
                 <div className="mb-6 pl-1">
                     <h3 
-                        className="text-[3.25rem] leading-none font-black text-slate-800 tracking-tighter tabular-nums transition-all duration-300 origin-left"
+                        className="text-[3.25rem] leading-none font-bold text-slate-800 tracking-tighter tabular-nums transition-all duration-300 origin-left"
                     >
                         <CountUp value={value} />
                     </h3>
@@ -207,7 +207,7 @@ const KpiCard = ({ title, value, subValue, trend, icon, colorHex, onClick, trend
                             </div>
                         )}
                         {subValue && (
-                            <p className="text-xs font-semibold text-slate-400 truncate" title={subValue}>
+                            <p className="text-xs font-bold text-slate-400 truncate" title={subValue}>
                                 {subValue}
                             </p>
                         )}
@@ -282,10 +282,10 @@ const DonutChart = ({ data, colors, centerLabel, onClickSlice }: any) => {
                 </svg>
                 
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                    <span className="text-3xl font-black text-slate-800 tracking-tight tabular-nums transition-all duration-300 transform scale-100">
+                    <span className="text-3xl font-bold text-slate-800 tracking-tight tabular-nums transition-all duration-300 transform scale-100">
                         {hoveredSlice ? activeItem.value.toLocaleString() : <CountUp value={activeItem.value} />}
                     </span>
-                    <span className="text-[0.65rem] uppercase font-bold text-slate-400 tracking-widest px-2 text-center line-clamp-1 mt-1 max-w-[120px]">
+                    <span className="text-[0.65rem] uppercase font-bold text-slate-400 font-bold tracking-widest px-2 text-center line-clamp-1 mt-1 max-w-[120px]">
                         {activeItem.label}
                     </span>
                 </div>
@@ -305,7 +305,7 @@ const DonutChart = ({ data, colors, centerLabel, onClickSlice }: any) => {
                             <span className="w-3 h-3 rounded-full shadow-sm" style={{ backgroundColor: colors[index % colors.length] }}></span>
                             <span className={`font-bold transition-colors truncate max-w-[100px] ${hoveredSlice?.label === item.label ? 'text-slate-900' : 'text-slate-500'}`}>{item.label}</span>
                         </div>
-                        <span className="font-black text-slate-700 ml-2 tabular-nums opacity-80">{((item.value / total) * 100).toFixed(0)}%</span>
+                        <span className="font-bold text-slate-700 ml-2 tabular-nums opacity-80">{((item.value / total) * 100).toFixed(0)}%</span>
                     </div>
                 ))}
             </div>
@@ -396,7 +396,7 @@ const TrendChart = ({ data, label, color = BRAND.PRIMARY }: any) => {
                     <div className="bg-white/95 backdrop-blur-md border border-slate-100 text-slate-800 p-3 rounded-xl shadow-xl flex flex-col min-w-[90px] ring-1 ring-black/5 transform -translate-y-4">
                         <span className="font-bold text-[0.625rem] text-slate-400 uppercase tracking-widest mb-0.5">Tháng {data[hoverIndex].month}</span>
                         <div className="flex items-baseline gap-1">
-                            <span className="text-xl font-black leading-none tracking-tight" style={{ color: color }}>
+                            <span className="text-xl font-bold leading-none tracking-tight" style={{ color: color }}>
                                 {data[hoverIndex].count.toLocaleString('en-US', { maximumFractionDigits: 1 })}
                             </span>
                             <span className="text-[0.625rem] font-bold text-slate-500">{label}</span>
@@ -508,15 +508,15 @@ const ParetoChart = ({ data, onSelect }: { data: any[], onSelect: (code: string)
                 <div 
                     className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white/95 backdrop-blur-xl border border-white/60 text-slate-800 p-4 rounded-2xl shadow-2xl z-30 pointer-events-none min-w-[220px] animate-fade-in-up"
                 >
-                    <div className="font-black text-slate-800 mb-3 text-sm border-b border-slate-100 pb-2 truncate">{data[hoverIndex].name}</div>
+                    <div className="font-bold text-slate-800 mb-3 text-sm border-b border-slate-100 pb-2 truncate">{data[hoverIndex].name}</div>
                     <div className="space-y-2 text-xs">
                         <div className="flex justify-between items-center">
                             <span className="text-slate-500 font-bold">Số lượng lỗi</span>
-                            <span className="font-black text-rose-600 bg-rose-50 px-2 py-0.5 rounded-lg border border-rose-100">{data[hoverIndex].defect}</span>
+                            <span className="font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-lg border border-rose-100">{data[hoverIndex].defect}</span>
                         </div>
                         <div className="flex justify-between items-center">
                             <span className="text-slate-500 font-bold">Tích lũy</span>
-                            <span className="font-black text-amber-600 bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-100">{data[hoverIndex].cumPercent.toFixed(1)}%</span>
+                            <span className="font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-100">{data[hoverIndex].cumPercent.toFixed(1)}%</span>
                         </div>
                     </div>
                 </div>
@@ -785,10 +785,10 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
             
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                    <h2 className="text-3xl font-black text-slate-800 tracking-tight animate-fade-in-up">
+                    <h2 className="text-3xl font-bold text-slate-800 tracking-tight animate-fade-in-up">
                         {viewMode === 'service' ? 'Tổng quan Dịch vụ' : 'Chất lượng Sản xuất'}
                     </h2>
-                    <p className="text-sm text-slate-500 font-medium mt-1 flex items-center gap-2 animate-fade-in-up" style={{ animationDelay: '100ms' }}>
+                    <p className="text-sm text-slate-500 font-bold mt-1 flex items-center gap-2 animate-fade-in-up" style={{ animationDelay: '100ms' }}>
                         <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]"></span>
                         Cập nhật theo thời gian thực
                     </p>
@@ -855,7 +855,7 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
                         <div className="bg-white p-7 rounded-3xl border border-slate-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] transition-all duration-500 animate-fade-in-up hover:shadow-lg" style={{ animationDelay: '400ms' }}>
                             <div className="flex items-center gap-3 mb-8">
                                 <div className="p-2.5 bg-blue-50 text-blue-600 rounded-2xl"><TagIcon className="w-5 h-5"/></div>
-                                <h3 className="text-lg font-black text-slate-800 uppercase tracking-tight">Thống kê Nhãn hàng</h3>
+                                <h3 className="text-lg font-bold text-slate-800 uppercase tracking-tight">Thống kê Nhãn hàng</h3>
                             </div>
                             <div className="space-y-5">
                                 {['HTM', 'VMA'].map(brand => {
@@ -867,21 +867,21 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
                                             <div className="flex justify-between items-center mb-4 relative z-10">
                                                 <div className="flex items-center gap-3">
                                                     <span className="w-3 h-3 rounded-full shadow-sm" style={{ backgroundColor: color }}></span>
-                                                    <span className="font-black text-xl text-slate-800">{brand}</span>
+                                                    <span className="font-bold text-xl text-slate-800">{brand}</span>
                                                 </div>
-                                                <span className="text-xs font-black bg-white px-3 py-1.5 rounded-xl text-slate-600 shadow-sm">{pct.toFixed(0)}%</span>
+                                                <span className="text-xs font-bold bg-white px-3 py-1.5 rounded-xl text-slate-600 shadow-sm">{pct.toFixed(0)}%</span>
                                             </div>
                                             <div className="w-full h-2.5 bg-white rounded-full mb-5 overflow-hidden relative z-10 ring-1 ring-slate-100">
                                                 <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${pct}%`, backgroundColor: color }}></div>
                                             </div>
                                             <div className="grid grid-cols-2 gap-4 relative z-10">
                                                 <div className="text-center">
-                                                    <span className="block text-[0.625rem] text-slate-400 font-extrabold uppercase tracking-wide">Phiếu</span>
-                                                    <span className="block text-xl font-black text-slate-700 mt-1"><CountUp value={bStats.t} /></span>
+                                                    <span className="block text-[0.625rem] text-slate-400 font-bold uppercase tracking-wide">Phiếu</span>
+                                                    <span className="block text-xl font-bold text-slate-700 mt-1"><CountUp value={bStats.t} /></span>
                                                 </div>
                                                 <div className="text-center">
-                                                    <span className="block text-[0.625rem] text-slate-400 font-extrabold uppercase tracking-wide">SKU Lỗi</span>
-                                                    <span className="block text-xl font-black text-slate-700 mt-1"><CountUp value={bStats.skus.size} /></span>
+                                                    <span className="block text-[0.625rem] text-slate-400 font-bold uppercase tracking-wide">SKU Lỗi</span>
+                                                    <span className="block text-xl font-bold text-slate-700 mt-1"><CountUp value={bStats.skus.size} /></span>
                                                 </div>
                                             </div>
                                             <div className="absolute -right-6 -bottom-6 w-32 h-32 rounded-full opacity-[0.06] blur-2xl group-hover:scale-125 transition-transform duration-700" style={{ backgroundColor: color }}></div>
@@ -894,7 +894,7 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
                         <div className="bg-white p-7 rounded-3xl border border-slate-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] transition-all duration-500 animate-fade-in-up hover:shadow-lg flex flex-col" style={{ animationDelay: '500ms' }}>
                             <div className="flex items-center gap-3 mb-8">
                                 <div className="p-2.5 bg-amber-50 text-amber-600 rounded-2xl"><FunnelIcon className="w-5 h-5"/></div>
-                                <h3 className="text-lg font-black text-slate-800 uppercase tracking-tight">Tiến độ xử lý</h3>
+                                <h3 className="text-lg font-bold text-slate-800 uppercase tracking-tight">Tiến độ xử lý</h3>
                             </div>
                             <div className="flex-1 flex items-center justify-center min-h-[240px]">
                                 <DonutChart 
@@ -909,12 +909,12 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
                         <div className="bg-white p-7 rounded-3xl border border-slate-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] transition-all duration-500 animate-fade-in-up hover:shadow-lg" style={{ animationDelay: '600ms' }}>
                             <div className="flex items-center gap-3 mb-8">
                                 <div className="p-2.5 bg-rose-50 text-rose-600 rounded-2xl"><ShieldCheckIcon className="w-5 h-5"/></div>
-                                <h3 className="text-lg font-black text-slate-800 uppercase tracking-tight">Top Sự cố (Tần suất)</h3>
+                                <h3 className="text-lg font-bold text-slate-800 uppercase tracking-tight">Top Sự cố (Tần suất)</h3>
                             </div>
                             <div className="space-y-4">
                                 {stats.topProductsByTicket.map((p, idx) => (
                                     <div key={idx} onClick={() => onFilterSelect('search', p.code)} className="flex items-center gap-4 cursor-pointer group p-3 hover:bg-slate-50 rounded-2xl transition-all border border-transparent hover:border-slate-100 hover:shadow-sm">
-                                        <div className={`w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-xl text-sm font-black shadow-sm transition-transform group-hover:scale-110 ${idx === 0 ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-500'}`}>
+                                        <div className={`w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-xl text-sm font-bold shadow-sm transition-transform group-hover:scale-110 ${idx === 0 ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-500'}`}>
                                             {idx+1}
                                         </div>
                                         <div className="flex-1 min-w-0">
@@ -937,7 +937,7 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
                             <div className="flex items-center gap-3 mb-8">
                                 <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-2xl"><ClockIcon className="w-5 h-5"/></div>
                                 <div>
-                                    <h3 className="text-lg font-black text-slate-800 uppercase tracking-tight">Xu hướng khiếu nại</h3>
+                                    <h3 className="text-lg font-bold text-slate-800 uppercase tracking-tight">Xu hướng khiếu nại</h3>
                                     <p className="text-xs font-bold text-slate-400 mt-0.5">Số lượng phiếu theo tháng</p>
                                 </div>
                             </div>
@@ -946,7 +946,7 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
                         <div className="bg-white p-7 rounded-3xl border border-slate-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] transition-all duration-500 animate-fade-in-up flex flex-col hover:shadow-lg" style={{ animationDelay: '800ms' }}>
                             <div className="flex items-center gap-3 mb-6">
                                 <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-2xl"><SparklesIcon className="w-5 h-5"/></div>
-                                <h3 className="text-lg font-black text-slate-800 uppercase tracking-tight">Hoạt động mới</h3>
+                                <h3 className="text-lg font-bold text-slate-800 uppercase tracking-tight">Hoạt động mới</h3>
                             </div>
                             <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 -mr-2"><RecentActivityList reports={reports} onSelect={onSelectReport} /></div>
                         </div>
@@ -960,7 +960,7 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
                                 <div className="flex items-center gap-3">
                                     <div className="p-2.5 bg-rose-50 text-rose-600 rounded-2xl"><ClockIcon className="w-5 h-5"/></div>
                                     <div>
-                                        <h3 className="text-lg font-black text-slate-800 uppercase tracking-tight">Xu hướng Số lượng</h3>
+                                        <h3 className="text-lg font-bold text-slate-800 uppercase tracking-tight">Xu hướng Số lượng</h3>
                                         <p className="text-xs font-bold text-slate-400 mt-0.5">Biến động sản phẩm lỗi/đổi</p>
                                     </div>
                                 </div>
@@ -986,7 +986,7 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
                         <div className="bg-white p-7 rounded-3xl border border-slate-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] transition-all duration-500 animate-fade-in-up flex flex-col hover:shadow-lg" style={{ animationDelay: '500ms' }}>
                             <div className="flex items-center gap-3 mb-8">
                                 <div className="p-2.5 bg-orange-50 text-orange-600 rounded-2xl"><TableCellsIcon className="w-5 h-5"/></div>
-                                <h3 className="text-lg font-black text-slate-800 uppercase tracking-tight">Phân loại Nguyên nhân</h3>
+                                <h3 className="text-lg font-bold text-slate-800 uppercase tracking-tight">Phân loại Nguyên nhân</h3>
                             </div>
                             <div className="flex-1 flex items-center justify-center min-h-[300px]">
                                 <DonutChart 
@@ -1004,7 +1004,7 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
                             <div className="flex items-center gap-3 mb-8">
                                 <div className="p-2.5 bg-violet-50 text-violet-600 rounded-2xl"><ChartPieIcon className="w-5 h-5"/></div>
                                 <div>
-                                    <h3 className="text-lg font-black text-slate-800 uppercase tracking-tight">Biểu đồ Pareto (80/20)</h3>
+                                    <h3 className="text-lg font-bold text-slate-800 uppercase tracking-tight">Biểu đồ Pareto (80/20)</h3>
                                     <p className="text-xs font-bold text-slate-400 mt-0.5">Top sản phẩm đóng góp nhiều nhất vào tổng lỗi</p>
                                 </div>
                             </div>
@@ -1016,7 +1016,7 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
                         <div className="bg-white p-7 rounded-3xl border border-slate-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] transition-all duration-500 animate-fade-in-up hover:shadow-lg" style={{ animationDelay: '700ms' }}>
                             <div className="flex items-center gap-3 mb-8">
                                 <div className="p-2.5 bg-blue-50 text-blue-600 rounded-2xl"><TagIcon className="w-5 h-5"/></div>
-                                <h3 className="text-lg font-black text-slate-800 uppercase tracking-tight">Thống kê Nhãn hàng</h3>
+                                <h3 className="text-lg font-bold text-slate-800 uppercase tracking-tight">Thống kê Nhãn hàng</h3>
                             </div>
                             <div className="space-y-5">
                                 {['HTM', 'VMA'].map(brand => {
@@ -1029,21 +1029,21 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
                                             <div className="flex justify-between items-center mb-4 relative z-10">
                                                 <div className="flex items-center gap-3">
                                                     <span className="w-3 h-3 rounded-full shadow-sm" style={{ backgroundColor: color }}></span>
-                                                    <span className="font-black text-xl text-slate-800">{brand}</span>
+                                                    <span className="font-bold text-xl text-slate-800">{brand}</span>
                                                 </div>
-                                                <span className="text-xs font-black bg-white px-3 py-1.5 rounded-xl text-slate-600 shadow-sm">{pct.toFixed(0)}%</span>
+                                                <span className="text-xs font-bold bg-white px-3 py-1.5 rounded-xl text-slate-600 shadow-sm">{pct.toFixed(0)}%</span>
                                             </div>
                                             <div className="w-full h-2.5 bg-white rounded-full mb-5 overflow-hidden relative z-10 ring-1 ring-slate-100">
                                                 <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${pct}%`, backgroundColor: color }}></div>
                                             </div>
                                             <div className="grid grid-cols-2 gap-4 relative z-10">
                                                 <div className="text-center">
-                                                    <span className="block text-[0.625rem] text-slate-400 font-extrabold uppercase tracking-wide">Lỗi</span>
-                                                    <span className="block text-xl font-black text-slate-700 mt-1"><CountUp value={bStats.q} /></span>
+                                                    <span className="block text-[0.625rem] text-slate-400 font-bold uppercase tracking-wide">Lỗi</span>
+                                                    <span className="block text-xl font-bold text-slate-700 mt-1"><CountUp value={bStats.q} /></span>
                                                 </div>
                                                 <div className="text-center">
-                                                    <span className="block text-[0.625rem] text-slate-400 font-extrabold uppercase tracking-wide">Đổi</span>
-                                                    <span className="block text-xl font-black text-slate-700 mt-1"><CountUp value={bStats.e} /></span>
+                                                    <span className="block text-[0.625rem] text-slate-400 font-bold uppercase tracking-wide">Đổi</span>
+                                                    <span className="block text-xl font-bold text-slate-700 mt-1"><CountUp value={bStats.e} /></span>
                                                 </div>
                                             </div>
                                             <div className="absolute -right-6 -bottom-6 w-32 h-32 rounded-full opacity-[0.06] blur-2xl group-hover:scale-125 transition-transform duration-700" style={{ backgroundColor: color }}></div>

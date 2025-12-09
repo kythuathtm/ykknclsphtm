@@ -232,7 +232,7 @@ const UserManagementModal: React.FC<Props> = ({ users, onSaveUser, onDeleteUser,
                                 )}
                             </div>
                         </td>
-                        <td className="px-4 py-3 whitespace-nowrap font-semibold text-slate-800" style={{ fontSize: 'inherit' }}>{user.username}</td>
+                        <td className="px-4 py-3 whitespace-nowrap font-bold text-slate-800" style={{ fontSize: 'inherit' }}>{user.username}</td>
                         <td className="px-4 py-3 whitespace-nowrap font-medium text-slate-700" style={{ fontSize: 'inherit' }}>{user.fullName || '-'}</td>
                         <td className="px-4 py-3 whitespace-nowrap font-normal text-slate-400 tracking-widest font-sans" style={{ fontSize: 'inherit' }}>******</td>
                         <td className="px-4 py-3 whitespace-nowrap font-medium" style={{ fontSize: 'inherit' }}>

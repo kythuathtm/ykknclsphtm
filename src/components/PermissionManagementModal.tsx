@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { UserRole, RoleConfig, RoleSettings, PermissionField } from '../types';
 import { XIcon, CheckCircleIcon, PlusIcon, TrashIcon, PencilIcon } from './Icons';
@@ -352,7 +353,7 @@ const PermissionManagementModal: React.FC<Props> = ({ roleSettings, onSave, onRe
                                                     disabled={isAdmin}
                                                     className="rounded border-slate-300 accent-[#003DA5] cursor-pointer shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 disabled:opacity-50"
                                                 />
-                                                <span className="ml-2 font-semibold text-slate-700" style={{ fontSize: '0.85em' }}>Tất cả</span>
+                                                <span className="ml-2 font-bold text-slate-700" style={{ fontSize: '0.85em' }}>Tất cả</span>
                                             </label>
                                             
                                             <div className={`grid grid-cols-1 gap-1 mt-1 transition-opacity ${config.viewableDefectTypes.includes('All') ? 'opacity-50 pointer-events-none' : ''}`}>

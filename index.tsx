@@ -37,7 +37,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
             <h1 className="text-xl font-bold text-slate-900 mb-2">Đã xảy ra lỗi hệ thống</h1>
             <p className="text-slate-500 mb-6 text-sm">Hệ thống gặp sự cố không mong muốn. Vui lòng tải lại trang.</p>
             <div className="bg-slate-100 p-3 rounded-lg text-left mb-6 overflow-auto max-h-32">
-                <code className="text-xs text-red-500 font-mono break-all">
+                <code className="text-xs text-red-500 font-medium break-all">
                     {this.state.error?.toString() || 'Unknown Error'}
                 </code>
             </div>
