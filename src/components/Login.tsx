@@ -228,7 +228,7 @@ const Login: React.FC<Props> = ({ onLogin, users, settings }) => {
                 <button
                     type="submit"
                     disabled={loading}
-                    className="w-full flex justify-center py-4 px-4 border border-transparent rounded-2xl shadow-xl shadow-blue-900/20 text-sm font-bold text-white bg-gradient-to-r from-[#003DA5] to-blue-600 hover:to-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-500/30 transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed mt-4 relative overflow-hidden group/btn hover:shadow-blue-900/40"
+                    className="w-full flex justify-center py-4 px-4 border border-transparent rounded-2xl shadow-xl shadow-blue-900/20 text-sm font-bold text-white bg-gradient-to-r from-[#003DA5] to-blue-600 hover:from-red-600 hover:to-red-700 focus:outline-none focus:ring-4 focus:ring-red-500/30 transition-all duration-300 active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed mt-4 relative overflow-hidden group/btn hover:shadow-red-900/40"
                 >
                     {/* Shiny Effect Overlay */}
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-[100%] group-hover/btn:translate-x-[100%] transition-transform duration-1000 ease-in-out skew-x-12"></div>
