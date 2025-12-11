@@ -414,7 +414,7 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onUpdate, onDelet
       {/* Main Content Area */}
       <div className="flex-1 overflow-y-auto p-0 sm:p-0 custom-scrollbar pb-24 sm:max-h-[calc(90vh-4rem)]" ref={componentRef}>
          
-         {/* --- PRINT HEADER (Hidden by default, shown on print) --- */}
+         {/* --- PRINT HEADER (Hidden normally, shown on print) --- */}
          <div className="hidden print:block mb-6 border-b-2 border-black pb-4">
              <div className="flex justify-between items-start">
                  <div>
