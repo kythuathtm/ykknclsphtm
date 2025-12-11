@@ -226,6 +226,17 @@ export const App: React.FC = () => {
       return Object.keys(roleSettings);
   }, [roleSettings]);
 
+  // AUTO-REDIRECT TO DASHBOARD EFFECT
+  useEffect(() => {
+      if (currentUser) {
+          if (canViewDashboard) {
+              setCurrentView('dashboard');
+          } else {
+              setCurrentView('list');
+          }
+      }
+  }, [currentUser, canViewDashboard]);
+
   // --- FILTER LOGIC SEPARATION ---
 
   // 1. Dashboard Reports: Only affected by Time Filters (Year, Date) and User Permissions
