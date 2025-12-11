@@ -60,6 +60,17 @@ const Toast: React.FC<ToastProps> = ({ message, type, onClose }) => {
 // Safe XLSX access
 const xlsxLib = (XLSX as any).default ?? XLSX;
 
+// --- Helper for date filtering ---
+const getProcessingDays = (startDate: string, endDate?: string) => {
+    if (!startDate) return 0;
+    try {
+        const start = new Date(startDate);
+        const end = endDate ? new Date(endDate) : new Date();
+        const diffTime = Math.abs(end.getTime() - start.getTime());
+        return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    } catch { return 0; }
+};
+
 // --- Main App Component ---
 
 export const App: React.FC = () => {
@@ -104,6 +115,9 @@ export const App: React.FC = () => {
   const currentYear = new Date().getFullYear().toString();
   const [yearFilter, setYearFilter] = useState(currentYear); 
   const [dateFilter, setDateFilter] = useState({ start: '', end: '' });
+  
+  // New Overdue Filter State
+  const [isOverdueFilter, setIsOverdueFilter] = useState(false);
   
   // Sorting State
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' }>({ 
@@ -221,8 +235,19 @@ export const App: React.FC = () => {
     // Role-based permission filter
     if (currentUser) {
         const config = roleSettings[currentUser.role];
-        if (config && !config.viewableDefectTypes.includes('All')) {
-            result = result.filter(r => config.viewableDefectTypes.includes(r.loaiLoi));
+        
+        // FAIL CLOSED: If config doesn't exist for the role, assume NO PERMISSIONS
+        if (!config) {
+            result = [];
+        }
+        // If config exists, check if 'All' is NOT present. If it's not present, we must filter.
+        else if (!config.viewableDefectTypes.includes('All')) {
+            result = result.filter(r => {
+                // Keep reports that have a type matching the allowed types
+                // ALSO keep reports with empty/undefined type if they are 'Mới' so users can triage them (optional business rule, keeping it strict for now as per request)
+                // Strict: Only show if type matches exactly.
+                return config.viewableDefectTypes.includes(r.loaiLoi);
+            });
         }
     }
 
@@ -278,6 +303,14 @@ export const App: React.FC = () => {
         result = result.filter((r) => r.loaiLoi === defectTypeFilter);
     }
 
+    // Overdue Filter
+    if (isOverdueFilter) {
+        result = result.filter(r => {
+            if (r.trangThai === 'Hoàn thành') return false;
+            return getProcessingDays(r.ngayPhanAnh, r.ngayHoanThanh) > 7;
+        });
+    }
+
     // Sorting Logic
     if (sortConfig.key) {
         result.sort((a, b) => {
@@ -299,7 +332,7 @@ export const App: React.FC = () => {
     }
 
     return result;
-  }, [dashboardReports, searchTerm, statusFilter, defectTypeFilter, sortConfig]);
+  }, [dashboardReports, searchTerm, statusFilter, defectTypeFilter, sortConfig, isOverdueFilter]);
 
   const paginatedReports = useMemo(() => {
       const start = (currentPage - 1) * itemsPerPage;
@@ -340,7 +373,7 @@ export const App: React.FC = () => {
   // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, statusFilter, defectTypeFilter, yearFilter, dateFilter]);
+  }, [searchTerm, statusFilter, defectTypeFilter, yearFilter, dateFilter, isOverdueFilter]);
 
   // Handlers
   const handleLogin = async (user: User) => {
@@ -372,6 +405,7 @@ export const App: React.FC = () => {
       setSearchTerm('');
       setStatusFilter('All');
       setDefectTypeFilter('All');
+      setIsOverdueFilter(false);
       setYearFilter(new Date().getFullYear().toString());
       setDateFilter({ start: '', end: '' });
       setSortConfig({ key: 'ngayPhanAnh', direction: 'desc' });
@@ -451,6 +485,7 @@ export const App: React.FC = () => {
   const handleDefectTypeFilterChange = useCallback((type: string) => startTransition(() => setDefectTypeFilter(type)), []);
   const handleYearFilterChange = useCallback((year: string) => startTransition(() => setYearFilter(year)), []);
   const handleDateFilterChange = useCallback((dates: {start: string, end: string}) => startTransition(() => setDateFilter(dates)), []);
+  const handleOverdueFilterChange = useCallback((isOverdue: boolean) => startTransition(() => setIsOverdueFilter(isOverdue)), []);
   
   const handleSort = useCallback((key: string) => {
       setSortConfig(current => ({
@@ -479,6 +514,7 @@ export const App: React.FC = () => {
                   setStatusFilter('All');
                   setDefectTypeFilter('All');
                   setSearchTerm('');
+                  setIsOverdueFilter(false);
                   setYearFilter(year.toString());
                   setCurrentView('list');
               }
@@ -486,25 +522,30 @@ export const App: React.FC = () => {
               setSearchTerm(value);
               setStatusFilter('All');
               setDefectTypeFilter('All');
+              setIsOverdueFilter(false);
               setCurrentView('list');
           } else if (filterType === 'all') {
               setStatusFilter('All');
               setDefectTypeFilter('All');
               setSearchTerm('');
+              setIsOverdueFilter(false);
               setCurrentView('list');
           } else if (filterType === 'status' && value) {
               setStatusFilter(value);
               setSearchTerm(''); 
+              setIsOverdueFilter(false);
               setCurrentView('list');
           } else if (filterType === 'defectType' && value) {
               setDefectTypeFilter(value);
               setStatusFilter('All');
               setSearchTerm('');
+              setIsOverdueFilter(false);
               setCurrentView('list');
           } else if (filterType === 'brand' && value) {
               setSearchTerm(value);
               setStatusFilter('All');
               setDefectTypeFilter('All');
+              setIsOverdueFilter(false);
               setCurrentView('list');
           }
       });
@@ -715,12 +756,13 @@ export const App: React.FC = () => {
                         onDelete={handleDeleteReportWrapper}
                         currentUserRole={currentUser.role}
                         currentUsername={currentUser.username} // Pass username for storage key
-                        filters={{ searchTerm, statusFilter, defectTypeFilter, yearFilter, dateFilter }}
+                        filters={{ searchTerm, statusFilter, defectTypeFilter, yearFilter, dateFilter, isOverdue: isOverdueFilter }}
                         onSearchTermChange={handleSearchTermChange}
                         onStatusFilterChange={handleStatusFilterChange}
                         onDefectTypeFilterChange={handleDefectTypeFilterChange}
                         onYearFilterChange={handleYearFilterChange}
                         onDateFilterChange={handleDateFilterChange}
+                        onOverdueFilterChange={handleOverdueFilterChange}
                         summaryStats={summaryStats}
                         isLoading={isPending}
                         onExport={handleExportData}

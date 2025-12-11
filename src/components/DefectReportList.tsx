@@ -44,6 +44,7 @@ interface FilterState {
     defectTypeFilter: string;
     yearFilter: string;
     dateFilter: { start: string, end: string };
+    isOverdue?: boolean; // Added for overdue tracking
 }
 
 interface DefectReportListProps {
@@ -64,6 +65,7 @@ interface DefectReportListProps {
   onDefectTypeFilterChange: (type: string) => void;
   onYearFilterChange: (year: string) => void;
   onDateFilterChange: (range: { start: string, end: string }) => void;
+  onOverdueFilterChange?: (isOverdue: boolean) => void; // New prop handler
   summaryStats: any;
   isLoading: boolean;
   onExport: () => void;
@@ -254,6 +256,7 @@ const DefectReportList: React.FC<DefectReportListProps> = ({
   onDefectTypeFilterChange,
   onYearFilterChange,
   onDateFilterChange,
+  onOverdueFilterChange,
   summaryStats,
   isLoading,
   onExport,
@@ -516,6 +519,21 @@ const DefectReportList: React.FC<DefectReportListProps> = ({
                             </div>
 
                             <div className="flex gap-2 w-full sm:w-auto">
+                                {/* Overdue Filter Button */}
+                                {onOverdueFilterChange && (
+                                    <button 
+                                        onClick={() => onOverdueFilterChange(!filters.isOverdue)}
+                                        className={`w-10 h-10 flex items-center justify-center rounded-xl transition-all duration-200 border ${
+                                            filters.isOverdue 
+                                            ? 'bg-red-500 border-red-500 text-white shadow-md animate-pulse' 
+                                            : 'bg-white/80 border-slate-200 text-slate-500 hover:text-red-500 hover:border-red-300 shadow-sm backdrop-blur-sm'
+                                        }`}
+                                        title="Lọc phiếu quá hạn (> 7 ngày)"
+                                    >
+                                        <ExclamationCircleIcon className="h-5 w-5" />
+                                    </button>
+                                )}
+
                                 <div className="relative">
                                     <button 
                                         onClick={() => setShowDateFilter(!showDateFilter)}

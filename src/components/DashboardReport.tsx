@@ -14,7 +14,11 @@ import {
     CalendarIcon,
     ArrowRightOnRectangleIcon,
     ExclamationCircleIcon,
-    ArrowUpIcon
+    ArrowUpIcon,
+    UserIcon,
+    PencilIcon,
+    ChatBubbleLeftIcon,
+    PlusIcon
 } from './Icons';
 
 interface Props {
@@ -303,6 +307,19 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
         const days = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
         return `${days[date.getDay()]}, ngày ${date.getDate()} tháng ${date.getMonth() + 1} năm ${date.getFullYear()}`;
     };
+
+    // Calculate recent activity
+    const recentActivity = useMemo(() => {
+        return reports
+            .flatMap(r => (r.activityLog || []).map(log => ({
+                ...log,
+                reportId: r.id,
+                reportName: r.tenThuongMai,
+                reportCode: r.maSanPham
+            })))
+            .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+            .slice(0, 10);
+    }, [reports]);
 
     // DATA CALCULATION
     const metrics = useMemo(() => {
@@ -760,9 +777,51 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
                 </GlassCard>
             </div>
 
-            {/* 4. Top Products Row */}
-            <div className="mb-4">
-                <GlassCard className="p-8 flex flex-col" delay={800}>
+            {/* 4. Recent Activity & Top Products Row */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-4">
+                {/* Recent Activity Feed - NEW TRACKING FEATURE */}
+                <GlassCard className="p-8 flex flex-col h-[400px]" delay={750}>
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="p-2 bg-purple-50 text-purple-600 rounded-xl">
+                            <ClockIcon className="w-5 h-5" />
+                        </div>
+                        <h3 className="font-bold text-slate-800 text-lg">Hoạt động gần đây</h3>
+                    </div>
+                    
+                    <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-4">
+                        {recentActivity.length > 0 ? (
+                            recentActivity.map((log, idx) => (
+                                <div key={`${log.id}-${idx}`} onClick={() => onSelectReport(reports.find(r => r.id === log.reportId) as DefectReport)} className="flex gap-3 group cursor-pointer">
+                                    <div className={`mt-1 w-2 h-2 rounded-full flex-shrink-0 ${log.type === 'comment' ? 'bg-blue-400' : 'bg-slate-300'} ring-4 ring-white shadow-sm`}></div>
+                                    <div className="flex-1 min-w-0 pb-3 border-b border-slate-100 group-last:border-0 group-last:pb-0">
+                                        <div className="flex justify-between items-start">
+                                            <p className="text-xs font-bold text-slate-800 line-clamp-1 group-hover:text-blue-600 transition-colors">
+                                                {log.reportName}
+                                            </p>
+                                            <span className="text-[10px] text-slate-400 font-medium whitespace-nowrap bg-slate-50 px-1.5 rounded">{new Date(log.timestamp).toLocaleDateString('vi-VN')}</span>
+                                        </div>
+                                        <div className="flex items-center gap-1.5 mt-0.5">
+                                            <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-1 rounded">{log.reportCode}</span>
+                                            <span className="text-[10px] text-slate-500">•</span>
+                                            <span className="text-[10px] font-bold text-slate-600 uppercase">{log.user}</span>
+                                        </div>
+                                        <p className="text-xs text-slate-600 mt-1.5 line-clamp-2 bg-slate-50/50 p-1.5 rounded-lg italic">
+                                            {log.content}
+                                        </p>
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            <div className="h-full flex flex-col items-center justify-center text-slate-400 text-xs">
+                                <InboxIcon className="w-8 h-8 mb-2 opacity-20"/>
+                                Chưa có hoạt động nào
+                            </div>
+                        )}
+                    </div>
+                </GlassCard>
+
+                {/* Top Products */}
+                <GlassCard className="p-8 flex flex-col h-[400px]" delay={800}>
                     <div className="flex items-center gap-3 mb-6">
                         <div className="p-2 bg-amber-50 text-amber-600 rounded-xl">
                             <TagIcon className="w-5 h-5" />
@@ -770,23 +829,25 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
                         <h3 className="font-bold text-slate-800 text-lg">Top 5 Sản phẩm bị phản ánh</h3>
                     </div>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                    <div className="space-y-3 overflow-y-auto custom-scrollbar pr-2">
                         {metrics.topProducts.map((prod, idx) => (
-                            <div key={idx} className="flex flex-col justify-between p-4 rounded-2xl bg-white/40 hover:bg-white/60 transition-all border border-white/50 shadow-sm group h-32 backdrop-blur-sm">
-                                <div className="flex justify-between items-start">
-                                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs font-black shadow-sm ${idx === 0 ? 'bg-gradient-to-br from-amber-300 to-amber-500 text-white' : 'bg-white text-slate-500 border border-slate-200'}`}>
+                            <div key={idx} className="flex items-center justify-between p-4 rounded-xl bg-white/40 hover:bg-white/60 transition-all border border-white/50 shadow-sm group backdrop-blur-sm">
+                                <div className="flex items-center gap-4 min-w-0">
+                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black shadow-sm flex-shrink-0 ${idx === 0 ? 'bg-gradient-to-br from-amber-300 to-amber-500 text-white' : 'bg-white border border-slate-200 text-slate-500'}`}>
                                         {idx + 1}
                                     </div>
-                                    <span className="text-2xl font-black text-slate-800 leading-none">{prod.count}</span>
+                                    <div className="min-w-0">
+                                        <p className="text-[10px] font-extrabold text-[#003DA5] truncate bg-blue-50/50 px-1.5 rounded w-fit mb-0.5 border border-blue-100/50">{prod.code}</p>
+                                        <p className="text-xs font-bold text-slate-700 line-clamp-1 leading-tight group-hover:text-slate-900" title={prod.name}>{prod.name}</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <p className="text-[10px] font-extrabold text-[#003DA5] truncate bg-blue-50/50 px-1.5 rounded w-fit mb-1 border border-blue-100/50">{prod.code}</p>
-                                    <p className="text-xs font-bold text-slate-700 line-clamp-2 leading-tight" title={prod.name}>{prod.name}</p>
-                                </div>
+                                <span className="text-xl font-black text-slate-800 leading-none pl-4">{prod.count}</span>
                             </div>
                         ))}
                         {metrics.topProducts.length === 0 && (
-                            <div className="col-span-full text-center py-12 text-slate-400 text-sm font-bold opacity-50">Chưa có dữ liệu</div>
+                            <div className="flex flex-col items-center justify-center h-full text-slate-400 text-sm font-bold opacity-50">
+                                Chưa có dữ liệu
+                            </div>
                         )}
                     </div>
                 </GlassCard>

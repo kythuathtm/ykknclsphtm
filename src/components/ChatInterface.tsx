@@ -58,7 +58,7 @@ Dữ liệu hiện tại (${simplifiedData.length} phiếu đang hiển thị tr
 ${JSON.stringify(simplifiedData)}
 
 QUY TẮC TRẢ LỜI:
-1. **Phân tích sâu sắc**: Tìm xu hướng (sản phẩm lỗi nhiều nhất, lỗi lặp lại, nhà phân phối hay gặp vấn đề).
+1. **Phân tích theo dõi (Tracking)**: Khi người dùng hỏi về lịch sử, hãy tập trung vào mốc thời gian (ngày), tần suất lỗi lặp lại, và các phiếu bị chậm trễ.
 2. **Ngắn gọn & Súc tích**: Trả lời trực tiếp, dùng gạch đầu dòng.
 3. **Định dạng**: Dùng Markdown (**in đậm** cho từ khóa, - cho danh sách) để dễ đọc.
 4. **Trung thực**: Nếu không tìm thấy thông tin trong dữ liệu được cung cấp, hãy nói "Không có thông tin trong dữ liệu hiện tại".
@@ -77,7 +77,7 @@ QUY TẮC TRẢ LỜI:
       if (isRefresh) {
           setMessages(prev => [...prev, { role: 'model', text: `✅ Đã cập nhật ngữ cảnh với ${simplifiedData.length} phiếu dữ liệu mới nhất.` }]);
       } else {
-          setMessages([{ role: 'model', text: `Xin chào! Tôi đã sẵn sàng phân tích ${simplifiedData.length} phiếu khiếu nại đang hiển thị. Bạn muốn biết thông tin gì?` }]);
+          setMessages([{ role: 'model', text: `Xin chào! Tôi đã sẵn sàng phân tích ${simplifiedData.length} phiếu khiếu nại đang hiển thị. Bạn muốn biết thông tin gì về lịch sử lỗi hoặc xu hướng?` }]);
       }
     } catch (error) {
       console.error("Chat init error:", error);
