@@ -328,6 +328,19 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
         const uniqueTotalSKUs = new Set(reports.map(r => r.maSanPham?.trim()).filter(Boolean)).size;
         const completedCount = reports.filter(r => r.trangThai === 'Hoàn thành').length;
         const completionRate = totalReports > 0 ? (completedCount / totalReports) * 100 : 0;
+        
+        // Overdue Calculation
+        const overdueCount = reports.filter(r => {
+             if (r.trangThai === 'Hoàn thành') return false;
+             if (!r.ngayPhanAnh) return false;
+             try {
+                 const start = new Date(r.ngayPhanAnh);
+                 const end = new Date();
+                 const diffTime = Math.abs(end.getTime() - start.getTime());
+                 const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                 return days > 7;
+             } catch { return false; }
+        }).length;
 
         // Helper for Brand Stats
         const getBrandData = (brandName: string) => {
@@ -442,6 +455,7 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
 
         return {
             totalReports,
+            overdueCount,
             uniqueDistributors,
             uniqueTotalSKUs,
             completionRate,
@@ -594,7 +608,7 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
             </div>
 
             {/* 1. KPI Cards Row */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-8">
                 <KpiCard 
                     title="Tổng Phiếu" 
                     value={<CountUp value={metrics.totalReports} />}
@@ -603,6 +617,16 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
                     color={COLORS.PRIMARY}
                     onClick={() => onFilterSelect('all')}
                     delay={0}
+                />
+                {/* NEW OVERDUE KPI CARD */}
+                <KpiCard 
+                    title="Quá Hạn (>7 ngày)" 
+                    value={<CountUp value={metrics.overdueCount} />}
+                    subValue="Chưa hoàn thành"
+                    icon={<ExclamationCircleIcon className="w-5 h-5"/>}
+                    color={COLORS.DANGER}
+                    onClick={() => { /* Filter logic for overdue if implemented in parent */ }}
+                    delay={50}
                 />
                 <KpiCard 
                     title="Nhà Phân Phối" 

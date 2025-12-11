@@ -276,18 +276,24 @@ export const App: React.FC = () => {
     let result = [...dashboardReports]; // Start with the time-filtered set
 
     if (searchTerm) {
-      const lowerTerm = searchTerm.toLowerCase();
-      result = result.filter(
-        (r) =>
-          r.maSanPham.toLowerCase().includes(lowerTerm) ||
-          r.tenThuongMai.toLowerCase().includes(lowerTerm) ||
-          r.dongSanPham.toLowerCase().includes(lowerTerm) ||
-          r.nhaPhanPhoi.toLowerCase().includes(lowerTerm) ||
-          r.donViSuDung.toLowerCase().includes(lowerTerm) ||
-          r.soLo.toLowerCase().includes(lowerTerm) ||
-          r.noiDungPhanAnh.toLowerCase().includes(lowerTerm) ||
-          (r.nhanHang && r.nhanHang.toLowerCase().includes(lowerTerm))
-      );
+      const terms = searchTerm.toLowerCase().split(/\s+/).filter(Boolean); // Split by whitespace
+      
+      result = result.filter((r) => {
+          // Join all searchable fields into one string for efficient searching
+          const searchableText = [
+              r.maSanPham,
+              r.tenThuongMai,
+              r.dongSanPham,
+              r.nhaPhanPhoi,
+              r.donViSuDung,
+              r.soLo,
+              r.noiDungPhanAnh,
+              r.nhanHang
+          ].join(' ').toLowerCase();
+
+          // Check if EVERY term exists in the searchable text
+          return terms.every(term => searchableText.includes(term));
+      });
     }
 
     if (statusFilter !== 'All') {

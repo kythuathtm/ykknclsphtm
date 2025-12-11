@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { DefectReport, UserRole } from '../types';
 import { 
@@ -235,6 +234,18 @@ const DashboardTab = ({ label, count, total, isActive, onClick, styleKey, icon }
                 ></div>
             </div>
         </button>
+    );
+};
+
+const SkeletonRow: React.FC<{ columns: ColumnConfig[] }> = ({ columns }) => {
+    return (
+        <tr className="animate-pulse bg-white/40 border-b border-slate-50">
+            {columns.filter(c => c.visible).map((col, idx) => (
+                <td key={idx} className="px-4 py-4">
+                    <div className="h-4 bg-slate-200 rounded-md w-full opacity-60"></div>
+                </td>
+            ))}
+        </tr>
     );
 };
 
@@ -644,10 +655,21 @@ const DefectReportList: React.FC<DefectReportListProps> = ({
                     {/* Content Area */}
                     <div className="flex-1 overflow-y-auto custom-scrollbar bg-white/40 relative">
                         {isLoading ? (
-                            <div className="p-6 space-y-4">
-                                {[...Array(6)].map((_, i) => (
-                                    <div key={i} className="h-14 bg-slate-100/50 rounded-xl animate-pulse"></div>
-                                ))}
+                            <div className="p-0">
+                                <table className="min-w-full border-collapse">
+                                    <thead className="bg-slate-50/80 backdrop-blur sticky top-0 z-20 shadow-sm border-b border-slate-200/60 opacity-50">
+                                        <tr>
+                                            {columns.filter(c => c.visible).map((col) => (
+                                                <th key={col.id} className="px-4 py-4"><div className="h-4 bg-slate-200 rounded animate-pulse"></div></th>
+                                            ))}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {[...Array(8)].map((_, i) => (
+                                            <SkeletonRow key={i} columns={columns} />
+                                        ))}
+                                    </tbody>
+                                </table>
                             </div>
                         ) : viewMode === 'grid' ? (
                             // GRID VIEW

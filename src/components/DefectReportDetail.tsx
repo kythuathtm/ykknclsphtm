@@ -6,7 +6,7 @@ import {
   PencilIcon, TrashIcon, XIcon, WrenchIcon, 
   TagIcon, ChatBubbleLeftIcon, ClockIcon, CheckCircleIcon, 
   BuildingStoreIcon, CalendarIcon, PaperAirplaneIcon, MapPinIcon, UserGroupIcon,
-  ArchiveBoxIcon, ExclamationTriangleIcon, CubeIcon, PrinterIcon, ArrowRightOnRectangleIcon, UserIcon
+  ArchiveBoxIcon, ExclamationTriangleIcon, CubeIcon, PrinterIcon, ArrowRightOnRectangleIcon, UserIcon, ExclamationCircleIcon
 } from './Icons';
 
 // Handle ReactToPrint import compatibility
@@ -316,6 +316,7 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onUpdate, onDelet
   };
 
   const daysOpen = getProcessingDays(report.ngayPhanAnh, report.ngayHoanThanh);
+  const isOverdue = daysOpen > 7 && report.trangThai !== 'Hoàn thành';
 
   return (
     <div className="flex flex-col h-full sm:h-auto bg-[#f8fafc] font-sans">
@@ -345,8 +346,9 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onUpdate, onDelet
                                 {report.maSanPham}
                             </span>
 
-                            <span className="text-[0.625rem] font-bold text-slate-500 bg-slate-50 px-2 py-0.5 rounded-lg border border-slate-100 flex items-center gap-1">
-                                <ClockIcon className="w-3 h-3"/> {daysOpen} ngày xử lý
+                            <span className={`text-[0.625rem] font-bold px-2 py-0.5 rounded-lg border flex items-center gap-1 ${isOverdue ? 'text-red-600 bg-red-50 border-red-100' : 'text-slate-500 bg-slate-50 border-slate-100'}`}>
+                                {isOverdue ? <ExclamationCircleIcon className="w-3 h-3 animate-pulse"/> : <ClockIcon className="w-3 h-3"/>} 
+                                {daysOpen} ngày xử lý
                             </span>
                         </div>
                         <h2 className="text-lg sm:text-xl font-bold text-slate-800 leading-tight truncate" title={report.tenThuongMai}>

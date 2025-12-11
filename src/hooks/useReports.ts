@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { DefectReport, ToastType, ActivityLog } from '../types';
 import { db } from '../firebaseConfig';
-import { collection, onSnapshot, query, orderBy, doc, updateDoc, setDoc, deleteDoc, writeBatch, arrayUnion } from 'firebase/firestore';
+import { collection, onSnapshot, query, orderBy, doc, updateDoc, setDoc, deleteDoc, writeBatch, arrayUnion, limit } from 'firebase/firestore';
 
 const LS_REPORTS = 'app_reports_data';
 
@@ -40,7 +40,8 @@ export const useReports = (showToast: (msg: string, type: ToastType) => void) =>
   useEffect(() => {
     let unsubscribe = () => {};
     try {
-        const q = query(collection(db, "reports"), orderBy("ngayTao", "desc"));
+        // Limit query to 2000 most recent records for performance
+        const q = query(collection(db, "reports"), orderBy("ngayTao", "desc"), limit(2000));
         unsubscribe = onSnapshot(q, 
             (snapshot) => {
                 const reportsData = snapshot.docs.map(doc => ({
