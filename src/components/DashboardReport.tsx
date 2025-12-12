@@ -763,7 +763,7 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
                         />
                         <BrandStatRow 
                             brand="VMA" 
-                            label="V.M.A" 
+                            label="VMA" 
                             color={COLORS.SUCCESS} 
                             data={metrics.brandStats.VMA} 
                             onClick={() => onFilterSelect('brand', 'VMA')}

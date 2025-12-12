@@ -1,12 +1,12 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import * as ReactToPrintPkg from 'react-to-print';
 import { DefectReport, UserRole, ActivityLog } from '../types';
 import { 
   PencilIcon, TrashIcon, XIcon, WrenchIcon, 
   TagIcon, ChatBubbleLeftIcon, ClockIcon, CheckCircleIcon, 
   BuildingStoreIcon, CalendarIcon, PaperAirplaneIcon, MapPinIcon, UserGroupIcon,
-  ArchiveBoxIcon, ExclamationTriangleIcon, CubeIcon, PrinterIcon, ArrowRightOnRectangleIcon, UserIcon, ExclamationCircleIcon
+  ArchiveBoxIcon, ExclamationTriangleIcon, CubeIcon, PrinterIcon, ArrowRightOnRectangleIcon, UserIcon, ExclamationCircleIcon, TruckIcon
 } from './Icons';
 
 const useReactToPrint = (ReactToPrintPkg as any).useReactToPrint || (ReactToPrintPkg as any).default?.useReactToPrint;
@@ -42,6 +42,7 @@ const getProcessingDays = (startDate: string, endDate?: string) => {
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 };
 
+// ... DetailRow and SectionCard interfaces remain same but we are updating full file ...
 interface DetailRowProps {
   label: string;
   value: React.ReactNode;
@@ -210,6 +211,32 @@ const StatusStepper = ({ currentStatus, onStepClick, canEdit }: { currentStatus:
     );
 };
 
+// New Date Input for Quick Update
+const QuickDateInput = ({ value, onChange }: { value: string, onChange: (val: string) => void }) => {
+    const [type, setType] = useState('text');
+    
+    const displayValue = useMemo(() => {
+        if (!value) return '';
+        if (type === 'date') return value.split('T')[0];
+        try {
+            const [y, m, d] = value.split('T')[0].split('-');
+            return `${d}/${m}/${y}`;
+        } catch { return value; }
+    }, [value, type]);
+
+    return (
+        <input 
+            type={type}
+            className="w-full text-[0.6rem] border border-emerald-200 rounded-md px-1 py-0.5 bg-white"
+            value={displayValue}
+            onChange={(e) => onChange(e.target.value)}
+            onFocus={() => setType('date')}
+            onBlur={() => setType('text')}
+            placeholder="dd/mm/yyyy"
+        />
+    );
+}
+
 const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onUpdate, onDelete, permissions, onClose, currentUserRole, currentUsername, onAddComment }) => {
   const [activeTab, setActiveTab] = useState<'info' | 'log'>('info');
 
@@ -219,7 +246,8 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onUpdate, onDelet
       soLuongDoi: report.soLuongDoi || 0,
       ngayDoiHang: report.ngayDoiHang || '',
       trangThai: report.trangThai,
-      loaiLoi: report.loaiLoi || ''
+      loaiLoi: report.loaiLoi || '',
+      maVanDon: report.maVanDon || ''
   });
   
   const [isUpdating, setIsUpdating] = useState(false);
@@ -247,7 +275,8 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onUpdate, onDelet
           soLuongDoi: report.soLuongDoi || 0,
           ngayDoiHang: report.ngayDoiHang || '',
           trangThai: report.trangThai,
-          loaiLoi: report.loaiLoi || ''
+          loaiLoi: report.loaiLoi || '',
+          maVanDon: report.maVanDon || ''
       });
   }, [report]);
 
@@ -266,6 +295,7 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onUpdate, onDelet
       if (editingSections.soLuong) {
           updates.soLuongDoi = Number(quickUpdateData.soLuongDoi);
           updates.ngayDoiHang = quickUpdateData.ngayDoiHang;
+          updates.maVanDon = quickUpdateData.maVanDon;
       }
       
       if (quickUpdateData.trangThai !== report.trangThai) {
@@ -357,6 +387,7 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onUpdate, onDelet
         `}
       </style>
       
+      {/* ... (Header and StatusStepper remain same as before) ... */}
       <div className="flex flex-col border-b border-slate-200 bg-white/95 backdrop-blur-xl shadow-sm z-30 sticky top-0 print:hidden flex-shrink-0">
           <div className="flex justify-between items-center px-5 py-3">
             <div className="flex items-center gap-4 min-w-0">
@@ -503,15 +534,15 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onUpdate, onDelet
                                         isFullWidth={true}
                                     />
                                     {report.images && report.images.length > 0 && (
-                                        <div className="mt-4 print:hidden">
-                                            <dt className="text-[0.625rem] font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1">
+                                        <div className="mt-4 print:block break-inside-avoid">
+                                            <dt className="text-[0.625rem] font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1 print:text-black">
                                                 <ArchiveBoxIcon className="w-3 h-3"/> Hình ảnh minh chứng
                                             </dt>
                                             <div className="flex flex-wrap gap-2">
                                                 {report.images.map((img, idx) => (
-                                                    <a key={idx} href={img} target="_blank" rel="noreferrer" className="w-20 h-20 rounded-lg border border-slate-200 overflow-hidden hover:opacity-90 transition-all block bg-white shadow-sm hover:shadow-md relative group">
-                                                        <img src={img} alt={`evidence-${idx}`} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
-                                                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors"></div>
+                                                    <a key={idx} href={img} target="_blank" rel="noreferrer" className="w-20 h-20 rounded-lg border border-slate-200 overflow-hidden hover:opacity-90 transition-all block bg-white shadow-sm hover:shadow-md relative group print:w-32 print:h-32 print:border-slate-300 print:shadow-none">
+                                                        <img src={img} alt={`evidence-${idx}`} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 print:object-contain" />
+                                                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors print:hidden"></div>
                                                     </a>
                                                 ))}
                                             </div>
@@ -548,19 +579,24 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onUpdate, onDelet
                                         <span className="text-[0.6rem] font-bold text-emerald-500 uppercase tracking-tight group-hover:text-emerald-700 print:text-black">Đổi trả</span>
                                         
                                         {permissions.canEdit && editingSections.soLuong ? (
-                                            <div className="w-full flex flex-col items-center animate-fade-in print:hidden">
+                                            <div className="w-full flex flex-col items-center animate-fade-in print:hidden space-y-1">
                                                 <input 
                                                     type="number" 
-                                                    className="w-20 text-center border border-emerald-300 rounded-lg px-1 py-0 text-lg font-bold focus:ring-2 focus:ring-emerald-500/10 outline-none mb-1 shadow-sm bg-white"
+                                                    className="w-20 text-center border border-emerald-300 rounded-lg px-1 py-0 text-lg font-bold focus:ring-2 focus:ring-emerald-500/10 outline-none shadow-sm bg-white"
                                                     value={quickUpdateData.soLuongDoi}
                                                     onChange={(e) => setQuickUpdateData({...quickUpdateData, soLuongDoi: Number(e.target.value)})}
                                                     autoFocus
                                                 />
-                                                <input 
-                                                    type="date"
-                                                    className="w-full text-[0.6rem] border border-emerald-200 rounded-md px-1 py-0.5 bg-white"
+                                                <QuickDateInput
                                                     value={quickUpdateData.ngayDoiHang || ''}
-                                                    onChange={(e) => setQuickUpdateData({...quickUpdateData, ngayDoiHang: e.target.value})}
+                                                    onChange={(val) => setQuickUpdateData({...quickUpdateData, ngayDoiHang: val})}
+                                                />
+                                                <input 
+                                                    type="text"
+                                                    placeholder="Mã Bill..."
+                                                    className="w-full text-[0.6rem] border border-emerald-200 rounded-md px-1 py-0.5 bg-white font-medium"
+                                                    value={quickUpdateData.maVanDon || ''}
+                                                    onChange={(e) => setQuickUpdateData({...quickUpdateData, maVanDon: e.target.value})}
                                                 />
                                             </div>
                                         ) : (
@@ -576,13 +612,21 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onUpdate, onDelet
                                                         </button>
                                                     )}
                                                 </div>
-                                                <div className="flex items-center gap-1 mt-0.5 bg-emerald-100/60 px-1.5 py-0.5 rounded-full border border-emerald-200/50 min-h-[20px] print:bg-white print:border-none print:px-0">
-                                                    {report.ngayDoiHang ? (
-                                                        <span className="text-[0.55rem] font-bold text-emerald-800 whitespace-nowrap print:text-black print:text-xs">
-                                                            Ngày đổi: {formatDate(report.ngayDoiHang)}
-                                                        </span>
-                                                    ) : (
-                                                        <span className="text-[0.55rem] text-emerald-600/50 italic print:hidden">--/--/--</span>
+                                                <div className="flex flex-col gap-1 items-center w-full">
+                                                    <div className="flex items-center gap-1 mt-0.5 bg-emerald-100/60 px-1.5 py-0.5 rounded-full border border-emerald-200/50 min-h-[20px] print:bg-white print:border-none print:px-0">
+                                                        {report.ngayDoiHang ? (
+                                                            <span className="text-[0.55rem] font-bold text-emerald-800 whitespace-nowrap print:text-black print:text-xs">
+                                                                Ngày đổi: {formatDate(report.ngayDoiHang)}
+                                                            </span>
+                                                        ) : (
+                                                            <span className="text-[0.55rem] text-emerald-600/50 italic print:hidden">--/--/--</span>
+                                                        )}
+                                                    </div>
+                                                    {report.maVanDon && (
+                                                        <div className="flex items-center gap-1 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100">
+                                                            <TruckIcon className="w-3 h-3 text-emerald-600" />
+                                                            <span className="text-[0.55rem] font-bold text-emerald-700">{report.maVanDon}</span>
+                                                        </div>
                                                     )}
                                                 </div>
                                             </>
@@ -736,6 +780,14 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onUpdate, onDelet
                                             <span className="text-[0.65rem] font-bold text-slate-500 uppercase print:text-black">Trạng thái:</span>
                                             <span className={`text-xs font-bold px-2 py-1 rounded-lg border shadow-sm ${getStatusColor(report.trangThai)} print:bg-white print:text-black print:border-slate-300 print:shadow-none`}>{report.trangThai}</span>
                                         </div>
+                                        {report.ngayHoanThanh && (
+                                            <div className="flex justify-between items-center print:justify-start print:gap-4">
+                                                <span className="text-[0.65rem] font-bold text-slate-500 uppercase print:text-black">Ngày hoàn thành:</span>
+                                                <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-100 shadow-sm print:shadow-none print:border print:border-slate-300">
+                                                    {formatDate(report.ngayHoanThanh)}
+                                                </span>
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                             </div>
@@ -744,6 +796,7 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onUpdate, onDelet
                  </div>
              </div>
 
+             {/* ... (Active Tab Logic for logs remains same) ... */}
              {activeTab === 'log' && (
                  <div className="space-y-4 animate-fade-in-up print:hidden">
                     <div className="bg-white rounded-3xl border border-slate-200 p-5 min-h-[450px] flex flex-col shadow-sm">

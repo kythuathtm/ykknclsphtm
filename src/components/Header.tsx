@@ -1,12 +1,12 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { User, SystemSettings, UserRole } from '../types';
+import { User, SystemSettings, UserRole, DefectReport } from '../types';
 import { 
   BarChartIcon, CalendarIcon, ListBulletIcon, ChartPieIcon, 
   ArrowDownTrayIcon, Cog8ToothIcon, ShieldCheckIcon, 
   TableCellsIcon, UserGroupIcon, ArrowRightOnRectangleIcon, CompanyLogo, BellIcon,
   ArrowUpTrayIcon, DocumentDuplicateIcon, CloudSlashIcon, ArrowDownIcon,
-  CheckCircleIcon, ExclamationCircleIcon, SparklesIcon, ClockIcon, ChatBubbleOvalLeftEllipsisIcon
+  CheckCircleIcon, ExclamationCircleIcon, SparklesIcon, ClockIcon, ChatBubbleOvalLeftEllipsisIcon, BuildingStoreIcon
 } from './Icons';
 
 interface HeaderProps {
@@ -28,9 +28,11 @@ interface HeaderProps {
   onOpenProductModal: () => void;
   onOpenUserModal: () => void;
   onOpenSystemSettingsModal: () => void;
-  onOpenProfileModal: () => void; // New prop
+  onOpenProfileModal: () => void;
+  onOpenCustomerModal: () => void; // New prop
   onToggleChat: () => void;
   isOffline?: boolean;
+  reports?: DefectReport[];
 }
 
 interface Notification {
@@ -61,30 +63,75 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenUserModal, 
   onOpenSystemSettingsModal,
   onOpenProfileModal,
+  onOpenCustomerModal, // Destructure new prop
   onToggleChat,
-  isOffline
+  isOffline,
+  reports = []
 }) => {
   const [isAdminMenuOpen, setIsAdminMenuOpen] = useState(false);
   const [isDataMenuOpen, setIsDataMenuOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   
-  // Mock Data cho thông báo
-  const [notifications, setNotifications] = useState<Notification[]>([
-      { id: 1, type: 'info', text: 'Hệ thống đã được cập nhật phiên bản mới 1.2.0.', time: 'Vừa xong', read: false },
-      { id: 2, type: 'alert', text: 'Có 3 phiếu quá hạn xử lý cần kiểm tra ngay.', time: '1 giờ trước', read: false },
-      { id: 3, type: 'success', text: 'Đồng bộ dữ liệu sản phẩm hoàn tất.', time: '2 giờ trước', read: true },
-      { id: 4, type: 'info', text: 'Chào mừng bạn quay trở lại làm việc.', time: '5 giờ trước', read: true },
-  ]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
 
   const adminMenuRef = useRef<HTMLDivElement>(null);
   const dataMenuRef = useRef<HTMLDivElement>(null);
   const profileMenuRef = useRef<HTMLDivElement>(null);
   const notifMenuRef = useRef<HTMLDivElement>(null);
 
+  // Dynamic Notification Logic
+  useEffect(() => {
+      const newNotifs: Notification[] = [];
+      let idCounter = 1;
+
+      // 1. System Info
+      newNotifs.push({ 
+          id: idCounter++, 
+          type: 'info', 
+          text: 'Hệ thống hoạt động ổn định.', 
+          time: 'Bây giờ', 
+          read: true 
+      });
+
+      // 2. Overdue Reports Analysis
+      const overdueCount = reports.filter(r => {
+          if (r.trangThai === 'Hoàn thành' || !r.ngayPhanAnh) return false;
+          try {
+              const start = new Date(r.ngayPhanAnh);
+              const end = new Date();
+              const diff = Math.ceil(Math.abs(end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+              return diff > 7;
+          } catch { return false; }
+      }).length;
+
+      if (overdueCount > 0) {
+          newNotifs.push({
+              id: idCounter++,
+              type: 'alert',
+              text: `Cảnh báo: Có ${overdueCount} phiếu quá hạn xử lý (>7 ngày). Vui lòng kiểm tra.`,
+              time: 'Hiện tại',
+              read: false
+          });
+      }
+
+      // 3. New Reports Analysis
+      const newCount = reports.filter(r => r.trangThai === 'Mới').length;
+      if (newCount > 0) {
+          newNotifs.push({
+              id: idCounter++,
+              type: 'success',
+              text: `Có ${newCount} phiếu khiếu nại mới cần tiếp nhận xử lý.`,
+              time: 'Hiện tại',
+              read: false
+          });
+      }
+
+      setNotifications(newNotifs);
+  }, [reports]);
+
   const unreadCount = notifications.filter(n => !n.read).length;
 
-  // Check if we should use the default branding colors
   const shouldShowDefaultBranding = !systemSettings.companyName || 
     systemSettings.companyName.trim().toUpperCase() === 'CÔNG TY CỔ PHẦN VẬT TƯ Y TẾ HỒNG THIỆN MỸ';
 
@@ -97,7 +144,6 @@ export const Header: React.FC<HeaderProps> = ({
           if (notifMenuRef.current && !notifMenuRef.current.contains(event.target as Node)) setIsNotifOpen(false);
       };
       
-      // Chỉ add listener khi có ít nhất 1 menu đang mở
       if (isAdminMenuOpen || isProfileMenuOpen || isDataMenuOpen || isNotifOpen) {
           document.addEventListener('mousedown', handleClickOutside);
       }
@@ -114,7 +160,6 @@ export const Header: React.FC<HeaderProps> = ({
 
   const getUserInitials = (name: string) => name ? name.charAt(0).toUpperCase() : '?';
 
-  // Common Dropdown Style classes
   const dropdownClasses = "absolute right-0 top-full mt-3 bg-white/70 backdrop-blur-xl rounded-2xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] border border-white/60 ring-1 ring-white/50 py-2 z-50 animate-fade-in-up origin-top-right overflow-hidden";
 
   return (
@@ -188,7 +233,7 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Right: Actions & Navigation */}
           <div className="flex items-center gap-3 sm:gap-4">
             
-            {/* View Switcher - Modern Pill Style */}
+            {/* View Switcher */}
             {canViewDashboard && (
                 <div className="hidden md:flex items-center bg-white/40 p-1 rounded-xl border border-white/60 backdrop-blur-sm shadow-inner">
                     <button
@@ -328,7 +373,7 @@ export const Header: React.FC<HeaderProps> = ({
                                             <BellIcon className="w-8 h-8 opacity-20" />
                                         </div>
                                         <p className="text-xs font-bold">Không có thông báo mới</p>
-                                        <p className="text-[10px] opacity-60 mt-1">Bạn đã cập nhật tất cả thông tin.</p>
+                                        <p className="text-[10px] opacity-60 mt-1">Hệ thống đang theo dõi dữ liệu.</p>
                                     </div>
                                 )}
                             </div>
@@ -341,7 +386,7 @@ export const Header: React.FC<HeaderProps> = ({
                     )}
                 </div>
 
-                {/* Data Tools Menu */}
+                {/* Data Tools Menu - Removed Customer Button */}
                 {currentView === 'list' && (
                     <div className="relative" ref={dataMenuRef}>
                         <button 
@@ -355,7 +400,7 @@ export const Header: React.FC<HeaderProps> = ({
                         {isDataMenuOpen && (
                             <div className={`${dropdownClasses} w-64`}>
                                 <div className="px-4 py-2 border-b border-slate-100 mb-1">
-                                    <p className="text-[0.65rem] font-bold text-slate-400 uppercase tracking-widest">Excel Tools</p>
+                                    <p className="text-[0.65rem] font-bold text-slate-400 uppercase tracking-widest">Data Tools</p>
                                 </div>
                                 <div className="p-1 space-y-0.5">
                                     <button onClick={() => { onExport(); setIsDataMenuOpen(false); }} className="flex w-full items-center px-3 py-2.5 text-sm font-bold text-slate-700 hover:bg-blue-50/80 hover:text-[#003DA5] rounded-xl transition-colors text-left group">
@@ -368,7 +413,6 @@ export const Header: React.FC<HeaderProps> = ({
                                                 <div className="p-1.5 bg-slate-100 text-slate-500 rounded-lg mr-3 group-hover:bg-slate-200 transition-colors shadow-sm"><DocumentDuplicateIcon className="h-4 w-4" /></div>
                                                 <span>Tải file mẫu</span>
                                             </button>
-                                            <div className="h-px bg-slate-100 my-1 mx-2"></div>
                                             <button onClick={() => { onImport(); setIsDataMenuOpen(false); }} className="flex w-full items-center px-3 py-2.5 text-sm font-bold text-emerald-700 hover:bg-emerald-50 rounded-xl transition-colors text-left group">
                                                 <div className="p-1.5 bg-emerald-100/50 text-emerald-600 rounded-lg mr-3 group-hover:bg-emerald-200 transition-colors shadow-sm"><ArrowUpTrayIcon className="h-4 w-4" /></div>
                                                 <span>Nhập Excel (Import)</span>
@@ -381,7 +425,7 @@ export const Header: React.FC<HeaderProps> = ({
                     </div>
                 )}
 
-                {/* Admin Settings Menu */}
+                {/* Admin Settings Menu - Added Customer Button */}
                 {currentUser.role === UserRole.Admin && (
                     <div className="relative" ref={adminMenuRef}>
                         <button onClick={() => setIsAdminMenuOpen(!isAdminMenuOpen)} className={`w-10 h-10 flex items-center justify-center rounded-xl transition-all duration-200 border backdrop-blur-md ${isAdminMenuOpen ? 'bg-orange-50 border-orange-200 text-orange-600' : 'bg-white/40 hover:bg-white/80 border-white/60 text-slate-500 hover:text-slate-700 hover:border-white shadow-sm'}`} title="Cài đặt">
@@ -402,6 +446,10 @@ export const Header: React.FC<HeaderProps> = ({
                                     <button onClick={() => { onOpenProductModal(); setIsAdminMenuOpen(false); }} className="flex w-full items-center justify-start px-3 py-2.5 rounded-xl text-sm font-bold text-slate-600 hover:bg-violet-50/80 hover:text-violet-600 transition-colors text-left group">
                                         <div className="p-1.5 bg-violet-100/50 text-violet-500 rounded-lg mr-3 group-hover:bg-violet-200 transition-colors shadow-sm"><TableCellsIcon className="h-4 w-4" /></div>
                                         <span>Danh mục sản phẩm</span>
+                                    </button>
+                                    <button onClick={() => { onOpenCustomerModal(); setIsAdminMenuOpen(false); }} className="flex w-full items-center justify-start px-3 py-2.5 rounded-xl text-sm font-bold text-slate-600 hover:bg-indigo-50/80 hover:text-indigo-600 transition-colors text-left group">
+                                        <div className="p-1.5 bg-indigo-100/50 text-indigo-500 rounded-lg mr-3 group-hover:bg-indigo-200 transition-colors shadow-sm"><BuildingStoreIcon className="h-4 w-4" /></div>
+                                        <span>Danh sách khách hàng</span>
                                     </button>
                                     <button onClick={() => { onOpenUserModal(); setIsAdminMenuOpen(false); }} className="flex w-full items-center justify-start px-3 py-2.5 rounded-xl text-sm font-bold text-slate-600 hover:bg-emerald-50/80 hover:text-emerald-600 transition-colors text-left group">
                                         <div className="p-1.5 bg-emerald-100/50 text-emerald-500 rounded-lg mr-3 group-hover:bg-emerald-200 transition-colors shadow-sm"><UserGroupIcon className="h-4 w-4" /></div>

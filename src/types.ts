@@ -30,6 +30,15 @@ export interface Product {
   donViTinh?: string; // Unit
 }
 
+export interface Customer {
+  maKhachHang: string;
+  tenKhachHang: string;
+  tinhThanh: string;
+  diaChi?: string;
+  nguoiLienHe?: string;
+  soDienThoai?: string;
+}
+
 export interface ActivityLog {
   id: string;
   type: 'log' | 'comment';
@@ -61,6 +70,7 @@ export interface DefectReport {
   soLuongDaNhap: number;
   soLuongDoi: number;
   ngayDoiHang?: string; // New field: Exchange Date
+  maVanDon?: string; // New field: Waybill Code / Tracking Number
   nguyenNhan?: string;
   huongKhacPhuc?: string;
   trangThai: 'Mới' | 'Đang tiếp nhận' | 'Đang xác minh' | 'Đang xử lý' | 'Chưa tìm ra nguyên nhân' | 'Hoàn thành';

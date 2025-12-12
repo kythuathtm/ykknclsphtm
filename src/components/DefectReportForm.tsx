@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { DefectReport, UserRole, PermissionField, Product } from '../types';
-import { XIcon, CheckCircleIcon, TagIcon, WrenchIcon, LockClosedIcon, ShieldCheckIcon, ClipboardDocumentListIcon, CalendarIcon, BuildingStoreIcon, PlusIcon, TrashIcon, ArrowUpTrayIcon, UserIcon, ExclamationTriangleIcon } from './Icons';
+import { DefectReport, UserRole, PermissionField, Product, Customer } from '../types';
+import { XIcon, CheckCircleIcon, TagIcon, WrenchIcon, LockClosedIcon, ShieldCheckIcon, ClipboardDocumentListIcon, CalendarIcon, BuildingStoreIcon, PlusIcon, TrashIcon, ArrowUpTrayIcon, UserIcon, ExclamationTriangleIcon, TruckIcon } from './Icons';
 
 interface Props {
   initialData: DefectReport | null;
@@ -10,6 +10,7 @@ interface Props {
   currentUserRole: UserRole;
   editableFields: PermissionField[];
   products: Product[];
+  customers?: Customer[]; // New prop
 }
 
 const getTodayDateString = () => {
@@ -58,13 +59,13 @@ const compressImage = (file: File): Promise<string> => {
     });
 };
 
-const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, currentUserRole, editableFields, products }) => {
+const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, currentUserRole, editableFields, products, customers = [] }) => {
   const [formData, setFormData] = useState<Omit<DefectReport, 'id'>>({
     ngayTao: new Date().toISOString(),
     ngayPhanAnh: getTodayDateString(),
     maSanPham: '', dongSanPham: '', tenThuongMai: '', tenThietBi: '', nhaPhanPhoi: '',
     donViSuDung: '', nguoiLienHe: '', soDienThoai: '', noiDungPhanAnh: '', soLo: '', maNgaySanXuat: '', hanDung: '', donViTinh: '',
-    soLuongLoi: 0, soLuongDaNhap: 0, soLuongDoi: 0, ngayDoiHang: '',
+    soLuongLoi: 0, soLuongDaNhap: 0, soLuongDoi: 0, ngayDoiHang: '', maVanDon: '',
     nguyenNhan: '', huongKhacPhuc: '', trangThai: 'Mới',
     mucDoUuTien: 'Trung bình',
     ngayHoanThanh: '', 
@@ -81,6 +82,37 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
 
   const productCodeInputRef = useRef<HTMLInputElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
+
+  // --- Date Input Helper Component ---
+  const DateInput = ({ name, value, onChange, onBlur, disabled, className, placeholder }: any) => {
+      const [type, setType] = useState('text');
+      
+      const displayValue = useMemo(() => {
+          if (!value) return '';
+          if (type === 'date') return value.split('T')[0];
+          try {
+              const [y, m, d] = value.split('T')[0].split('-');
+              return `${d}/${m}/${y}`;
+          } catch { return value; }
+      }, [value, type]);
+
+      return (
+          <div className="relative">
+              <input
+                  type={type}
+                  name={name}
+                  value={displayValue}
+                  onChange={onChange}
+                  onFocus={() => setType('date')}
+                  onBlur={(e) => { setType('text'); if(onBlur) onBlur(e); }}
+                  disabled={disabled}
+                  className={className}
+                  placeholder={placeholder || "dd/mm/yyyy"}
+              />
+              {type === 'text' && !disabled && <CalendarIcon className="absolute right-3 top-3 w-4 h-4 text-slate-400 pointer-events-none" />}
+          </div>
+      );
+  };
 
   const handleCloseAttempt = () => {
       if (isDirty) {
@@ -156,6 +188,15 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
       return Array.from(new Set(filtered.map(p => p.tenThuongMai).filter(Boolean))).sort();
   }, [products, formData.nhanHang, formData.dongSanPham, formData.tenThietBi]);
 
+  // Customer Autocomplete List
+  const customerOptions = useMemo(() => {
+      return customers.map(c => ({
+          value: c.tenKhachHang,
+          label: `${c.maKhachHang} ${c.tinhThanh ? `- ${c.tinhThanh}` : ''}`,
+          data: c
+      }));
+  }, [customers]);
+
   const isFieldDisabled = (fieldName: keyof Omit<DefectReport, 'id'>) => {
     if (!initialData) return false; 
     
@@ -170,7 +211,7 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
     else if (['ngayHoanThanh'].includes(fieldName)) permissionKey = 'ngayHoanThanh';
     else if (['loaiLoi'].includes(fieldName)) permissionKey = 'loaiLoi';
     else if (['soLuongDoi'].includes(fieldName)) permissionKey = 'soLuongDoi';
-    else if (['ngayDoiHang'].includes(fieldName)) permissionKey = 'ngayDoiHang';
+    else if (['ngayDoiHang', 'maVanDon'].includes(fieldName)) permissionKey = 'ngayDoiHang';
     else permissionKey = 'general';
 
     return !editableFields.includes(permissionKey);
@@ -232,6 +273,7 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
           soLuongDaNhap: initialData.soLuongDaNhap || 0,
           soLuongDoi: initialData.soLuongDoi || 0,
           mucDoUuTien: initialData.mucDoUuTien || 'Trung bình',
+          maVanDon: initialData.maVanDon || '',
       });
       const product = products.find(p => p.maSanPham.toLowerCase() === initialData.maSanPham.toLowerCase());
       setIsProductInfoLocked(!!product && !initialData.id.startsWith('new_'));
@@ -324,6 +366,17 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
                 }
             }
         } 
+        // Handle Customer Autocomplete logic for nhaPhanPhoi or donViSuDung
+        else if (name === 'nhaPhanPhoi' || name === 'donViSuDung') {
+            (newState as any)[name] = value;
+            // Optionally try to auto-fill contact info if an exact match is found in customers
+            // This is a "nice to have" feature
+            const matchedCustomer = customers.find(c => c.tenKhachHang === value);
+            if (matchedCustomer) {
+                if (matchedCustomer.nguoiLienHe && !newState.nguoiLienHe) newState.nguoiLienHe = matchedCustomer.nguoiLienHe;
+                if (matchedCustomer.soDienThoai && !newState.soDienThoai) newState.soDienThoai = matchedCustomer.soDienThoai;
+            }
+        }
         else if (name === 'trangThai') {
             newState.trangThai = value as any;
             if (value === 'Hoàn thành' && !newState.ngayHoanThanh) newState.ngayHoanThanh = getTodayDateString();
@@ -522,23 +575,41 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
                         
                         <div className="lg:col-span-1">
                              <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Hạn dùng</label>
-                             <input type="date" name="hanDung" value={formData.hanDung ? formData.hanDung.split('T')[0] : ''} onChange={handleChange} className={getInputClasses('hanDung')} disabled={isFieldDisabled('hanDung')} />
+                             <DateInput name="hanDung" value={formData.hanDung ? formData.hanDung.split('T')[0] : ''} onChange={handleChange} className={getInputClasses('hanDung')} disabled={isFieldDisabled('hanDung')} placeholder="dd/mm/yyyy" />
                         </div>
                    </div>
                </div>
 
-               {/* Distribution Section - Updated with Contact Info */}
+               {/* Distribution Section - Updated with Customer List Datalist */}
                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm mb-6 group transition-all hover:shadow-md">
                    <SectionHeader title="Thông tin Phân phối & Liên hệ" icon={<BuildingStoreIcon className="w-5 h-5"/>} />
+                   
+                   {/* Datalist for Customers */}
+                   <datalist id="customer-list">
+                       {customerOptions.map((opt, idx) => <option key={idx} value={opt.value}>{opt.label}</option>)}
+                   </datalist>
+
                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                         <div>
                              <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Nhà phân phối <span className="text-red-500">*</span></label>
-                             <input type="text" name="nhaPhanPhoi" value={formData.nhaPhanPhoi} onChange={handleChange} onBlur={handleBlur} className={getInputClasses('nhaPhanPhoi')} disabled={isFieldDisabled('nhaPhanPhoi')} placeholder="Tên NPP..." />
+                             <input list="customer-list" type="text" name="nhaPhanPhoi" value={formData.nhaPhanPhoi} onChange={handleChange} onBlur={handleBlur} className={getInputClasses('nhaPhanPhoi')} disabled={isFieldDisabled('nhaPhanPhoi')} placeholder="Tên NPP..." />
+                             {(() => {
+                                const match = customers.find(c => c.tenKhachHang === formData.nhaPhanPhoi);
+                                if (match) {
+                                    return (
+                                        <div className="flex items-center gap-1 mt-1 text-[10px] text-emerald-600 font-bold animate-fade-in">
+                                            <CheckCircleIcon className="w-3 h-3" />
+                                            <span>Đã khớp: {match.maKhachHang} - {match.tinhThanh}</span>
+                                        </div>
+                                    )
+                                }
+                                return null;
+                             })()}
                              <ErrorMessage field="nhaPhanPhoi" />
                         </div>
                         <div>
                              <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Đơn vị sử dụng</label>
-                             <input type="text" name="donViSuDung" value={formData.donViSuDung} onChange={handleChange} className={getInputClasses('donViSuDung')} disabled={isFieldDisabled('donViSuDung')} placeholder="Bệnh viện / Phòng khám..." />
+                             <input list="customer-list" type="text" name="donViSuDung" value={formData.donViSuDung} onChange={handleChange} className={getInputClasses('donViSuDung')} disabled={isFieldDisabled('donViSuDung')} placeholder="Bệnh viện / Phòng khám..." />
                         </div>
                         <div>
                              <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Người liên hệ</label>
@@ -561,7 +632,7 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                             <div>
                                 <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Ngày phản ánh <span className="text-red-500">*</span></label>
-                                <input type="date" name="ngayPhanAnh" value={formData.ngayPhanAnh.split('T')[0]} onChange={handleChange} onBlur={handleBlur} className={getInputClasses('ngayPhanAnh')} disabled={isFieldDisabled('ngayPhanAnh')} />
+                                <DateInput name="ngayPhanAnh" value={formData.ngayPhanAnh.split('T')[0]} onChange={handleChange} onBlur={handleBlur} className={getInputClasses('ngayPhanAnh')} disabled={isFieldDisabled('ngayPhanAnh')} placeholder="dd/mm/yyyy" />
                                 <ErrorMessage field="ngayPhanAnh" />
                             </div>
                             <div>
@@ -671,7 +742,8 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
                
                {/* Status Section */}
                <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 shadow-inner">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 items-end">
+                    <SectionHeader title="Thông tin Theo dõi & Trạng thái" icon={<TruckIcon className="w-5 h-5"/>} />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 items-end">
                         <div>
                             <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Trạng thái xử lý <span className="text-red-500">*</span></label>
                             <select name="trangThai" value={formData.trangThai} onChange={handleChange} onBlur={handleBlur} className={getInputClasses('trangThai')} disabled={isFieldDisabled('trangThai')}>
@@ -686,13 +758,18 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
                         
                         <div>
                             <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Ngày hoàn thành</label>
-                            <input type="date" name="ngayHoanThanh" value={formData.ngayHoanThanh ? formData.ngayHoanThanh.split('T')[0] : ''} onChange={handleChange} onBlur={handleBlur} className={getInputClasses('ngayHoanThanh')} disabled={isFieldDisabled('ngayHoanThanh')} />
+                            <DateInput name="ngayHoanThanh" value={formData.ngayHoanThanh ? formData.ngayHoanThanh.split('T')[0] : ''} onChange={handleChange} onBlur={handleBlur} className={getInputClasses('ngayHoanThanh')} disabled={isFieldDisabled('ngayHoanThanh')} placeholder="dd/mm/yyyy" />
                             <ErrorMessage field="ngayHoanThanh" />
                         </div>
                         
                         <div>
                             <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Ngày đổi hàng</label>
-                            <input type="date" name="ngayDoiHang" value={formData.ngayDoiHang ? formData.ngayDoiHang.split('T')[0] : ''} onChange={handleChange} className={getInputClasses('ngayDoiHang')} disabled={isFieldDisabled('ngayDoiHang')} />
+                            <DateInput name="ngayDoiHang" value={formData.ngayDoiHang ? formData.ngayDoiHang.split('T')[0] : ''} onChange={handleChange} className={getInputClasses('ngayDoiHang')} disabled={isFieldDisabled('ngayDoiHang')} placeholder="dd/mm/yyyy" />
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Mã vận đơn (Bill/Tracking)</label>
+                            <input type="text" name="maVanDon" value={formData.maVanDon || ''} onChange={handleChange} className={getInputClasses('maVanDon')} disabled={isFieldDisabled('ngayDoiHang')} placeholder="Mã bill gửi hàng..." />
                         </div>
                     </div>
                </div>
