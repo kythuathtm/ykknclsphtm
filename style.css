@@ -1,3 +1,4 @@
+
 :root {
   /* Global Font Definition */
   --app-font: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -24,15 +25,12 @@ body {
   font-family: var(--app-font);
   line-height: 1.5;
   color: #1e293b;              /* Slate 800 */
-  background-color: #f0f4f8;   /* Slate 50 base */
+  background-color: #f8fafc;   /* Slate 50 base (Lighter than before for cleaner look) */
   
-  /* Modern Mesh Gradient Background for Glassmorphism */
+  /* Simplified Gradient for better performance */
   background-image: 
-    radial-gradient(at 0% 0%, hsla(210, 100%, 93%, 1) 0, transparent 50%), 
-    radial-gradient(at 50% 0%, hsla(220, 100%, 96%, 1) 0, transparent 50%), 
-    radial-gradient(at 100% 0%, hsla(200, 100%, 93%, 1) 0, transparent 50%),
-    radial-gradient(at 0% 100%, hsla(230, 100%, 96%, 1) 0, transparent 50%),
-    radial-gradient(at 100% 100%, hsla(210, 100%, 94%, 1) 0, transparent 50%);
+    radial-gradient(at 0% 0%, hsla(215, 100%, 96%, 1) 0, transparent 50%), 
+    radial-gradient(at 100% 100%, hsla(215, 100%, 96%, 1) 0, transparent 50%);
     
   background-attachment: fixed;
   background-size: cover;
@@ -44,6 +42,13 @@ body {
   
   /* Advanced Font Features for Inter */
   font-feature-settings: "cv02", "cv03", "cv04", "cv11", "salt"; 
+}
+
+/* Performance hint for animations */
+.animate-slide-up, .animate-fade-in-up, .animate-pop, .animate-zoom-in {
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  transform: translateZ(0); /* Hardware acceleration hack */
 }
 
 /* --- Modern Scrollbar Styling --- */
@@ -97,17 +102,17 @@ input, button, textarea, select {
 
 /* Glassmorphism Utilities */
 .glass-panel {
-  background: rgba(255, 255, 255, 0.65);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px); /* Reduced blur radius for performance */
+  -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.5);
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
 }
 
 .glass-card {
-  background: rgba(255, 255, 255, 0.4);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(8px); /* Reduced blur radius for performance */
+  -webkit-backdrop-filter: blur(8px);
   border: 1px solid rgba(255, 255, 255, 0.6);
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
 }
