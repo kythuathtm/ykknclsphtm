@@ -213,7 +213,7 @@ const ProductListModal: React.FC<Props> = ({ products, onClose, onImport, onAdd,
 
   return (
     <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center sm:p-4 transition-opacity">
-      <div className="bg-white w-full h-full sm:h-auto sm:max-h-[90vh] max-w-7xl rounded-none sm:rounded-2xl flex flex-col overflow-hidden ring-1 ring-black/5 shadow-2xl animate-slide-up">
+      <div className="bg-white w-full h-full sm:h-auto sm:max-h-[90vh] max-w-7xl rounded-none sm:rounded-2xl flex flex-col overflow-hidden ring-1 ring-black/5 shadow-2xl animate-dialog-enter">
         
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 sm:p-5 border-b border-slate-200 bg-white gap-4 sm:gap-0">

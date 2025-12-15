@@ -144,7 +144,7 @@ const UserManagementModal: React.FC<Props> = ({ users, onSaveUser, onDeleteUser,
   return (
     <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center sm:p-4 transition-opacity">
       {/* Glassmorphism Card */}
-      <div className="bg-white/90 backdrop-blur-2xl w-full h-full sm:h-auto sm:max-h-[90vh] max-w-5xl rounded-none sm:rounded-2xl flex flex-col overflow-hidden ring-1 ring-white/60 shadow-2xl animate-pop">
+      <div className="bg-white/90 backdrop-blur-2xl w-full h-full sm:h-auto sm:max-h-[90vh] max-w-5xl rounded-none sm:rounded-2xl flex flex-col overflow-hidden ring-1 ring-white/60 shadow-2xl animate-dialog-enter">
         
         {/* Header */}
         <div className="flex justify-between items-center p-5 border-b border-slate-200/60 bg-white/50 backdrop-blur-md">

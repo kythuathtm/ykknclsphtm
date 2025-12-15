@@ -187,7 +187,7 @@ const PermissionManagementModal: React.FC<Props> = ({ roleSettings, onSave, onRe
 
   return (
     <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center sm:p-4 transition-opacity">
-      <div className="bg-white w-full h-full sm:h-auto sm:max-h-[90vh] max-w-[1400px] rounded-none sm:rounded-xl flex flex-col overflow-hidden">
+      <div className="bg-white w-full h-full sm:h-auto sm:max-h-[90vh] max-w-[1400px] rounded-none sm:rounded-xl flex flex-col overflow-hidden animate-dialog-enter">
         <div className="flex justify-between items-center p-5 border-b border-slate-200 bg-white">
           <div>
              <h2 className="text-xl font-bold text-slate-800">Quản lý Vai trò & Phân quyền</h2>

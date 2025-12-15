@@ -11,7 +11,6 @@
 
 html {
   font-size: 16px;             /* Base font size for rem scaling */
-  scroll-behavior: smooth;     /* Enable smooth scrolling */
   -webkit-text-size-adjust: 100%;
   -webkit-tap-highlight-color: transparent;
 }
@@ -25,9 +24,9 @@ body {
   font-family: var(--app-font);
   line-height: 1.5;
   color: #1e293b;              /* Slate 800 */
-  background-color: #f8fafc;   /* Slate 50 base (Lighter than before for cleaner look) */
+  background-color: #f8fafc;   /* Slate 50 base */
   
-  /* Simplified Gradient for better performance */
+  /* Optimized Gradient - Static background helps performance */
   background-image: 
     radial-gradient(at 0% 0%, hsla(215, 100%, 96%, 1) 0, transparent 50%), 
     radial-gradient(at 100% 100%, hsla(215, 100%, 96%, 1) 0, transparent 50%);
@@ -44,11 +43,16 @@ body {
   font-feature-settings: "cv02", "cv03", "cv04", "cv11", "salt"; 
 }
 
-/* Performance hint for animations */
-.animate-slide-up, .animate-fade-in-up, .animate-pop, .animate-zoom-in {
+/* Reduced animation complexity for performance */
+.animate-fade-in-up, .animate-pop, .animate-zoom-in, .animate-fade-in, .animate-slide-up, .animate-slide-in-right {
+  /* Only animate simple properties */
   will-change: transform, opacity;
-  backface-visibility: hidden;
-  transform: translateZ(0); /* Hardware acceleration hack */
+}
+
+/* Optimize heavy components */
+.glass-panel, .glass-card, .backdrop-blur-md, .backdrop-blur-xl {
+    /* Trigger hardware acceleration but use cautiously */
+    transform: translate3d(0, 0, 0); 
 }
 
 /* --- Modern Scrollbar Styling --- */
@@ -100,21 +104,17 @@ input, button, textarea, select {
   letter-spacing: inherit;
 }
 
-/* Glassmorphism Utilities */
+/* Optimized Glassmorphism - Removed heavy blur for better scroll performance */
 .glass-panel {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(12px); /* Reduced blur radius for performance */
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+  background: rgba(255, 255, 255, 0.95); 
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
 
 .glass-card {
-  background: rgba(255, 255, 255, 0.5);
-  backdrop-filter: blur(8px); /* Reduced blur radius for performance */
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
 }
 
 /* Text Shadow for better contrast on glass */

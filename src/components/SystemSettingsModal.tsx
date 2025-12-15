@@ -197,7 +197,7 @@ const SystemSettingsModal: React.FC<Props> = ({ currentSettings, onSave, onClose
 
   return (
     <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center sm:p-4 transition-opacity">
-      <div className="bg-white w-full h-full sm:h-auto sm:max-h-[90vh] max-w-5xl rounded-none sm:rounded-2xl flex flex-col overflow-hidden ring-1 ring-white/20 shadow-2xl animate-fade-in-up">
+      <div className="bg-white w-full h-full sm:h-auto sm:max-h-[90vh] max-w-5xl rounded-none sm:rounded-2xl flex flex-col overflow-hidden ring-1 ring-white/20 shadow-2xl animate-dialog-enter">
         
         {/* Header */}
         <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 bg-white">

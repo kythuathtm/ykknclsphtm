@@ -85,64 +85,38 @@ const BrandLogoETC = ({ className = "w-10 h-10", textSize = "text-[10px]" }: { c
     </div>
 );
 
-// --- ANIMATED COUNT COMPONENT ---
-const CountUp = ({ value, duration = 1000, suffix = "" }: { value: number, duration?: number, suffix?: string }) => {
-    const [display, setDisplay] = useState(0);
-
-    useEffect(() => {
-        let start = 0;
-        const end = value;
-        if (start === end) return;
-
-        let totalMilSec = duration;
-        let incrementTime = (totalMilSec / end) * 5; 
-
-        // fallback for large numbers
-        if (incrementTime < 5) incrementTime = 10; 
-        
-        const timer = setInterval(() => {
-            start += Math.ceil(end / (totalMilSec / 10)); // increment
-            if (start >= end) {
-                start = end;
-                clearInterval(timer);
-            }
-            setDisplay(start);
-        }, 10);
-
-        return () => clearInterval(timer);
-    }, [value, duration]);
-
-    return <>{display.toLocaleString()}{suffix}</>;
+// --- STATIC COUNT COMPONENT (Optimized) ---
+const CountUp = ({ value, duration = 800, suffix = "" }: { value: number, duration?: number, suffix?: string }) => {
+    return <>{value.toLocaleString()}{suffix}</>;
 };
 
 // --- SUB-COMPONENTS ---
 
-const GlassCard = ({ children, className = "", delay = 0 }: { children?: React.ReactNode, className?: string, delay?: number }) => (
+// Simplified GlassCard without blur or animation
+const GlassCard = ({ children, className = "" }: { children?: React.ReactNode, className?: string }) => (
     <div 
-        className={`bg-white/40 backdrop-blur-xl border border-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-[2rem] relative overflow-hidden animate-slide-up ring-1 ring-white/40 ${className}`}
-        style={{ animationDelay: `${delay}ms` }}
+        className={`bg-white border border-slate-200 shadow-sm rounded-[2rem] relative overflow-hidden ${className}`}
     >
         {children}
     </div>
 );
 
-const KpiCard = ({ title, value, icon, subLabel, color, onClick, delay }: any) => (
+const KpiCard = ({ title, value, icon, subLabel, color, onClick }: any) => (
     <button 
         onClick={onClick}
-        className="group relative flex flex-col justify-between p-6 rounded-[2rem] bg-white/40 backdrop-blur-lg border border-white/60 hover:bg-white/60 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-900/5 w-full text-left overflow-hidden ring-1 ring-white/50 animate-slide-up"
-        style={{ animationDelay: `${delay}ms` }}
+        className="group relative flex flex-col justify-between p-6 rounded-[2rem] bg-white border border-slate-200 hover:border-slate-300 transition-colors duration-200 hover:shadow-lg w-full text-left overflow-hidden"
     >
-        <div className={`absolute -right-6 -top-6 w-32 h-32 rounded-full blur-[60px] opacity-20 transition-opacity group-hover:opacity-40`} style={{ backgroundColor: color }}></div>
+        <div className={`absolute -right-6 -top-6 w-32 h-32 rounded-full opacity-10 transition-opacity group-hover:opacity-20`} style={{ backgroundColor: color }}></div>
         
         <div className="flex items-center gap-3 relative z-10 mb-4">
-            <div className={`p-2.5 rounded-2xl border border-white/60 shadow-sm backdrop-blur-md`} style={{ backgroundColor: `${color}15`, color: color }}>
+            <div className={`p-2.5 rounded-2xl border border-slate-100 shadow-sm`} style={{ backgroundColor: `${color}10`, color: color }}>
                 {icon}
             </div>
             <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">{title}</span>
         </div>
         
         <div className="relative z-10">
-            <div className="text-3xl font-black text-slate-800 tracking-tight flex items-baseline gap-1 drop-shadow-sm">
+            <div className="text-3xl font-black text-slate-800 tracking-tight flex items-baseline gap-1">
                 {value}
             </div>
             <div className="text-[11px] font-semibold text-slate-500 mt-1 opacity-80">{subLabel}</div>
@@ -160,7 +134,7 @@ const BrandStatRow = ({ brand, label, color, data, onClick, logoUrl }: any) => {
     return (
         <div 
             onClick={onClick}
-            className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-2xl bg-white/30 border border-white/50 hover:bg-white/60 hover:border-white/80 transition-all cursor-pointer group backdrop-blur-sm"
+            className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-2xl bg-slate-50 border border-slate-200 hover:bg-white hover:shadow-md transition-all cursor-pointer group"
         >
             <div className="flex items-center gap-4 mb-3 sm:mb-0">
                 {renderLogo()}
@@ -175,17 +149,17 @@ const BrandStatRow = ({ brand, label, color, data, onClick, logoUrl }: any) => {
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Số phiếu</span>
                     <div className="flex items-baseline gap-1.5">
                         <span className="text-lg font-black text-slate-700">{data.count}</span>
-                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-white/50 text-slate-500 border border-white/50 backdrop-blur-sm">
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-white text-slate-500 border border-slate-200">
                             {data.pct.toFixed(1)}%
                         </span>
                     </div>
                 </div>
                 
-                <div className="flex flex-col border-l border-slate-300/30 pl-6 sm:pl-10">
+                <div className="flex flex-col border-l border-slate-200 pl-6 sm:pl-10">
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Sản phẩm (SKU)</span>
                     <div className="flex items-baseline gap-1.5">
                         <span className="text-lg font-black text-slate-700">{data.skuCount}</span>
-                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-white/50 text-slate-500 border border-white/50 backdrop-blur-sm">
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-white text-slate-500 border border-slate-200">
                             {data.skuPct.toFixed(1)}%
                         </span>
                     </div>
@@ -198,21 +172,19 @@ const BrandStatRow = ({ brand, label, color, data, onClick, logoUrl }: any) => {
 const ProgressBarChart = ({ data, color, onBarClick }: { data: any[], color: string, onBarClick?: (label: string) => void }) => (
     <div className="space-y-5">
         {data.map((item, idx) => (
-            <div key={idx} onClick={() => onBarClick && onBarClick(item.label)} className="group animate-fade-in cursor-pointer" style={{ animationDelay: `${idx * 100}ms` }}>
+            <div key={idx} onClick={() => onBarClick && onBarClick(item.label)} className="group cursor-pointer">
                 <div className="flex justify-between items-end mb-1.5">
                     <span className="text-xs font-bold text-slate-600 group-hover:text-[#003DA5] transition-colors">{item.label}</span>
                     <div className="flex items-center gap-1.5">
                         <span className="text-xs font-black text-slate-800">{item.value}</span>
-                        <span className="text-[10px] font-semibold text-slate-400 bg-white/50 px-1 rounded backdrop-blur-sm">({item.percentage.toFixed(1)}%)</span>
+                        <span className="text-[10px] font-semibold text-slate-400 bg-slate-50 px-1 rounded">({item.percentage.toFixed(1)}%)</span>
                     </div>
                 </div>
-                <div className="h-2.5 w-full bg-slate-100/50 rounded-full overflow-hidden shadow-inner border border-white/30 backdrop-blur-sm">
+                <div className="h-2.5 w-full bg-slate-100 rounded-full overflow-hidden border border-slate-200">
                     <div 
-                        className="h-full rounded-full transition-all duration-1000 ease-out relative"
+                        className="h-full rounded-full relative"
                         style={{ width: `${item.percentage}%`, backgroundColor: item.color || color }}
-                    >
-                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent opacity-50"></div>
-                    </div>
+                    ></div>
                 </div>
             </div>
         ))}
@@ -232,18 +204,16 @@ const MonthlyTrendChart = ({ data, onBarClick }: { data: { month: string, count:
                             {/* Bar container */}
                             <div 
                                 onClick={() => onBarClick && onBarClick(d.month)}
-                                className="w-full relative flex items-end justify-center h-full rounded-t-xl bg-slate-50/30 hover:bg-slate-50/60 transition-colors cursor-pointer overflow-visible backdrop-blur-sm"
+                                className="w-full relative flex items-end justify-center h-full rounded-t-xl bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer overflow-visible"
                             >
                                 {/* The Bar */}
                                 <div 
-                                    className="w-2/3 max-w-[40px] bg-gradient-to-t from-[#003DA5] to-blue-400 rounded-t-md opacity-80 group-hover:opacity-100 transition-all duration-500 ease-out relative shadow-lg group-hover:shadow-blue-500/30"
+                                    className="w-2/3 max-w-[40px] bg-gradient-to-t from-[#003DA5] to-blue-400 rounded-t-md opacity-80 group-hover:opacity-100 relative"
                                     style={{ height: `${(d.count / max) * 100}%`, minHeight: '4px' }}
-                                >
-                                    <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                                </div>
+                                ></div>
                                 
                                 {/* Tooltip */}
-                                <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] font-bold px-2 py-1 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none whitespace-nowrap z-20 transform translate-y-2 group-hover:translate-y-0">
+                                <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] font-bold px-2 py-1 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none whitespace-nowrap z-20 transform translate-y-2 group-hover:translate-y-0">
                                     {d.count} Phiếu
                                     <div className="absolute bottom-[-4px] left-1/2 -translate-x-1/2 w-2 h-2 bg-slate-800 rotate-45"></div>
                                 </div>
@@ -273,9 +243,9 @@ interface DataModalProps {
 }
 
 const DataModal = ({ title, onClose, children }: DataModalProps) => (
-    <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-[60] flex items-center justify-center p-4 transition-opacity animate-fade-in">
-        <div className="bg-white/80 backdrop-blur-2xl w-full max-w-6xl h-full max-h-[90vh] rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-zoom-in ring-1 ring-white/60 border border-white/40">
-            <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 bg-white/50 backdrop-blur-lg sticky top-0 z-20">
+    <div className="fixed inset-0 bg-slate-900/40 z-[60] flex items-center justify-center p-4">
+        <div className="bg-white w-full max-w-6xl h-full max-h-[90vh] rounded-3xl shadow-2xl flex flex-col overflow-hidden">
+            <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 bg-white sticky top-0 z-20">
                 <div className="flex items-center gap-3">
                     <div className="p-2 bg-blue-50 text-[#003DA5] rounded-xl border border-blue-100">
                         <ShoppingBagIcon className="w-5 h-5"/>
@@ -579,7 +549,7 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
                 <div>
                     <h2 className="text-3xl font-black text-slate-800 tracking-tight flex items-center gap-2 drop-shadow-sm">
                         Xin chào, <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#003DA5] to-blue-600">{currentUser?.fullName || currentUser?.username}</span>
-                        <span className="text-2xl animate-pulse">👋</span>
+                        <span className="text-2xl">👋</span>
                     </h2>
                     
                     <div className="flex items-center gap-2 mt-2">
@@ -597,13 +567,13 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
                         onClick={onOpenAiAnalysis}
                         className="group flex items-center gap-2 bg-gradient-to-br from-indigo-600 to-purple-600 text-white px-5 py-3 rounded-2xl shadow-lg shadow-indigo-500/30 transition-all hover:scale-105 active:scale-95 border border-white/20 hover:shadow-indigo-500/50"
                     >
-                        <SparklesIcon className="w-4 h-4 animate-pulse" />
+                        <SparklesIcon className="w-4 h-4" />
                         <span className="text-sm font-bold">Phân tích AI</span>
                     </button>
                     
                     <button 
                         onClick={() => onFilterSelect('all')}
-                        className="flex items-center gap-2 bg-white/40 hover:bg-white/70 text-slate-700 px-5 py-3 rounded-2xl border border-white/60 shadow-sm transition-all text-sm font-bold hover:shadow-md backdrop-blur-md"
+                        className="flex items-center gap-2 bg-white hover:bg-slate-50 text-slate-700 px-5 py-3 rounded-2xl border border-slate-200 shadow-sm transition-all text-sm font-bold hover:shadow-md"
                     >
                         <TableCellsIcon className="w-4 h-4 text-slate-500" />
                         <span>Dữ liệu gốc</span>
@@ -620,7 +590,6 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
                     icon={<InboxIcon className="w-5 h-5"/>}
                     color={COLORS.PRIMARY}
                     onClick={() => onFilterSelect('all')}
-                    delay={0}
                 />
                 {/* NEW OVERDUE KPI CARD */}
                 <KpiCard 
@@ -630,7 +599,6 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
                     icon={<ExclamationCircleIcon className="w-5 h-5"/>}
                     color={COLORS.DANGER}
                     onClick={() => onFilterSelect('overdue')}
-                    delay={50}
                 />
                 <KpiCard 
                     title="Nhà Phân Phối" 
@@ -639,7 +607,6 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
                     icon={<BuildingStoreIcon className="w-5 h-5"/>}
                     color={COLORS.VIOLET}
                     onClick={() => setShowDistributorModal(true)}
-                    delay={100}
                 />
                 <KpiCard 
                     title="Sản Phẩm (SKU)" 
@@ -648,7 +615,6 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
                     icon={<CubeIcon className="w-5 h-5"/>}
                     color={COLORS.WARNING}
                     onClick={() => setShowProductModal(true)}
-                    delay={200}
                 />
                 <KpiCard 
                     title="Tỷ Lệ Hoàn Thành" 
@@ -657,14 +623,13 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
                     icon={<CheckCircleIcon className="w-5 h-5"/>}
                     color={COLORS.SUCCESS}
                     onClick={() => onFilterSelect('status', 'Hoàn thành')}
-                    delay={300}
                 />
             </div>
 
             {/* 2. Monthly Trend & Status (NEW LAYOUT) */}
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 mb-8">
                 {/* Monthly Trend Chart */}
-                <GlassCard className="p-8 flex flex-col xl:col-span-2" delay={400}>
+                <GlassCard className="p-8 flex flex-col xl:col-span-2">
                     <div className="flex items-center gap-3 mb-2">
                         <div className="p-2 bg-blue-50 text-[#003DA5] rounded-xl">
                             <BarChartIcon className="w-5 h-5" />
@@ -680,7 +645,7 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
                 </GlassCard>
 
                 {/* Status Distribution */}
-                <GlassCard className="p-8" delay={500}>
+                <GlassCard className="p-8">
                     <div className="flex items-center gap-3 mb-6">
                         <div className="p-2 bg-blue-50 text-blue-600 rounded-xl">
                             <ChartPieIcon className="w-5 h-5" />
@@ -705,7 +670,7 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
                                     })` 
                                 }}
                             ></div>
-                            <div className="absolute inset-0 m-auto w-24 h-24 bg-white/80 backdrop-blur-xl rounded-full flex flex-col items-center justify-center shadow-lg border border-white/50">
+                            <div className="absolute inset-0 m-auto w-24 h-24 bg-white rounded-full flex flex-col items-center justify-center shadow-md border border-slate-100">
                                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tổng</span>
                                 <span className="text-2xl font-black text-slate-800 tracking-tighter">{metrics.totalReports}</span>
                             </div>
@@ -717,13 +682,13 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
                                 <div 
                                     key={idx} 
                                     onClick={() => onFilterSelect('status', status.label)}
-                                    className="flex items-center justify-between p-1.5 rounded-lg hover:bg-slate-50/50 transition-colors cursor-pointer group"
+                                    className="flex items-center justify-between p-1.5 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer group"
                                 >
                                     <div className="flex items-center gap-2 overflow-hidden">
                                         <div className="w-2 h-2 rounded-full shadow-sm flex-shrink-0" style={{ backgroundColor: status.color }}></div>
                                         <span className="text-xs font-bold text-slate-600 truncate group-hover:text-slate-900">{status.label}</span>
                                     </div>
-                                    <span className="text-[10px] font-black text-slate-800 bg-white/50 px-1.5 py-0.5 rounded shadow-sm border border-slate-200/50 backdrop-blur-sm">
+                                    <span className="text-[10px] font-black text-slate-800 bg-white px-1.5 py-0.5 rounded shadow-sm border border-slate-200">
                                         {status.percentage.toFixed(0)}%
                                     </span>
                                 </div>
@@ -737,7 +702,7 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
                 
                 {/* Brand Statistics */}
-                <GlassCard className="p-8 flex flex-col" delay={600}>
+                <GlassCard className="p-8 flex flex-col">
                     <div className="flex items-center justify-between gap-3 mb-6">
                         <div 
                             className="flex items-center gap-3 cursor-pointer group/title"
@@ -786,7 +751,7 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
                 </GlassCard>
 
                 {/* Error Origin - ONLY TOTAL (Removed Tabs) */}
-                <GlassCard className="p-8" delay={700}>
+                <GlassCard className="p-8">
                     <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center gap-3">
                             <div className="p-2 bg-rose-50 text-rose-600 rounded-xl">
@@ -808,7 +773,7 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
             {/* 4. Recent Activity & Top Products Row */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-4">
                 {/* Recent Activity Feed - NEW TRACKING FEATURE */}
-                <GlassCard className="p-8 flex flex-col h-[400px]" delay={750}>
+                <GlassCard className="p-8 flex flex-col h-[400px]">
                     <div className="flex items-center gap-3 mb-6">
                         <div className="p-2 bg-purple-50 text-purple-600 rounded-xl">
                             <ClockIcon className="w-5 h-5" />
@@ -819,7 +784,11 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
                     <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-4">
                         {recentActivity.length > 0 ? (
                             recentActivity.map((log, idx) => (
-                                <div key={`${log.id}-${idx}`} onClick={() => onSelectReport(reports.find(r => r.id === log.reportId) as DefectReport)} className="flex gap-3 group cursor-pointer">
+                                <div 
+                                    key={`${log.id}-${idx}`} 
+                                    onClick={() => onSelectReport(reports.find(r => r.id === log.reportId) as DefectReport)} 
+                                    className="flex gap-3 group cursor-pointer"
+                                >
                                     <div className={`mt-1 w-2 h-2 rounded-full flex-shrink-0 ${log.type === 'comment' ? 'bg-blue-400' : 'bg-slate-300'} ring-4 ring-white shadow-sm`}></div>
                                     <div className="flex-1 min-w-0 pb-3 border-b border-slate-100 group-last:border-0 group-last:pb-0">
                                         <div className="flex justify-between items-start">
@@ -833,7 +802,7 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
                                             <span className="text-[10px] text-slate-500">•</span>
                                             <span className="text-[10px] font-bold text-slate-600 uppercase">{log.user}</span>
                                         </div>
-                                        <p className="text-xs text-slate-600 mt-1.5 line-clamp-2 bg-slate-50/50 p-1.5 rounded-lg italic">
+                                        <p className="text-xs text-slate-600 mt-1.5 line-clamp-2 bg-slate-50 p-1.5 rounded-lg italic">
                                             {log.content}
                                         </p>
                                     </div>
@@ -849,7 +818,7 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
                 </GlassCard>
 
                 {/* Top Products */}
-                <GlassCard className="p-8 flex flex-col h-[400px]" delay={800}>
+                <GlassCard className="p-8 flex flex-col h-[400px]">
                     <div className="flex items-center gap-3 mb-6">
                         <div className="p-2 bg-amber-50 text-amber-600 rounded-xl">
                             <TagIcon className="w-5 h-5" />
@@ -859,13 +828,16 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
                     
                     <div className="space-y-3 overflow-y-auto custom-scrollbar pr-2">
                         {metrics.topProducts.map((prod, idx) => (
-                            <div key={idx} className="flex items-center justify-between p-4 rounded-xl bg-white/40 hover:bg-white/60 transition-all border border-white/50 shadow-sm group backdrop-blur-sm">
+                            <div 
+                                key={idx} 
+                                className="flex items-center justify-between p-4 rounded-xl bg-slate-50 hover:bg-white transition-all border border-slate-100 hover:border-slate-200 shadow-sm group"
+                            >
                                 <div className="flex items-center gap-4 min-w-0">
                                     <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black shadow-sm flex-shrink-0 ${idx === 0 ? 'bg-gradient-to-br from-amber-300 to-amber-500 text-white' : 'bg-white border border-slate-200 text-slate-500'}`}>
                                         {idx + 1}
                                     </div>
                                     <div className="min-w-0">
-                                        <p className="text-[10px] font-extrabold text-[#003DA5] truncate bg-blue-50/50 px-1.5 rounded w-fit mb-0.5 border border-blue-100/50">{prod.code}</p>
+                                        <p className="text-[10px] font-extrabold text-[#003DA5] truncate bg-blue-50 px-1.5 rounded w-fit mb-0.5 border border-blue-100">{prod.code}</p>
                                         <p className="text-xs font-bold text-slate-700 line-clamp-1 leading-tight group-hover:text-slate-900" title={prod.name}>{prod.name}</p>
                                     </div>
                                 </div>
@@ -884,8 +856,8 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
             {/* --- DETAILS MODALS --- */}
             {showDistributorModal && (
                 <DataModal title="Thống kê Nhà Phân Phối" onClose={() => setShowDistributorModal(false)}>
-                    <table className="min-w-full divide-y divide-slate-200/50">
-                        <thead className="bg-slate-50/80 backdrop-blur sticky top-0 z-10">
+                    <table className="min-w-full divide-y divide-slate-200">
+                        <thead className="bg-slate-50 sticky top-0 z-10">
                             <tr>
                                 <th className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider w-16">STT</th>
                                 <th className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Nhà Phân Phối</th>
@@ -894,9 +866,9 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
                                 <th className="px-6 py-3 text-center text-xs font-bold text-emerald-600 uppercase tracking-wider w-32">SL Đổi</th>
                             </tr>
                         </thead>
-                        <tbody className="bg-transparent divide-y divide-slate-100/50">
+                        <tbody className="bg-white divide-y divide-slate-100">
                             {distributorStats.map((item, idx) => (
-                                <tr key={idx} className="hover:bg-blue-50/30 transition-colors">
+                                <tr key={idx} className="hover:bg-blue-50 transition-colors">
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-500 text-center">{idx + 1}</td>
                                     <td className="px-6 py-4 text-sm font-bold text-slate-800">{item.name}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-slate-700 text-center">{item.reportCount}</td>
@@ -911,8 +883,8 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
 
             {showProductModal && (
                 <DataModal title="Thống kê theo Sản Phẩm (SKU)" onClose={() => setShowProductModal(false)}>
-                    <table className="min-w-full divide-y divide-slate-200/50">
-                        <thead className="bg-slate-50/80 backdrop-blur sticky top-0 z-10">
+                    <table className="min-w-full divide-y divide-slate-200">
+                        <thead className="bg-slate-50 sticky top-0 z-10">
                             <tr>
                                 <th className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider w-16">STT</th>
                                 <th className="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider w-32">Mã SP</th>
@@ -921,9 +893,9 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
                                 <th className="px-6 py-3 text-center text-xs font-bold text-emerald-600 uppercase tracking-wider w-32">SL Đổi</th>
                             </tr>
                         </thead>
-                        <tbody className="bg-transparent divide-y divide-slate-100/50">
+                        <tbody className="bg-white divide-y divide-slate-100">
                             {productStats.map((item, idx) => (
-                                <tr key={idx} className="hover:bg-blue-50/30 transition-colors">
+                                <tr key={idx} className="hover:bg-blue-50 transition-colors">
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-500 text-center">{idx + 1}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-[#003DA5]">{item.code}</td>
                                     <td className="px-6 py-4 text-sm font-medium text-slate-800">{item.name}</td>
@@ -938,7 +910,7 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
 
             {showBrandStatsModal && (
                 <DataModal title="Chi tiết Thống kê Nhãn hàng" onClose={() => setShowBrandStatsModal(false)}>
-                    <div className="p-6 space-y-8 bg-slate-50/30">
+                    <div className="p-6 space-y-8 bg-slate-50">
                         {/* 1. Brand Selector Cards */}
                         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                             {/* All Card */}
@@ -956,7 +928,7 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
                                 <div className="mt-2 w-full">
                                     <div className="flex justify-between items-end">
                                         <p className="text-2xl font-black text-slate-800">{metrics.totalReports}</p>
-                                        <span className="text-[10px] font-bold text-slate-500 bg-white/60 px-2 py-0.5 rounded shadow-sm border border-slate-100">Tổng phiếu</span>
+                                        <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded shadow-sm border border-slate-200">Tổng phiếu</span>
                                     </div>
                                     <div className="mt-2 h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
                                         <div className="h-full bg-indigo-500 w-full"></div>
@@ -993,7 +965,7 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
                                                     <p className="text-2xl font-black text-slate-800">{stat.reportCount}</p>
                                                     <span className="text-xs font-bold text-slate-400">/ {stat.skuCount} SKU</span>
                                                 </div>
-                                                <span className="text-[10px] font-bold text-slate-500 bg-white/60 px-2 py-0.5 rounded shadow-sm border border-slate-100">{stat.pctTotal.toFixed(0)}%</span>
+                                                <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded shadow-sm border border-slate-200">{stat.pctTotal.toFixed(0)}%</span>
                                             </div>
                                             <div className="mt-2 flex items-center gap-2">
                                                 <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
@@ -1095,7 +1067,7 @@ const DashboardReport: React.FC<Props> = ({ reports, onFilterSelect, onSelectRep
 
                             {/* Right: Top Products & Insights */}
                             <div className="lg:col-span-4 space-y-6">
-                                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm h-full">
+                                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm h-full" style={{ animationDelay: '100ms' }}>
                                     <h4 className="text-sm font-bold text-slate-700 mb-4 flex items-center gap-2">
                                         <ExclamationCircleIcon className="w-4 h-4 text-orange-500"/>
                                         {selectedBrandDetail === 'All' ? 'Top Sản phẩm (Chung)' : `Top Sản phẩm (${selectedBrandDetail})`}

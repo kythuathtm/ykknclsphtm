@@ -43,9 +43,9 @@ const Toast: React.FC<ToastProps> = ({ message, type, onClose }) => {
   }, [onClose]);
 
   const config = {
-    success: { bg: 'bg-green-500/90 backdrop-blur-md', icon: '✅' },
-    error: { bg: 'bg-red-500/90 backdrop-blur-md', icon: '❌' },
-    info: { bg: 'bg-blue-500/90 backdrop-blur-md', icon: 'ℹ️' },
+    success: { bg: 'bg-green-500/90 backdrop-blur-sm', icon: '✅' },
+    error: { bg: 'bg-red-500/90 backdrop-blur-sm', icon: '❌' },
+    info: { bg: 'bg-blue-500/90 backdrop-blur-sm', icon: 'ℹ️' },
   };
 
   const { bg, icon } = config[type];
@@ -373,7 +373,7 @@ export const App: React.FC = () => {
             {!currentUser ? (
                 <Login onLogin={login} users={users} settings={systemSettings} />
             ) : (
-                <>
+                <div className="flex flex-col h-full w-full animate-fade-in">
                     <Header 
                         currentUser={currentUser}
                         systemSettings={systemSettings}
@@ -450,90 +450,94 @@ export const App: React.FC = () => {
 
                     <main className="flex-1 relative z-10 overflow-hidden flex flex-col">
                         {currentView === 'dashboard' && canViewDashboard ? (
-                            <DashboardReport 
-                                reports={dashboardReports}
-                                onFilterSelect={(type, val) => {
-                                    if(type === 'status' && val) setStatusFilter(val);
-                                    if(type === 'defectType' && val) setDefectTypeFilter(val);
-                                    if(type === 'month' && val) { /* handle month filter */ }
-                                    if(type === 'all') { setStatusFilter('All'); setDefectTypeFilter('All'); setSearchTerm(''); }
-                                    if(type === 'overdue') setIsOverdueFilter(true);
-                                    setCurrentView('list');
-                                }}
-                                onSelectReport={setSelectedReport}
-                                onOpenAiAnalysis={() => setIsChatOpen(true)}
-                                isLoading={isLoadingReports}
-                                currentUser={currentUser}
-                                systemSettings={systemSettings}
-                            />
+                            <div className="h-full w-full animate-fade-in">
+                                <DashboardReport 
+                                    reports={dashboardReports}
+                                    onFilterSelect={(type, val) => {
+                                        if(type === 'status' && val) setStatusFilter(val);
+                                        if(type === 'defectType' && val) setDefectTypeFilter(val);
+                                        if(type === 'month' && val) { /* handle month filter */ }
+                                        if(type === 'all') { setStatusFilter('All'); setDefectTypeFilter('All'); setSearchTerm(''); }
+                                        if(type === 'overdue') setIsOverdueFilter(true);
+                                        setCurrentView('list');
+                                    }}
+                                    onSelectReport={setSelectedReport}
+                                    onOpenAiAnalysis={() => setIsChatOpen(true)}
+                                    isLoading={isLoadingReports}
+                                    currentUser={currentUser}
+                                    systemSettings={systemSettings}
+                                />
+                            </div>
                         ) : (
-                            <DefectReportList 
-                                reports={currentReports}
-                                totalReports={filteredReports.length}
-                                currentPage={currentPage}
-                                itemsPerPage={itemsPerPage}
-                                onPageChange={setCurrentPage}
-                                onItemsPerPageChange={setItemsPerPage}
-                                selectedReport={selectedReport}
-                                onSelectReport={setSelectedReport}
-                                onDelete={deleteReport}
-                                currentUserRole={currentUser.role}
-                                currentUsername={currentUser.username}
-                                filters={{ searchTerm, statusFilter, defectTypeFilter, yearFilter, dateFilter, isOverdue: isOverdueFilter }}
-                                onSearchTermChange={setSearchTerm}
-                                onStatusFilterChange={setStatusFilter}
-                                onDefectTypeFilterChange={setDefectTypeFilter}
-                                onYearFilterChange={setYearFilter}
-                                onDateFilterChange={setDateFilter}
-                                onOverdueFilterChange={setIsOverdueFilter}
-                                summaryStats={summaryStats}
-                                isLoading={isLoadingReports}
-                                onExport={() => {
-                                    const exportData = filteredReports.map(r => ({
-                                        "Mã phiếu": r.id,
-                                        "Ngày phản ánh": formatDateForExport(r.ngayPhanAnh),
-                                        "Trạng thái": r.trangThai,
-                                        "Mã SP": r.maSanPham,
-                                        "Tên thương mại": r.tenThuongMai,
-                                        "Tên thiết bị": r.tenThietBi,
-                                        "Dòng SP": r.dongSanPham,
-                                        "Nhãn hàng": r.nhanHang,
-                                        "Số lô": r.soLo,
-                                        "Hạn dùng": formatDateForExport(r.hanDung),
-                                        "ĐVT": r.donViTinh,
-                                        "Nhà phân phối": r.nhaPhanPhoi,
-                                        "Đơn vị sử dụng": r.donViSuDung,
-                                        "Nội dung phản ánh": r.noiDungPhanAnh,
-                                        "Nguyên nhân": r.nguyenNhan,
-                                        "Hướng khắc phục": r.huongKhacPhuc,
-                                        "SL Lỗi": r.soLuongLoi,
-                                        "SL Đổi": r.soLuongDoi,
-                                        "Ngày đổi": formatDateForExport(r.ngayDoiHang),
-                                        "Mã vận đơn": r.maVanDon,
-                                        "Ngày hoàn thành": formatDateForExport(r.ngayHoanThanh),
-                                        "Nguồn gốc lỗi": r.loaiLoi,
-                                        "Mức độ ưu tiên": r.mucDoUuTien
-                                    }));
-                                    const ws = xlsxLib.utils.json_to_sheet(exportData);
-                                    const wb = xlsxLib.utils.book_new();
-                                    xlsxLib.utils.book_append_sheet(wb, ws, "DanhSachKhieuNai");
-                                    xlsxLib.writeFile(wb, "DanhSachKhieuNai.xlsx");
-                                }}
-                                onDuplicate={(r) => { 
-                                    const { id, ...rest } = r;
-                                    setEditingReport({ ...rest, id: `new_${Date.now()}` } as DefectReport);
-                                    setIsFormOpen(true);
-                                }}
-                                sortConfig={sortConfig}
-                                onSort={(key) => setSortConfig(prev => ({ key, direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc' }))}
-                            />
+                            <div className="h-full w-full animate-fade-in">
+                                <DefectReportList 
+                                    reports={currentReports}
+                                    totalReports={filteredReports.length}
+                                    currentPage={currentPage}
+                                    itemsPerPage={itemsPerPage}
+                                    onPageChange={setCurrentPage}
+                                    onItemsPerPageChange={setItemsPerPage}
+                                    selectedReport={selectedReport}
+                                    onSelectReport={setSelectedReport}
+                                    onDelete={deleteReport}
+                                    currentUserRole={currentUser.role}
+                                    currentUsername={currentUser.username}
+                                    filters={{ searchTerm, statusFilter, defectTypeFilter, yearFilter, dateFilter, isOverdue: isOverdueFilter }}
+                                    onSearchTermChange={setSearchTerm}
+                                    onStatusFilterChange={setStatusFilter}
+                                    onDefectTypeFilterChange={setDefectTypeFilter}
+                                    onYearFilterChange={setYearFilter}
+                                    onDateFilterChange={setDateFilter}
+                                    onOverdueFilterChange={setIsOverdueFilter}
+                                    summaryStats={summaryStats}
+                                    isLoading={isLoadingReports}
+                                    onExport={() => {
+                                        const exportData = filteredReports.map(r => ({
+                                            "Mã phiếu": r.id,
+                                            "Ngày phản ánh": formatDateForExport(r.ngayPhanAnh),
+                                            "Trạng thái": r.trangThai,
+                                            "Mã SP": r.maSanPham,
+                                            "Tên thương mại": r.tenThuongMai,
+                                            "Tên thiết bị": r.tenThietBi,
+                                            "Dòng SP": r.dongSanPham,
+                                            "Nhãn hàng": r.nhanHang,
+                                            "Số lô": r.soLo,
+                                            "Hạn dùng": formatDateForExport(r.hanDung),
+                                            "ĐVT": r.donViTinh,
+                                            "Nhà phân phối": r.nhaPhanPhoi,
+                                            "Đơn vị sử dụng": r.donViSuDung,
+                                            "Nội dung phản ánh": r.noiDungPhanAnh,
+                                            "Nguyên nhân": r.nguyenNhan,
+                                            "Hướng khắc phục": r.huongKhacPhuc,
+                                            "SL Lỗi": r.soLuongLoi,
+                                            "SL Đổi": r.soLuongDoi,
+                                            "Ngày đổi": formatDateForExport(r.ngayDoiHang),
+                                            "Mã vận đơn": r.maVanDon,
+                                            "Ngày hoàn thành": formatDateForExport(r.ngayHoanThanh),
+                                            "Nguồn gốc lỗi": r.loaiLoi,
+                                            "Mức độ ưu tiên": r.mucDoUuTien
+                                        }));
+                                        const ws = xlsxLib.utils.json_to_sheet(exportData);
+                                        const wb = xlsxLib.utils.book_new();
+                                        xlsxLib.utils.book_append_sheet(wb, ws, "DanhSachKhieuNai");
+                                        xlsxLib.writeFile(wb, "DanhSachKhieuNai.xlsx");
+                                    }}
+                                    onDuplicate={(r) => { 
+                                        const { id, ...rest } = r;
+                                        setEditingReport({ ...rest, id: `new_${Date.now()}` } as DefectReport);
+                                        setIsFormOpen(true);
+                                    }}
+                                    sortConfig={sortConfig}
+                                    onSort={(key) => setSortConfig(prev => ({ key, direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc' }))}
+                                />
+                            </div>
                         )}
                     </main>
 
                     {selectedReport && (
                         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 pointer-events-none">
                             <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm pointer-events-auto transition-opacity" onClick={() => setSelectedReport(null)}></div>
-                            <div className="w-full max-w-5xl h-full max-h-[95vh] bg-white shadow-2xl pointer-events-auto animate-zoom-in overflow-hidden flex flex-col rounded-2xl ring-1 ring-white/20">
+                            <div className="w-full max-w-5xl h-full max-h-[95vh] bg-white shadow-2xl pointer-events-auto animate-dialog-enter overflow-hidden flex flex-col rounded-2xl ring-1 ring-white/20">
                                 <DefectReportDetail 
                                     report={selectedReport}
                                     onEdit={(r) => { setSelectedReport(null); setEditingReport(r); setIsFormOpen(true); }}
@@ -633,7 +637,7 @@ export const App: React.FC = () => {
                     <div className="sm:hidden">
                         <DraggableFAB onClick={() => { setEditingReport(null); setIsFormOpen(true); }} />
                     </div>
-                </>
+                </div>
             )}
             
             {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
