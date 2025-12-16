@@ -449,8 +449,9 @@ export const App: React.FC = () => {
                     }} />
 
                     <main className="flex-1 relative z-10 overflow-hidden flex flex-col">
-                        {currentView === 'dashboard' && canViewDashboard ? (
-                            <div className="h-full w-full animate-fade-in">
+                        {/* Using key to force remount and trigger animation on view switch */}
+                        <div key={currentView} className="h-full w-full view-transition-enter">
+                            {currentView === 'dashboard' && canViewDashboard ? (
                                 <DashboardReport 
                                     reports={dashboardReports}
                                     onFilterSelect={(type, val) => {
@@ -467,9 +468,7 @@ export const App: React.FC = () => {
                                     currentUser={currentUser}
                                     systemSettings={systemSettings}
                                 />
-                            </div>
-                        ) : (
-                            <div className="h-full w-full animate-fade-in">
+                            ) : (
                                 <DefectReportList 
                                     reports={currentReports}
                                     totalReports={filteredReports.length}
@@ -530,8 +529,8 @@ export const App: React.FC = () => {
                                     sortConfig={sortConfig}
                                     onSort={(key) => setSortConfig(prev => ({ key, direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc' }))}
                                 />
-                            </div>
-                        )}
+                            )}
+                        </div>
                     </main>
 
                     {selectedReport && (

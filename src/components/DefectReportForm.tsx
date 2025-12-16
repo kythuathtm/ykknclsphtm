@@ -406,10 +406,10 @@ const DefectReportForm: React.FC<Props> = ({ initialData, onSave, onClose, curre
                     </div>
                 </div>
 
-                {/* 3. Status & Classification */}
+                {/* 3. Tracking & Processing Info (Renamed) */}
                 <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
                     <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wide mb-4 flex items-center gap-2">
-                        <ClipboardDocumentListIcon className="w-4 h-4 text-purple-500" /> Trạng thái & Phân loại
+                        <ClipboardDocumentListIcon className="w-4 h-4 text-purple-500" /> Thông tin Theo dõi & Xử lý
                     </h3>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">

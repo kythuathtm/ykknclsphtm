@@ -32,7 +32,7 @@ export interface Product {
 
 export interface Customer {
   maKhachHang: string;
-  tenKhachHang: string;
+  tenKhachHang: string; // Tên công ty / NPP
   tinhThanh: string;
   diaChi?: string;
   nguoiLienHe?: string;

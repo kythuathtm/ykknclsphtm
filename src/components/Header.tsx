@@ -166,7 +166,7 @@ export const Header: React.FC<HeaderProps> = ({
     <header 
         className="backdrop-blur-xl border-b border-white/40 sticky top-0 z-40 transition-all shadow-[0_4px_30px_rgba(0,0,0,0.03)]"
         style={{
-            backgroundColor: systemSettings.headerBackgroundColor || 'rgba(255, 255, 255, 0.6)',
+            backgroundColor: systemSettings.headerBackgroundColor || 'rgba(255, 255, 255, 0.85)',
             color: systemSettings.headerTextColor || '#0f172a',
             fontFamily: 'var(--header-font, inherit)'
         }}

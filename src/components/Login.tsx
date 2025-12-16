@@ -72,19 +72,19 @@ const Login: React.FC<Props> = ({ onLogin, users, settings }) => {
           return (
             <div className="absolute inset-0 overflow-hidden pointer-events-none select-none">
                  <div className="absolute inset-0 bg-cover bg-center z-0 animate-pulse-slow transition-transform duration-[60s] hover:scale-110 ease-linear" style={{ backgroundImage: `url(${settings.backgroundValue})`, transform: 'scale(1.1)' }}></div>
-                 <div className="absolute inset-0 bg-sky-900/20 backdrop-blur-[2px]"></div>
+                 <div className="absolute inset-0 bg-sky-900/30 backdrop-blur-[4px]"></div>
             </div>
           );
       }
       if (settings.backgroundType === 'color' && settings.backgroundValue) {
           return <div className="absolute inset-0 overflow-hidden pointer-events-none" style={{ backgroundColor: settings.backgroundValue }}></div>;
       }
-      // Light Blue / Airy Gradient Background
+      // Sophisticated Mesh Gradient
       return (
        <div className="absolute inset-0 overflow-hidden pointer-events-none bg-slate-50">
-          <div className="absolute top-[-10%] left-[-10%] w-[60vw] h-[60vw] bg-sky-200/40 rounded-full blur-[100px]"></div>
-          <div className="absolute bottom-[-10%] right-[-10%] w-[60vw] h-[60vw] bg-blue-200/30 rounded-full blur-[100px]"></div>
-          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.03]"></div>
+          <div className="absolute top-[-10%] left-[-10%] w-[60vw] h-[60vw] bg-purple-400/30 rounded-full blur-[120px] mix-blend-multiply animate-pulse-slow"></div>
+          <div className="absolute bottom-[-10%] right-[-10%] w-[60vw] h-[60vw] bg-blue-400/30 rounded-full blur-[120px] mix-blend-multiply animate-pulse-slow" style={{ animationDelay: '2s' }}></div>
+          <div className="absolute top-[40%] left-[40%] w-[40vw] h-[40vw] bg-pink-300/30 rounded-full blur-[100px] mix-blend-multiply animate-pulse-slow" style={{ animationDelay: '4s' }}></div>
        </div>
       );
   }
@@ -93,68 +93,69 @@ const Login: React.FC<Props> = ({ onLogin, users, settings }) => {
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden text-slate-800 font-sans selection:bg-sky-200 selection:text-blue-900 p-4 sm:p-6 transition-colors">
        {renderBackground()}
        
-       <div className={`relative z-10 w-full max-w-5xl transition-all duration-1000 ease-out transform ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`}>
+       <div className={`relative z-10 w-full max-w-5xl transition-all duration-1000 ease-out transform ${isLoaded ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-12 scale-95'}`}>
         
-        {/* Main Glass Card - 50/50 Split */}
-        <div className="bg-white/10 backdrop-blur-sm rounded-[2rem] shadow-[0_20px_60px_-15px_rgba(14,165,233,0.15)] border border-white/40 overflow-hidden flex flex-col md:flex-row min-h-[600px] ring-1 ring-white/50">
+        {/* Main Mirror Card */}
+        <div className="glass-mirror rounded-[2.5rem] overflow-hidden flex flex-col md:flex-row min-h-[600px] shadow-[0_30px_60px_-10px_rgba(0,0,0,0.3)]">
             
-            {/* Left Side: Brand (Sky Blue Gradient) */}
-            <div className="md:w-1/2 relative overflow-hidden flex flex-col items-center justify-center p-12 text-center bg-gradient-to-br from-sky-400 to-blue-600 text-white">
+            {/* Left Side: Brand */}
+            <div className="md:w-1/2 relative overflow-hidden flex flex-col items-center justify-center p-12 text-center text-white">
                 
-                {/* Decorative Elements */}
-                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 mix-blend-overlay"></div>
-                <div className="absolute top-0 right-0 w-64 h-64 bg-white/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
-                <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-500/20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2"></div>
+                {/* Dynamic Gradient Background for Left Side */}
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 opacity-90"></div>
+                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20 mix-blend-overlay"></div>
+                
+                {/* Glowing Orbs */}
+                <div className="absolute top-10 left-10 w-32 h-32 bg-white/20 rounded-full blur-3xl"></div>
+                <div className="absolute bottom-10 right-10 w-32 h-32 bg-purple-400/30 rounded-full blur-3xl"></div>
 
                 <div className="relative z-10 flex flex-col items-center animate-fade-in-up" style={{ animationDelay: '200ms' }}>
                     {/* Glass Logo Box */}
-                    <div className="w-40 h-40 bg-white/10 backdrop-blur-md rounded-[2rem] flex items-center justify-center shadow-xl border border-white/30 mb-8 ring-1 ring-white/20 group hover:scale-105 transition-transform duration-500">
+                    <div className="w-40 h-40 glass-panel rounded-[2rem] flex items-center justify-center shadow-2xl mb-8 group hover:scale-105 transition-transform duration-500 relative">
+                         <div className="absolute inset-0 bg-white/10 rounded-[2rem] blur-sm"></div>
                          {settings.logoUrl ? (
-                            <img src={settings.logoUrl} alt="Logo" className="w-28 h-28 object-contain drop-shadow-lg" />
+                            <img src={settings.logoUrl} alt="Logo" className="w-28 h-28 object-contain drop-shadow-xl relative z-10" />
                          ) : (
-                            <CompanyLogo className="w-24 h-24 text-white drop-shadow-lg" />
+                            <CompanyLogo className="w-24 h-24 text-white drop-shadow-xl relative z-10" />
                          )}
                     </div>
 
-                    <h1 className="text-2xl font-black uppercase tracking-tight leading-snug mb-4 text-shadow-sm px-4">
+                    <h1 className="text-3xl font-black uppercase tracking-tight leading-snug mb-4 text-shadow-sm px-4 drop-shadow-lg">
                         {settings.companyName || 'CÔNG TY CỔ PHẦN VẬT TƯ Y TẾ HỒNG THIỆN MỸ'}
                     </h1>
-                    <div className="w-16 h-1 bg-white/40 rounded-full mb-6"></div>
-                    <p className="text-blue-50 text-sm font-medium opacity-95 max-w-xs leading-relaxed tracking-wide">
+                    <div className="w-20 h-1.5 bg-white/40 rounded-full mb-6 backdrop-blur-md shadow-sm"></div>
+                    <p className="text-blue-50 text-sm font-semibold opacity-90 max-w-xs leading-relaxed tracking-wide drop-shadow-md bg-white/10 px-4 py-2 rounded-xl backdrop-blur-sm border border-white/10">
                         {settings.appName || 'Hệ thống Quản lý Chất lượng (QMS)'}
                     </p>
                 </div>
                 
-                <div className="mt-auto relative z-10 opacity-50 text-[10px] uppercase tracking-[0.2em] font-bold pt-8 text-blue-50">
+                <div className="mt-auto relative z-10 opacity-70 text-[10px] uppercase tracking-[0.3em] font-bold pt-8 text-blue-100 drop-shadow">
                     Trusted System
                 </div>
             </div>
 
-            {/* Right Side: Form (Frosted Glass Effect) */}
-            <div className="md:w-1/2 p-10 sm:p-16 flex flex-col justify-center relative bg-white/30 backdrop-blur-xl border-l border-white/20">
+            {/* Right Side: Form */}
+            <div className="md:w-1/2 p-10 sm:p-16 flex flex-col justify-center relative bg-white/40 backdrop-blur-md">
                 
-                {/* Internal shine/highlight */}
-                <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-white/40 via-transparent to-transparent pointer-events-none"></div>
-
                 <div className="max-w-[340px] mx-auto w-full relative z-10 animate-fade-in-up" style={{ animationDelay: '100ms' }}>
                     
                     <div className="mb-10 text-center md:text-left">
-                        <h2 className="text-3xl font-bold text-slate-800 mb-2 tracking-tight">Xin chào,</h2>
-                        <p className="text-slate-500 font-medium">Vui lòng đăng nhập để tiếp tục.</p>
+                        <h2 className="text-3xl font-black text-slate-800 mb-2 tracking-tight drop-shadow-sm">Xin chào,</h2>
+                        <p className="text-slate-600 font-medium">Vui lòng đăng nhập để tiếp tục.</p>
                     </div>
 
                     {error && (
-                        <div className="mb-6 p-3.5 bg-red-50/80 backdrop-blur-sm border border-red-100 rounded-xl flex items-start gap-3 text-red-600 text-xs font-bold animate-shake shadow-sm">
+                        <div className="mb-6 p-4 glass-panel bg-red-50/50 border-red-200 rounded-xl flex items-start gap-3 text-red-600 text-xs font-bold animate-shake shadow-lg">
                             <svg className="w-4 h-4 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
                             <span>{error}</span>
                         </div>
                     )}
 
-                    <form onSubmit={handleSubmit} className="space-y-5">
+                    <form onSubmit={handleSubmit} className="space-y-6">
                         <div className="space-y-2">
-                            <label className="text-xs font-bold text-slate-600 uppercase tracking-wide ml-1">Tài khoản</label>
+                            <label className="text-xs font-bold text-slate-700 uppercase tracking-wide ml-1">Tài khoản</label>
                             <div className="relative group">
-                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-600 transition-colors">
+                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-500 group-focus-within:text-blue-600 transition-colors z-10">
                                     <UserIcon className="h-5 w-5" />
                                 </div>
                                 <input
@@ -162,29 +163,29 @@ const Login: React.FC<Props> = ({ onLogin, users, settings }) => {
                                     type="text"
                                     value={username}
                                     onChange={(e) => setUsername(e.target.value)}
-                                    className="block w-full pl-11 pr-4 py-3.5 bg-white/70 border border-white/50 rounded-xl text-sm font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-sm hover:bg-white/90"
+                                    className="block w-full pl-11 pr-4 py-4 bg-white/60 backdrop-blur-sm border border-white/50 rounded-xl text-sm font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white/90 focus:ring-4 focus:ring-blue-500/20 focus:border-blue-400 transition-all shadow-inner hover:bg-white/80"
                                     placeholder="Tên đăng nhập"
                                 />
                             </div>
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-xs font-bold text-slate-600 uppercase tracking-wide ml-1">Mật khẩu</label>
+                            <label className="text-xs font-bold text-slate-700 uppercase tracking-wide ml-1">Mật khẩu</label>
                             <div className="relative group">
-                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-600 transition-colors">
+                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-500 group-focus-within:text-blue-600 transition-colors z-10">
                                     <LockClosedIcon className="h-5 w-5" />
                                 </div>
                                 <input
                                     type={showPassword ? "text" : "password"}
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    className="block w-full pl-11 pr-12 py-3.5 bg-white/70 border border-white/50 rounded-xl text-sm font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-sm hover:bg-white/90"
+                                    className="block w-full pl-11 pr-12 py-4 bg-white/60 backdrop-blur-sm border border-white/50 rounded-xl text-sm font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white/90 focus:ring-4 focus:ring-blue-500/20 focus:border-blue-400 transition-all shadow-inner hover:bg-white/80"
                                     placeholder="••••••••"
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 transition-colors focus:outline-none active:scale-90"
+                                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 transition-colors focus:outline-none active:scale-90 z-10"
                                 >
                                     {showPassword ? <EyeSlashIcon className="h-5 w-5" /> : <EyeIcon className="h-5 w-5" />}
                                 </button>
@@ -199,7 +200,7 @@ const Login: React.FC<Props> = ({ onLogin, users, settings }) => {
                                     type="checkbox"
                                     checked={rememberMe}
                                     onChange={(e) => setRememberMe(e.target.checked)}
-                                    className="w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500 cursor-pointer transition-transform group-active:scale-95 accent-blue-600"
+                                    className="w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500 cursor-pointer transition-transform group-active:scale-95 accent-blue-600 bg-white/50"
                                 />
                                 <span className="ml-2.5 text-xs font-bold text-slate-600 group-hover:text-blue-700 transition-colors">Ghi nhớ</span>
                             </label>
@@ -212,10 +213,10 @@ const Login: React.FC<Props> = ({ onLogin, users, settings }) => {
                         <button
                             type="submit"
                             disabled={loading}
-                            className={`w-full py-3.5 px-4 rounded-xl text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-500/30 transition-all shadow-lg shadow-blue-500/30 active:scale-[0.98] flex justify-center items-center group relative overflow-hidden mt-4 ${loading ? 'cursor-not-allowed opacity-80' : ''}`}
+                            className={`w-full py-4 px-4 rounded-2xl text-sm font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-4 focus:ring-blue-500/30 transition-all shadow-xl shadow-blue-500/30 active:scale-[0.98] flex justify-center items-center group relative overflow-hidden mt-6 border border-white/20 ${loading ? 'cursor-not-allowed opacity-80' : ''}`}
                         >
                             {/* Shiny effect */}
-                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 ease-in-out"></div>
+                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 ease-in-out"></div>
                             
                             {loading ? (
                                 <span className="flex items-center gap-2 relative z-10">
@@ -226,8 +227,8 @@ const Login: React.FC<Props> = ({ onLogin, users, settings }) => {
                                     Đang xử lý...
                                 </span>
                             ) : (
-                                <span className="flex items-center gap-2 relative z-10 tracking-wide">
-                                    ĐĂNG NHẬP <ArrowRightIcon className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                                <span className="flex items-center gap-2 relative z-10 tracking-wide uppercase">
+                                    Đăng nhập <ArrowRightIcon className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
                                 </span>
                             )}
                         </button>

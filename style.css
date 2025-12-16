@@ -24,16 +24,20 @@ body {
   font-family: var(--app-font);
   line-height: 1.5;
   color: #1e293b;              /* Slate 800 */
-  background-color: #f8fafc;   /* Slate 50 base */
+  background-color: #f0f4f8;   /* Light Blue-Grey base */
   
-  /* Optimized Gradient - Static background helps performance */
+  /* Modern Mesh Gradient Background - More Vibrant */
   background-image: 
-    radial-gradient(at 0% 0%, hsla(215, 100%, 96%, 1) 0, transparent 50%), 
-    radial-gradient(at 100% 100%, hsla(215, 100%, 96%, 1) 0, transparent 50%);
-    
-  background-attachment: fixed;
+    radial-gradient(at 0% 0%, hsla(210,100%,96%,1) 0, transparent 50%), 
+    radial-gradient(at 50% 0%, hsla(220,100%,94%,1) 0, transparent 50%), 
+    radial-gradient(at 100% 0%, hsla(260,100%,96%,1) 0, transparent 50%),
+    radial-gradient(at 0% 100%, hsla(190,100%,96%,1) 0, transparent 50%),
+    radial-gradient(at 100% 100%, hsla(280,100%,96%,1) 0, transparent 50%),
+    radial-gradient(at 50% 50%, hsla(240,100%,98%,1) 0, transparent 50%);
   background-size: cover;
-  
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+
   /* Rendering Optimization */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -45,14 +49,26 @@ body {
 
 /* Reduced animation complexity for performance */
 .animate-fade-in-up, .animate-pop, .animate-zoom-in, .animate-fade-in, .animate-slide-up, .animate-slide-in-right {
-  /* Only animate simple properties */
   will-change: transform, opacity;
 }
 
-/* Optimize heavy components */
-.glass-panel, .glass-card, .backdrop-blur-md, .backdrop-blur-xl {
-    /* Trigger hardware acceleration but use cautiously */
-    transform: translate3d(0, 0, 0); 
+/* --- VIEW TRANSITIONS (NEW) --- */
+.view-transition-enter {
+  animation: viewEnter 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  will-change: transform, opacity, filter;
+}
+
+@keyframes viewEnter {
+  0% {
+    opacity: 0;
+    transform: scale(0.98) translateY(12px);
+    filter: blur(4px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    filter: blur(0);
+  }
 }
 
 /* --- Modern Scrollbar Styling --- */
@@ -66,7 +82,7 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: var(--sb-thumb);
+  background-color: rgba(203, 213, 225, 0.6);
   border: 2px solid transparent; 
   border-radius: 99px;
   background-clip: content-box;
@@ -74,7 +90,7 @@ body {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background-color: var(--sb-thumb-hover);
+  background-color: rgba(148, 163, 184, 0.8);
 }
 
 /* --- Utilities --- */
@@ -104,17 +120,43 @@ input, button, textarea, select {
   letter-spacing: inherit;
 }
 
-/* Optimized Glassmorphism - Removed heavy blur for better scroll performance */
+/* --- GLASSMORPHISM UTILITIES --- */
+
+/* 1. Heavy Glass (For Modals/Cards) */
 .glass-panel {
-  background: rgba(255, 255, 255, 0.95); 
-  border: 1px solid rgba(226, 232, 240, 0.8);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 
+    0 4px 20px -2px rgba(0, 0, 0, 0.05),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.4);
 }
 
+/* 2. Light Glass (For Hover states / Inner elements) */
 .glass-card {
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(226, 232, 240, 0.8);
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+}
+
+/* 3. Mirror Effect (High reflection) */
+.glass-mirror {
+  background: linear-gradient(
+    135deg, 
+    rgba(255, 255, 255, 0.9) 0%, 
+    rgba(255, 255, 255, 0.4) 100%
+  );
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-top: 1px solid rgba(255, 255, 255, 0.9);
+  border-left: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 
+    0 20px 40px rgba(0, 0, 0, 0.05),
+    inset 0 0 0 0.5px rgba(255, 255, 255, 0.6);
 }
 
 /* Text Shadow for better contrast on glass */

@@ -42,7 +42,6 @@ const getProcessingDays = (startDate: string, endDate?: string) => {
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 };
 
-// ... DetailRow and SectionCard interfaces remain same but we are updating full file ...
 interface DetailRowProps {
   label: string;
   value: React.ReactNode;
@@ -211,7 +210,6 @@ const StatusStepper = ({ currentStatus, onStepClick, canEdit }: { currentStatus:
     );
 };
 
-// New Date Input for Quick Update
 const QuickDateInput = ({ value, onChange }: { value: string, onChange: (val: string) => void }) => {
     const [type, setType] = useState('text');
     
@@ -387,7 +385,6 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onUpdate, onDelet
         `}
       </style>
       
-      {/* ... (Header and StatusStepper remain same as before) ... */}
       <div className="flex flex-col border-b border-slate-200 bg-white/95 backdrop-blur-xl shadow-sm z-30 sticky top-0 print:hidden flex-shrink-0">
           <div className="flex justify-between items-center px-5 py-3">
             <div className="flex items-center gap-4 min-w-0">
@@ -613,20 +610,10 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onUpdate, onDelet
                                                     )}
                                                 </div>
                                                 <div className="flex flex-col gap-1 items-center w-full">
-                                                    <div className="flex items-center gap-1 mt-0.5 bg-emerald-100/60 px-1.5 py-0.5 rounded-full border border-emerald-200/50 min-h-[20px] print:bg-white print:border-none print:px-0">
-                                                        {report.ngayDoiHang ? (
-                                                            <span className="text-[0.55rem] font-bold text-emerald-800 whitespace-nowrap print:text-black print:text-xs">
-                                                                Ngày đổi: {formatDate(report.ngayDoiHang)}
-                                                            </span>
-                                                        ) : (
-                                                            <span className="text-[0.55rem] text-emerald-600/50 italic print:hidden">--/--/--</span>
-                                                        )}
-                                                    </div>
-                                                    {report.maVanDon && (
-                                                        <div className="flex items-center gap-1 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100">
-                                                            <TruckIcon className="w-3 h-3 text-emerald-600" />
-                                                            <span className="text-[0.55rem] font-bold text-emerald-700">{report.maVanDon}</span>
-                                                        </div>
+                                                    {report.ngayDoiHang && (
+                                                        <span className="text-[0.55rem] font-bold text-emerald-800 whitespace-nowrap print:text-black print:text-xs">
+                                                            Ngày đổi: {formatDate(report.ngayDoiHang)}
+                                                        </span>
                                                     )}
                                                 </div>
                                             </>
@@ -655,6 +642,15 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onUpdate, onDelet
                             }
                         >
                             <div className="space-y-4">
+                                {report.maVanDon && (
+                                    <div className="bg-emerald-50 p-3 rounded-xl border border-emerald-100 mb-4 shadow-sm flex items-center justify-between">
+                                        <span className="text-xs font-bold text-emerald-800 uppercase flex items-center gap-2">
+                                            <TruckIcon className="w-4 h-4"/> Vận đơn đổi trả
+                                        </span>
+                                        <span className="font-mono text-sm font-bold text-emerald-700 bg-white px-2 py-1 rounded border border-emerald-200">{report.maVanDon}</span>
+                                    </div>
+                                )}
+
                                 <div className="space-y-4">
                                     <div className="group flex flex-col">
                                         <div className="flex justify-between items-center mb-1.5">
@@ -788,6 +784,10 @@ const DefectReportDetail: React.FC<Props> = ({ report, onEdit, onUpdate, onDelet
                                                 </span>
                                             </div>
                                         )}
+                                        <div className="flex justify-between items-center pt-2 border-t border-slate-200 print:justify-start print:gap-4">
+                                            <span className="text-[0.65rem] font-bold text-slate-500 uppercase print:text-black">Thời gian xử lý:</span>
+                                            <span className="text-xs font-bold text-slate-700">{daysOpen} ngày</span>
+                                        </div>
                                     </div>
                                 )}
                             </div>
